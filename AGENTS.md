@@ -1,8 +1,17 @@
 # Codex Instructions
 
-This repository contains multiple Processing projects, but this workspace should default to BattleDice.
+## Active Project
+ACTIVE_PROJECT=BattleDice
 
-- Treat `BattleDice/` as the primary project.
-- Unless the user explicitly says otherwise, interpret project questions, edits, searches, tests, and design discussion as referring to `BattleDice/`.
-- Ignore other sibling projects such as `HexDig1_1_2_1` unless they are explicitly mentioned.
-- Prefer reading and editing files under `BattleDice/` first.
+## Projects
+| Folder | Description |
+|--------|-------------|
+| `BattleDice/` | Dice combat game with AI opponents and history graph |
+| `HexDig1_1_2_1/` | Hex-grid digging/exploration game |
+| `StarsRemix/` | New project (description TBD) |
+
+## Rules
+- Treat the folder matching `ACTIVE_PROJECT` as the primary project.
+- Unless the user says otherwise, interpret all questions, edits, searches, and design discussion as referring to that project.
+- Ignore all other sibling project folders unless explicitly mentioned.
+- Prefer reading and editing files under the active project first.

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>StarsRemix</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100dvh;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    letter-spacing: 0.1em;
+    color: #f0c040;
+    text-shadow: 0 0 12px #f0c04066;
+  }
+
+  #status {
+    font-size: 0.95rem;
+    min-height: 1.4em;
+    color: #aaa;
+    text-align: center;
+    transition: color 0.3s;
+  }
+  #status.error { color: #ff6b6b; }
+  #status.win   { color: #6bff9e; font-weight: bold; font-size: 1.1rem; }
+
+  #board-wrap {
+    position: relative;
+  }
+
+  #board {
+    display: grid;
+    gap: 0;
+    border: 3px solid #555;
+    border-radius: 4px;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  .cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: calc(var(--cell-size) * 0.52);
+    position: relative;
+    transition: filter 0.1s;
+  }
+  .cell:active { filter: brightness(1.3); }
+
+  /* Region borders — thick on region boundaries, thin inside */
+  .cell { border: 1px solid rgba(0,0,0,0.25); }
+  .cell.border-top    { border-top:    3px solid #000; }
+  .cell.border-right  { border-right:  3px solid #000; }
+  .cell.border-bottom { border-bottom: 3px solid #000; }
+  .cell.border-left   { border-left:   3px solid #000; }
+
+  .cell-icon {
+    pointer-events: none;
+    line-height: 1;
+    font-size: calc(var(--cell-size) * 0.52);
+  }
+  .state-mark  .cell-icon { color: rgba(0,0,0,0.28); }
+  .state-star  .cell-icon { color: #b07800; text-shadow: 0 0 6px #b0780044; }
+  .error-cell  .cell-icon { color: #cc2222 !important; text-shadow: none !important; }
+
+  #controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  button {
+    background: #2a2a4a;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover:not(:disabled) { background: #3a3a6a; border-color: #888; }
+  button:disabled { opacity: 0.35; cursor: default; }
+
+  #legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: #888;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #legend span { display: flex; align-items: center; gap: 4px; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>★ StarsRemix</h1>
+<div id="status">Place 2 stars in each row, column, and region. Stars may not touch.</div>
+
+<div id="board-wrap">
+  <div id="board"></div>
+</div>
+
+<div id="controls">
+  <button id="btn-undo">Undo</button>
+  <button id="btn-redo">Redo</button>
+  <button id="btn-hint">Hint</button>
+</div>
+
+<div id="legend">
+  <span>Left: <b style="color:rgba(255,255,255,.4)">× → ★ → clear</b></span>
+  <span>Middle: <b style="color:#f0c040">★</b></span>
+  <span>Right: clear</span>
+  <span>Left-drag: spread ×</span>
+</div>
+
+<script src="engine.js"></script>
+<script>
+// ─── Puzzle definition ────────────────────────────────────────────────────────
+// 10×10 board, 10 regions, 2 stars per row/col/region.
+// Regions are labeled 0-9, cell index = row*10 + col.
+//
+// Hand-crafted puzzle. Region map (R=row, C=col), 0-indexed.
+// Each number is the region id for that cell, reading left-to-right, top-to-bottom.
+
+// Puzzle designed by placing stars first, then drawing regions around them.
+// Stars (row,col): (0,0),(0,5),(1,2),(1,7),(2,4),(2,9),(3,1),(3,6),
+//                  (4,3),(4,8),(5,0),(5,5),(6,2),(6,7),(7,4),(7,9),
+//                  (8,1),(8,6),(9,3),(9,8)
+// Each row, col, and region contains exactly 2 stars; no two stars touch.
+const PUZZLE = {
+  size: 10,
+  starsPerGroup: 2,
+  regions: [
+    // row 0
+    0,0,2,2,2,1,1,1,1,1,
+    // row 1
+    0,0,2,2,2,1,1,1,1,1,
+    // row 2
+    0,0,2,2,2,3,3,3,3,3,
+    // row 3
+    0,0,4,4,4,3,3,3,5,3,
+    // row 4
+    4,4,4,4,6,5,5,5,5,5,
+    // row 5
+    4,4,6,6,6,5,5,7,7,7,
+    // row 6
+    8,8,6,6,6,7,7,7,7,7,
+    // row 7
+    8,8,8,8,6,7,7,7,9,7,
+    // row 8
+    8,8,8,8,9,9,9,9,9,9,
+    // row 9
+    8,8,8,8,9,9,9,9,9,9,
+  ],
+  // Pre-computed solution: cell indices (row*10+col) of all 20 stars
+  solution: [0,5,12,17,24,29,31,36,43,48,50,55,62,67,74,79,81,86,93,98],
+};
+
+
+// ─── Region colors — pastel HSL, evenly spaced hues ─────────────────────────
+const REGION_COLORS = Array.from({length: 10}, (_, i) =>
+  `hsl(${Math.round(i * 36)}, 30%, 88%)`
+);
+
+// ─── App state ────────────────────────────────────────────────────────────────
+const { size: N, regions, starsPerGroup: K } = PUZZLE;
+
+// Cycle: 0=empty → 2=mark → 1=star → 0
+const NEXT_STATE = [2, 0, 1];
+
+let cellState; // 0=empty, 1=star, 2=mark
+let solution;
+
+// Undo/redo stacks — each entry is a snapshot of cellState
+let undoStack = [];
+let redoStack = [];
+
+function snapshot() {
+  return cellState.slice();
+}
+
+function pushUndo() {
+  undoStack.push(snapshot());
+  redoStack = [];
+  updateUndoRedoButtons();
+}
+
+function updateUndoRedoButtons() {
+  document.getElementById('btn-undo').disabled = undoStack.length === 0;
+  document.getElementById('btn-redo').disabled = redoStack.length === 0;
+}
+
+function init() {
+  cellState = new Array(N * N).fill(0);
+  undoStack = [];
+  redoStack = [];
+  solution = new Array(N * N).fill(0);
+  for (const idx of PUZZLE.solution) solution[idx] = 1;
+  buildBoard();
+  render();
+  updateUndoRedoButtons();
+}
+
+// ─── Board construction ───────────────────────────────────────────────────────
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Responsive cell size
+  const vw = Math.min(window.innerWidth, window.innerHeight) - 48;
+  const cellSize = Math.floor(Math.min(vw, 560) / N);
+  board.style.setProperty('--cell-size', cellSize + 'px');
+  board.style.gridTemplateColumns = `repeat(${N}, ${cellSize}px)`;
+
+  for (let i = 0; i < N * N; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.idx = i;
+
+    // Region background
+    cell.style.background = REGION_COLORS[regions[i]];
+
+    // Border classes for region boundaries
+    const r = Math.floor(i / N), c = i % N;
+    if (r === 0 || regions[i] !== regions[i - N])       cell.classList.add('border-top');
+    if (c === N-1 || regions[i] !== regions[i + 1])     cell.classList.add('border-right');
+    if (r === N-1 || regions[i] !== regions[i + N])     cell.classList.add('border-bottom');
+    if (c === 0 || regions[i] !== regions[i - 1])       cell.classList.add('border-left');
+
+    const icon = document.createElement('span');
+    icon.className = 'cell-icon';
+    cell.appendChild(icon);
+    board.appendChild(cell);
+  }
+
+  attachInputHandlers(board);
+}
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+// Drag state
+let dragActive = false;      // currently dragging?
+let dragMarkMode = false;    // are we in X-drag mode?
+let dragVisited = new Set(); // cells already painted this drag
+let dragStartState = null;   // snapshot before drag begins
+
+function cellIdxFromEvent(e) {
+  // For touch, resolve coordinates → element; for mouse, walk up from target.
+  let el;
+  if (e.touches) {
+    const t = e.touches[0];
+    el = document.elementFromPoint(t.clientX, t.clientY);
+    el = el?.closest('[data-idx]');
+  } else {
+    el = e.target?.closest('[data-idx]');
+  }
+  return el ? parseInt(el.dataset.idx) : -1;
+}
+
+function attachInputHandlers(board) {
+  // ── Mouse ──────────────────────────────────────────────────────────────────
+  board.addEventListener('contextmenu', e => e.preventDefault());
+
+  board.addEventListener('mousedown', e => {
+    e.preventDefault();
+    const idx = cellIdxFromEvent(e);
+    if (idx < 0) return;
+
+    // Middle-click → star; right-click → clear; left-click → cycle
+    if (e.button === 1) {
+      if (cellState[idx] !== 1) { pushUndo(); cellState[idx] = 1; render(); }
+      return;
+    }
+    if (e.button === 2) {
+      if (cellState[idx] !== 0) { pushUndo(); cellState[idx] = 0; render(); }
+      return;
+    }
+
+    const nextState = NEXT_STATE[cellState[idx]];
+    dragMarkMode = nextState === 2; // only drag-spread when placing an X
+
+    if (dragMarkMode) {
+      dragStartState = snapshot();
+      dragActive = true;
+      dragVisited = new Set([idx]);
+      cellState[idx] = 2;
+      render();
+    } else {
+      pushUndo();
+      cellState[idx] = nextState;
+      render();
+    }
+  });
+
+  board.addEventListener('mousemove', e => {
+    if (!dragActive || !dragMarkMode) return;
+    const idx = cellIdxFromEvent(e);
+    if (idx < 0 || dragVisited.has(idx)) return;
+    dragVisited.add(idx);
+    // Only paint empty cells with X during drag
+    if (cellState[idx] === 0) {
+      cellState[idx] = 2;
+      render();
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (dragActive && dragMarkMode && dragStartState) {
+      undoStack.push(dragStartState);
+      redoStack = [];
+      updateUndoRedoButtons();
+    }
+    dragActive = false;
+    dragMarkMode = false;
+    dragStartState = null;
+    dragVisited.clear();
+  });
+
+  // ── Touch ──────────────────────────────────────────────────────────────────
+  board.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const idx = cellIdxFromEvent(e);
+    if (idx < 0) return;
+
+    const nextState = NEXT_STATE[cellState[idx]];
+    dragMarkMode = nextState === 2;
+
+    if (dragMarkMode) {
+      dragStartState = snapshot();
+      dragActive = true;
+      dragVisited = new Set([idx]);
+      cellState[idx] = 2;
+      render();
+    } else {
+      pushUndo();
+      cellState[idx] = nextState;
+      render();
+    }
+  }, { passive: false });
+
+  board.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!dragActive || !dragMarkMode) return;
+    const idx = cellIdxFromEvent(e);
+    if (idx < 0 || dragVisited.has(idx)) return;
+    dragVisited.add(idx);
+    if (cellState[idx] === 0) {
+      cellState[idx] = 2;
+      render();
+    }
+  }, { passive: false });
+
+  board.addEventListener('touchend', () => {
+    if (dragActive && dragMarkMode && dragStartState) {
+      undoStack.push(dragStartState);
+      redoStack = [];
+      updateUndoRedoButtons();
+    }
+    dragActive = false;
+    dragMarkMode = false;
+    dragStartState = null;
+    dragVisited.clear();
+  });
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  const errors = getErrorCells(cellState, regions, N, K);
+  const cells = document.querySelectorAll('.cell');
+
+  cells.forEach(cell => {
+    const i = parseInt(cell.dataset.idx);
+    const icon = cell.querySelector('.cell-icon');
+    cell.classList.remove('state-star', 'state-mark', 'error-cell');
+    if (cellState[i] === 1) {
+      cell.classList.add('state-star');
+      if (errors.has(i)) cell.classList.add('error-cell');
+      icon.textContent = '★';
+    } else if (cellState[i] === 2) {
+      cell.classList.add('state-mark');
+      icon.textContent = '×';
+    } else {
+      icon.textContent = '';
+    }
+  });
+
+  const status = document.getElementById('status');
+  if (checkWin(cellState, regions, N, K)) {
+    status.textContent = '🎉 Solved! Brilliant!';
+    status.className = 'win';
+  } else if (errors.size > 0) {
+    status.textContent = `${errors.size} conflict${errors.size > 1 ? 's' : ''} — stars marked in red`;
+    status.className = 'error';
+  } else {
+    const placed = cellState.filter(s => s === 1).length;
+    status.textContent = placed === 0
+      ? 'Place 2 stars in each row, column, and region. Stars may not touch.'
+      : `${placed} / ${N * K} stars placed — looking good!`;
+    status.className = '';
+  }
+}
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+document.getElementById('btn-undo').addEventListener('click', () => {
+  if (!undoStack.length) return;
+  redoStack.push(snapshot());
+  cellState = undoStack.pop();
+  updateUndoRedoButtons();
+  render();
+});
+
+document.getElementById('btn-redo').addEventListener('click', () => {
+  if (!redoStack.length) return;
+  undoStack.push(snapshot());
+  cellState = redoStack.pop();
+  updateUndoRedoButtons();
+  render();
+});
+
+document.getElementById('btn-hint').addEventListener('click', () => {
+  if (!solution) return;
+  for (let i = 0; i < N * N; i++) {
+    if (solution[i] === 1 && cellState[i] !== 1) {
+      pushUndo();
+      cellState[i] = 1;
+      render();
+      return;
+    }
+  }
+});
+
+
+window.addEventListener('resize', () => {
+  buildBoard();
+  render();
+});
+
+init();
+</script>
+</body>
+</html>

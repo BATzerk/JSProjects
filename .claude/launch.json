@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "StarsRemix",
+      "runtimeExecutable": "/usr/bin/ruby",
+      "runtimeArgs": ["StarsRemix/serve.rb"],
+      "port": 3400
+    }
+  ]
+}
