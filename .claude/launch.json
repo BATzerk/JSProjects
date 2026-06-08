@@ -6,6 +6,12 @@
       "runtimeExecutable": "/usr/bin/ruby",
       "runtimeArgs": ["StarsRemix/serve.rb"],
       "port": 3400
+    },
+    {
+      "name": "Drop7",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-p", "3401", "Drop7"],
+      "port": 3401
     }
   ]
 }

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drop 7</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0d1f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      user-select: none;
+    }
+    canvas { display: block; cursor: pointer; }
+  </style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const COLS = 7, ROWS = 7;
+const CELL = 70;
+const PAD  = 15;
+const UI_H = 110; // pixels above the grid for score / next / counter
+
+canvas.width  = COLS * CELL + PAD * 2;          // 520
+canvas.height = ROWS * CELL + PAD * 2 + UI_H;   // 630
+
+// Per-number colour palette
+const NUM_COL = [
+  null,
+  { main: '#c0392b', light: '#e74c3c', glow: '#ff6b6b' }, // 1 red
+  { main: '#c0620a', light: '#e67e22', glow: '#ffa552' }, // 2 orange
+  { main: '#b7950b', light: '#d4ac0d', glow: '#f7ca18' }, // 3 yellow
+  { main: '#1e8449', light: '#27ae60', glow: '#55e88a' }, // 4 green
+  { main: '#1a5276', light: '#2980b9', glow: '#5dade2' }, // 5 blue
+  { main: '#6c3483', light: '#8e44ad', glow: '#bb8fce' }, // 6 purple
+  { main: '#0e6655', light: '#17a589', glow: '#45c9b0' }, // 7 teal
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function rnd(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }
+function sleep(ms)   { return new Promise(r => setTimeout(r, ms)); }
+function makeDisc(num, state = 'normal') { return { num, state }; }
+  // state: 'normal' | 'sealed' | 'cracked'
+function randDisc()  { return makeDisc(rnd(1, 7)); }
+
+// Grid pixel helpers
+function gx(c)  { return PAD + c * CELL; }
+function gy(r)  { return UI_H + PAD + r * CELL; }
+function gcx(c) { return gx(c) + CELL / 2; }
+function gcy(r) { return gy(r) + CELL / 2; }
+
+// ─── Game state ───────────────────────────────────────────────────────────────
+let grid, curDisc, nxtDisc, score, dropCount, gameState;
+let mouseCol  = -1;
+let highlighted = new Set(); // 'r,c' strings currently flashing
+
+function initGame() {
+  grid      = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+  curDisc   = randDisc();
+  nxtDisc   = randDisc();
+  score     = 0;
+  dropCount = 0;
+  gameState = 'idle';
+  highlighted = new Set();
+
+  // Pre-fill bottom two rows — every cell filled, only values are random
+  for (let rowOffset = 0; rowOffset < 2; rowOffset++) {
+    const r = ROWS - 1 - rowOffset;
+    for (let c = 0; c < COLS; c++) {
+      grid[r][c] = Math.random() < 0.65
+        ? makeDisc(rnd(1, 7), 'sealed')
+        : randDisc();
+    }
+  }
+}
+
+// ─── Count helpers ────────────────────────────────────────────────────────────
+function countRow(r) {
+  let n = 0;
+  for (let c = 0; c < COLS; c++) if (grid[r][c]) n++;
+  return n;
+}
+function countCol(c) {
+  let n = 0;
+  for (let r = 0; r < ROWS; r++) if (grid[r][c]) n++;
+  return n;
+}
+
+function isGameOver() {
+  // Any disc in row 0 means a column is completely full
+  for (let c = 0; c < COLS; c++) if (grid[0][c]) return true;
+  return false;
+}
+
+// ─── Physics ──────────────────────────────────────────────────────────────────
+function applyGravity() {
+  for (let c = 0; c < COLS; c++) {
+    let write = ROWS - 1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (grid[r][c]) {
+        grid[write][c] = grid[r][c];
+        if (write !== r) grid[r][c] = null;
+        write--;
+      }
+    }
+    for (let r = write; r >= 0; r--) grid[r][c] = null;
+  }
+}
+
+function findClears() {
+  const out = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const d = grid[r][c];
+      if (!d || d.state === 'sealed') continue;
+      if (d.num === countRow(r) || d.num === countCol(c)) out.push({ r, c });
+    }
+  }
+  return out;
+}
+
+function crackSealed(cleared) {
+  const rows = new Set(cleared.map(p => p.r));
+  const cols = new Set(cleared.map(p => p.c));
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c]?.state === 'sealed' && (rows.has(r) || cols.has(c))) {
+        grid[r][c].state = 'cracked';
+      }
+    }
+  }
+}
+
+async function processChains() {
+  let chain = 0;
+  while (true) {
+    const clears = findClears();
+    if (!clears.length) break;
+    chain++;
+
+    // Flash highlight
+    highlighted = new Set(clears.map(({ r, c }) => `${r},${c}`));
+    await sleep(340);
+
+    crackSealed(clears);
+    for (const { r, c } of clears) grid[r][c] = null;
+    score += clears.length * chain * 10;
+
+    highlighted = new Set();
+    await sleep(80);
+
+    applyGravity();
+    await sleep(140);
+  }
+}
+
+async function insertBottomRow() {
+  // Shift every row up by one (may cause game-over if row 0 was occupied)
+  for (let r = 0; r < ROWS - 1; r++) {
+    for (let c = 0; c < COLS; c++) {
+      grid[r][c] = grid[r + 1][c];
+    }
+  }
+  // Fill the new bottom row — every cell filled, only values are random
+  for (let c = 0; c < COLS; c++) {
+    grid[ROWS - 1][c] = Math.random() < 0.35
+      ? makeDisc(rnd(1, 7), 'sealed')
+      : randDisc();
+  }
+}
+
+// ─── Drop action ──────────────────────────────────────────────────────────────
+async function drop(col) {
+  if (gameState !== 'idle') return;
+
+  // Find landing row (bottom-most empty cell in this column)
+  let landRow = -1;
+  for (let r = ROWS - 1; r >= 0; r--) {
+    if (!grid[r][col]) { landRow = r; break; }
+  }
+  if (landRow === -1) return; // Column full — reject silently
+
+  gameState = 'busy';
+
+  grid[landRow][col] = curDisc;
+  curDisc = nxtDisc;
+  nxtDisc = randDisc();
+  dropCount++;
+
+  await sleep(40);
+  await processChains();
+
+  // Every 7 drops: push a new row up from the bottom
+  if (dropCount % 7 === 0) {
+    if (isGameOver()) { gameState = 'gameover'; return; }
+    await insertBottomRow();
+    await sleep(200);
+    await processChains();
+  }
+
+  if (isGameOver()) { gameState = 'gameover'; return; }
+  gameState = 'idle';
+}
+
+// ─── Drawing ──────────────────────────────────────────────────────────────────
+function drawDisc(cx, cy, disc, alpha = 1, radius = CELL * 0.41) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  if (disc.state === 'sealed') {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#666';
+    ctx.fill();
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#bbb';
+    ctx.font = `bold ${Math.round(radius * 0.85)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('?', cx, cy + 1);
+
+  } else {
+    // Normal numbered disc
+    const col = NUM_COL[disc.num];
+    const g = ctx.createRadialGradient(cx - radius * 0.35, cy - radius * 0.35, 0, cx, cy, radius);
+    g.addColorStop(0, col.light);
+    g.addColorStop(1, col.main);
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.round(radius * 1.36)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(disc.num, cx, cy + 1);
+  }
+
+  ctx.restore();
+}
+
+function draw() {
+  // ── Background ──────────────────────────────────────────────────────────────
+  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bg.addColorStop(0, '#0d0d1f');
+  bg.addColorStop(1, '#180d2a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // ── Top UI ──────────────────────────────────────────────────────────────────
+  // Score (left)
+  ctx.fillStyle = '#6c7a89';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('SCORE', PAD, 22);
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = 'bold 38px Arial';
+  ctx.fillText(score.toLocaleString(), PAD, 62);
+
+  // Row countdown (centre)
+  const dropsLeft = 7 - (dropCount % 7);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6c7a89';
+  ctx.font = 'bold 11px Arial';
+  ctx.fillText('ROW IN', canvas.width / 2, 24);
+  ctx.fillStyle = dropsLeft <= 2 ? '#e74c3c' : '#ecf0f1';
+  ctx.font = 'bold 36px Arial';
+  ctx.fillText(dropsLeft, canvas.width / 2, 68);
+
+  // Next disc (right)
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#6c7a89';
+  ctx.font = 'bold 11px Arial';
+  ctx.fillText('NEXT', canvas.width - PAD, 24);
+  if (nxtDisc) drawDisc(canvas.width - PAD - 28, 64, nxtDisc, 1, 26);
+
+  // ── Grid shell ──────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#141428';
+  ctx.beginPath();
+  ctx.roundRect(PAD - 8, UI_H + PAD - 8, COLS * CELL + 16, ROWS * CELL + 16, 10);
+  ctx.fill();
+
+  // Column hover tint
+  if (mouseCol >= 0 && gameState === 'idle') {
+    ctx.fillStyle = 'rgba(255,255,255,0.035)';
+    ctx.fillRect(gx(mouseCol), UI_H + PAD, CELL, ROWS * CELL);
+  }
+
+  // ── Cells and discs ─────────────────────────────────────────────────────────
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      // Cell background
+      ctx.fillStyle = '#1c2e4a';
+      ctx.beginPath();
+      ctx.roundRect(gx(c) + 3, gy(r) + 3, CELL - 6, CELL - 6, 5);
+      ctx.fill();
+
+      const d = grid[r][c];
+      if (!d) continue;
+
+      const key = `${r},${c}`;
+      if (highlighted.has(key)) {
+        // Glowing halo
+        const col = d.state !== 'sealed' ? NUM_COL[d.num] : null;
+        ctx.save();
+        ctx.shadowColor = col?.glow ?? '#fff';
+        ctx.shadowBlur  = 28;
+        drawDisc(gcx(c), gcy(r), d);
+        ctx.restore();
+        // White flash
+        ctx.beginPath();
+        ctx.arc(gcx(c), gcy(r), CELL * 0.41, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.38)';
+        ctx.fill();
+      } else {
+        drawDisc(gcx(c), gcy(r), d);
+      }
+    }
+  }
+
+  // ── Floating preview disc above hovered column ───────────────────────────────
+  if (mouseCol >= 0 && mouseCol < COLS && gameState === 'idle' && curDisc) {
+    const px = gcx(mouseCol);
+    const py = UI_H + PAD / 2;
+    drawDisc(px, py, curDisc, 0.72, CELL * 0.36);
+    // Down arrow
+    const ay = py + CELL * 0.36 + 5;
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(px - 7, ay);
+    ctx.lineTo(px + 7, ay);
+    ctx.lineTo(px,     ay + 10);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // ── Game-over overlay ────────────────────────────────────────────────────────
+  if (gameState === 'gameover') {
+    ctx.fillStyle = 'rgba(0,0,0,0.76)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = 'center';
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 44px Arial';
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 48);
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 30px Arial';
+    ctx.fillText(`${score.toLocaleString()} pts`, canvas.width / 2, canvas.height / 2 + 8);
+    ctx.fillStyle = '#95a5a6';
+    ctx.font = '18px Arial';
+    ctx.fillText('click anywhere to restart', canvas.width / 2, canvas.height / 2 + 54);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// ─── Events ───────────────────────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  if (y >= UI_H + PAD && y < UI_H + PAD + ROWS * CELL) {
+    const c = Math.floor((x - PAD) / CELL);
+    mouseCol = (c >= 0 && c < COLS) ? c : -1;
+  } else {
+    mouseCol = -1;
+  }
+});
+
+canvas.addEventListener('mouseleave', () => { mouseCol = -1; });
+
+canvas.addEventListener('click', async e => {
+  if (gameState === 'gameover') { startGame(); return; }
+  if (mouseCol >= 0) await drop(mouseCol);
+});
+
+// ─── Start ────────────────────────────────────────────────────────────────────
+async function startGame() {
+  initGame();
+  gameState = 'busy';
+  await processChains();
+  gameState = 'idle';
+}
+
+requestAnimationFrame(draw);
+startGame();
+</script>
+</body>
+</html>
