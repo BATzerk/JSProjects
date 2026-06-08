@@ -48,9 +48,24 @@ const NUM_COL = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function rnd(lo, hi) { return Math.floor(Math.random() * (hi - lo + 1)) + lo; }
 function sleep(ms)   { return new Promise(r => setTimeout(r, ms)); }
+function easeOutQuad(t) { return 1 - (1 - t) * (1 - t); }
+function easeOutBounce(t) {
+  const n = 7.5625, d = 2.75;
+  if (t < 1/d)       return n*t*t;
+  if (t < 2/d)       { t -= 1.5/d;   return n*t*t + 0.75; }
+  if (t < 2.5/d)     { t -= 2.25/d;  return n*t*t + 0.9375; }
+                       t -= 2.625/d;  return n*t*t + 0.984375;
+}
+function getBounceOffset(r, c) {
+  const b = bounceCells.get(`${r},${c}`);
+  if (!b) return 0;
+  const t = (performance.now() - b.startTime) / b.duration;
+  if (t >= 1) { bounceCells.delete(`${r},${c}`); return 0; }
+  return -12 * (1 - easeOutBounce(t));
+}
 function makeDisc(num, state = 'normal') { return { num, state }; }
   // state: 'normal' | 'sealed' | 'cracked'
-function randDisc()  { return makeDisc(rnd(1, 7)); }
+function randDisc()  { return Math.random() < 0.08 ? makeDisc(rnd(1, 7), 'sealed') : makeDisc(rnd(1, 7)); }
 
 // Grid pixel helpers
 function gx(c)  { return PAD + c * CELL; }
@@ -59,18 +74,26 @@ function gcx(c) { return gx(c) + CELL / 2; }
 function gcy(r) { return gy(r) + CELL / 2; }
 
 // ─── Game state ───────────────────────────────────────────────────────────────
-let grid, curDisc, nxtDisc, score, dropCount, gameState;
-let mouseCol  = -1;
-let highlighted = new Set(); // 'r,c' strings currently flashing
+let grid, curDisc, nxtDisc, score, dropCount, rowsAdded, dropsSinceLastRow, gameState;
+let mouseCol     = -1;
+let highlighted  = new Set(); // 'r,c' strings currently flashing
+let fallingDisc  = null;      // disc currently animating down from user drop
+let fallingCells = [];        // discs animating down due to gravity
+let bounceCells  = new Map(); // 'r,c' -> { startTime, duration } for land bounce
 
 function initGame() {
   grid      = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
   curDisc   = randDisc();
   nxtDisc   = randDisc();
-  score     = 0;
-  dropCount = 0;
-  gameState = 'idle';
-  highlighted = new Set();
+  score              = 0;
+  dropCount          = 0;
+  rowsAdded          = 0;
+  dropsSinceLastRow  = 0;
+  gameState          = 'idle';
+  highlighted  = new Set();
+  fallingDisc  = null;
+  fallingCells = [];
+  bounceCells  = new Map();
 
   // Pre-fill bottom two rows — every cell filled, only values are random
   for (let rowOffset = 0; rowOffset < 2; rowOffset++) {
@@ -81,17 +104,34 @@ function initGame() {
         : randDisc();
     }
   }
+  // Ensure no normal disc would immediately clear
+  for (let rowOffset = 0; rowOffset < 2; rowOffset++) {
+    const r = ROWS - 1 - rowOffset;
+    for (let c = 0; c < COLS; c++) {
+      const d = grid[r][c];
+      if (!d || d.state === 'sealed') continue;
+      const rowRun = countAdjacentRow(r, c);
+      const colRun = countAdjacentCol(r, c);
+      const forbidden = new Set([rowRun, colRun]);
+      if (forbidden.has(d.num)) {
+        const allowed = [1, 2, 3, 4, 5, 6, 7].filter(n => !forbidden.has(n));
+        d.num = allowed[Math.floor(Math.random() * allowed.length)];
+      }
+    }
+  }
 }
 
 // ─── Count helpers ────────────────────────────────────────────────────────────
-function countRow(r) {
-  let n = 0;
-  for (let c = 0; c < COLS; c++) if (grid[r][c]) n++;
+function countAdjacentRow(r, c) {
+  let n = 1;
+  for (let i = c - 1; i >= 0 && grid[r][i]; i--) n++;
+  for (let i = c + 1; i < COLS && grid[r][i]; i++) n++;
   return n;
 }
-function countCol(c) {
-  let n = 0;
-  for (let r = 0; r < ROWS; r++) if (grid[r][c]) n++;
+function countAdjacentCol(r, c) {
+  let n = 1;
+  for (let i = r - 1; i >= 0 && grid[i][c]; i--) n++;
+  for (let i = r + 1; i < ROWS && grid[i][c]; i++) n++;
   return n;
 }
 
@@ -121,21 +161,21 @@ function findClears() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const d = grid[r][c];
-      if (!d || d.state === 'sealed') continue;
-      if (d.num === countRow(r) || d.num === countCol(c)) out.push({ r, c });
+      if (!d || d.state !== 'normal') continue;
+      if (d.num === countAdjacentRow(r, c) || d.num === countAdjacentCol(r, c)) out.push({ r, c });
     }
   }
   return out;
 }
 
-function crackSealed(cleared) {
-  const rows = new Set(cleared.map(p => p.r));
-  const cols = new Set(cleared.map(p => p.c));
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (grid[r][c]?.state === 'sealed' && (rows.has(r) || cols.has(c))) {
-        grid[r][c].state = 'cracked';
-      }
+function bashNeighbors(cleared) {
+  for (const { r, c } of cleared) {
+    for (const [nr, nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]) {
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+      const d = grid[nr][nc];
+      if (!d) continue;
+      if (d.state === 'sealed')  d.state = 'cracked';
+      else if (d.state === 'cracked') d.state = 'normal';
     }
   }
 }
@@ -151,15 +191,42 @@ async function processChains() {
     highlighted = new Set(clears.map(({ r, c }) => `${r},${c}`));
     await sleep(340);
 
-    crackSealed(clears);
+    bashNeighbors(clears);
     for (const { r, c } of clears) grid[r][c] = null;
     score += clears.length * chain * 10;
 
     highlighted = new Set();
     await sleep(80);
 
-    applyGravity();
-    await sleep(140);
+    await animatedApplyGravity();
+  }
+}
+
+async function animatedApplyGravity() {
+  const before = [];
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (grid[r][c]) before.push({ r, c, disc: grid[r][c] });
+
+  applyGravity();
+
+  const now = performance.now();
+  const duration = 180;
+  const entries = [];
+  for (const { r: oldR, c, disc } of before) {
+    for (let newR = 0; newR < ROWS; newR++) {
+      if (grid[newR][c] === disc) {
+        if (newR !== oldR) entries.push({ disc, r: newR, c, fromPx: gcy(oldR), toPx: gcy(newR), startTime: now, duration });
+        break;
+      }
+    }
+  }
+
+  if (entries.length) {
+    fallingCells = entries;
+    await sleep(duration);
+    for (const fc of fallingCells) bounceCells.set(`${fc.r},${fc.c}`, { startTime: performance.now(), duration: 360 });
+    fallingCells = [];
   }
 }
 
@@ -170,12 +237,17 @@ async function insertBottomRow() {
       grid[r][c] = grid[r + 1][c];
     }
   }
-  // Fill the new bottom row — every cell filled, only values are random
+  // Fill the new bottom row — all sealed
   for (let c = 0; c < COLS; c++) {
-    grid[ROWS - 1][c] = Math.random() < 0.35
-      ? makeDisc(rnd(1, 7), 'sealed')
-      : randDisc();
+    grid[ROWS - 1][c] = makeDisc(rnd(1, 7), 'sealed');
   }
+}
+
+function rowInterval() {
+  if (rowsAdded < 4)  return 8;
+  if (rowsAdded < 10) return 7;
+  if (rowsAdded < 15) return 6;
+  return 5;
 }
 
 // ─── Drop action ──────────────────────────────────────────────────────────────
@@ -191,16 +263,24 @@ async function drop(col) {
 
   gameState = 'busy';
 
-  grid[landRow][col] = curDisc;
+  const droppingDisc = curDisc;
   curDisc = nxtDisc;
   nxtDisc = randDisc();
   dropCount++;
+  dropsSinceLastRow++;
 
-  await sleep(40);
+  const dropDuration = Math.max(60, 30 + landRow * 22);
+  fallingDisc = { disc: droppingDisc, col, fromPx: UI_H + PAD / 2, toPx: gcy(landRow), startTime: performance.now(), duration: dropDuration };
+  await sleep(dropDuration);
+  grid[landRow][col] = droppingDisc;
+  bounceCells.set(`${landRow},${col}`, { startTime: performance.now(), duration: 420 });
+  fallingDisc = null;
+
   await processChains();
 
-  // Every 7 drops: push a new row up from the bottom
-  if (dropCount % 7 === 0) {
+  if (dropsSinceLastRow >= rowInterval()) {
+    dropsSinceLastRow = 0;
+    rowsAdded++;
     if (isGameOver()) { gameState = 'gameover'; return; }
     await insertBottomRow();
     await sleep(200);
@@ -216,15 +296,32 @@ function drawDisc(cx, cy, disc, alpha = 1, radius = CELL * 0.41) {
   ctx.save();
   ctx.globalAlpha = alpha;
 
-  if (disc.state === 'sealed') {
+  if (disc.state === 'sealed' || disc.state === 'cracked') {
+    const cracked = disc.state === 'cracked';
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#666';
+    ctx.fillStyle = cracked ? '#888' : '#555';
     ctx.fill();
-    ctx.strokeStyle = '#888';
+    ctx.strokeStyle = cracked ? '#bbb' : '#777';
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.fillStyle = '#bbb';
+    if (cracked) {
+      // Draw crack lines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(220,220,220,0.65)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy - radius * 0.6);
+      ctx.lineTo(cx + 3, cy + radius * 0.1);
+      ctx.lineTo(cx - 1, cy + radius * 0.6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + 3, cy + radius * 0.1);
+      ctx.lineTo(cx + radius * 0.45, cy - radius * 0.1);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle = cracked ? '#ddd' : '#aaa';
     ctx.font = `bold ${Math.round(radius * 0.85)}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -272,7 +369,7 @@ function draw() {
   ctx.fillText(score.toLocaleString(), PAD, 62);
 
   // Row countdown (centre)
-  const dropsLeft = 7 - (dropCount % 7);
+  const dropsLeft = rowInterval() - dropsSinceLastRow;
   ctx.textAlign = 'center';
   ctx.fillStyle = '#6c7a89';
   ctx.font = 'bold 11px Arial';
@@ -301,35 +398,52 @@ function draw() {
   }
 
   // ── Cells and discs ─────────────────────────────────────────────────────────
+  // Pass 1: backgrounds
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      // Cell background
       ctx.fillStyle = '#1c2e4a';
       ctx.beginPath();
       ctx.roundRect(gx(c) + 3, gy(r) + 3, CELL - 6, CELL - 6, 5);
       ctx.fill();
-
+    }
+  }
+  // Pass 2: discs with animated positions and bounce scale
+  const _now = performance.now();
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
       const d = grid[r][c];
       if (!d) continue;
 
+      let cy = gcy(r);
+      const fc = fallingCells.find(f => f.r === r && f.c === c);
+      if (fc) {
+        const t = Math.min(1, (_now - fc.startTime) / fc.duration);
+        cy = fc.fromPx + (fc.toPx - fc.fromPx) * easeOutQuad(t);
+      }
+
+      cy += getBounceOffset(r, c);
       const key = `${r},${c}`;
       if (highlighted.has(key)) {
-        // Glowing halo
         const col = d.state !== 'sealed' ? NUM_COL[d.num] : null;
         ctx.save();
         ctx.shadowColor = col?.glow ?? '#fff';
         ctx.shadowBlur  = 28;
-        drawDisc(gcx(c), gcy(r), d);
+        drawDisc(gcx(c), cy, d);
         ctx.restore();
-        // White flash
         ctx.beginPath();
-        ctx.arc(gcx(c), gcy(r), CELL * 0.41, 0, Math.PI * 2);
+        ctx.arc(gcx(c), cy, CELL * 0.41, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255,255,255,0.38)';
         ctx.fill();
       } else {
-        drawDisc(gcx(c), gcy(r), d);
+        drawDisc(gcx(c), cy, d);
       }
     }
+  }
+  // Draw the user-dropped disc while it's in-flight
+  if (fallingDisc) {
+    const t = Math.min(1, (_now - fallingDisc.startTime) / fallingDisc.duration);
+    const y = fallingDisc.fromPx + (fallingDisc.toPx - fallingDisc.fromPx) * easeOutQuad(t);
+    drawDisc(gcx(fallingDisc.col), y, fallingDisc.disc);
   }
 
   // ── Floating preview disc above hovered column ───────────────────────────────
