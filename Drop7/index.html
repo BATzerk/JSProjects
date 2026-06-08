@@ -243,12 +243,7 @@ async function insertBottomRow() {
   }
 }
 
-function rowInterval() {
-  if (rowsAdded < 4)  return 8;
-  if (rowsAdded < 10) return 7;
-  if (rowsAdded < 15) return 6;
-  return 5;
-}
+function rowInterval() { return 12; }
 
 // ─── Drop action ──────────────────────────────────────────────────────────────
 async function drop(col) {
