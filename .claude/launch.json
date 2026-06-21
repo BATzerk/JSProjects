@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "StarsRemix",
-      "runtimeExecutable": "/usr/bin/ruby",
-      "runtimeArgs": ["StarsRemix/serve.rb"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-p", "3400", "StarsRemix"],
       "port": 3400
     },
     {

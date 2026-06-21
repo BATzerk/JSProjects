@@ -112,6 +112,110 @@
   @media (max-width: 480px) {
     h1 { font-size: 1.4rem; }
   }
+
+  /* ── New Puzzle modal ───────────────────────────────────────────────────── */
+  #gen-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  #gen-overlay.open { display: flex; }
+
+  #gen-panel {
+    background: #1e1e38;
+    border: 1px solid #555;
+    border-radius: 12px;
+    padding: 24px 28px;
+    width: min(360px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  #gen-panel h2 {
+    font-size: 1.1rem;
+    color: #f0c040;
+    letter-spacing: 0.08em;
+    text-align: center;
+  }
+
+  .gen-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .gen-label {
+    font-size: 0.8rem;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .seg-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .seg-btn {
+    flex: 1;
+    min-width: 60px;
+    background: #2a2a4a;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 8px 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    text-align: center;
+  }
+  .seg-btn:hover { background: #3a3a6a; border-color: #777; }
+  .seg-btn.active {
+    background: #3a3a7a;
+    border-color: #f0c040;
+    color: #f0c040;
+    font-weight: bold;
+  }
+
+  #gen-status {
+    font-size: 0.82rem;
+    color: #888;
+    text-align: center;
+    min-height: 1.2em;
+  }
+  #gen-status.ok   { color: #6bff9e; }
+  #gen-status.fail { color: #ff6b6b; }
+
+  .gen-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .gen-actions button { flex: 1; }
+
+  #btn-gen-go {
+    background: #2a4a2a;
+    border-color: #4a8a4a;
+    color: #9eff9e;
+  }
+  #btn-gen-go:hover:not(:disabled) { background: #3a6a3a; border-color: #6aba6a; }
+
+  .spinner {
+    display: inline-block;
+    width: 0.9em; height: 0.9em;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #f0c040;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -124,9 +228,40 @@
 </div>
 
 <div id="controls">
+  <button id="btn-new">New Puzzle</button>
   <button id="btn-undo">Undo</button>
   <button id="btn-redo">Redo</button>
   <button id="btn-hint">Hint</button>
+</div>
+
+<!-- ── New Puzzle modal ──────────────────────────────────────────────────── -->
+<div id="gen-overlay">
+  <div id="gen-panel">
+    <h2>★ New Puzzle</h2>
+
+    <div class="gen-row">
+      <div class="gen-label">Grid size</div>
+      <div class="seg-group" id="seg-size">
+        <button class="seg-btn active" data-val="8">8 × 8</button>
+        <button class="seg-btn" data-val="10">10 × 10</button>
+      </div>
+    </div>
+
+    <div class="gen-row">
+      <div class="gen-label">Stars per group</div>
+      <div class="seg-group" id="seg-k">
+        <button class="seg-btn" data-val="1">1 star</button>
+        <button class="seg-btn active" data-val="2">2 stars</button>
+      </div>
+    </div>
+
+    <div id="gen-status"></div>
+
+    <div class="gen-actions">
+      <button id="btn-gen-go">Generate</button>
+      <button id="btn-gen-cancel">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <div id="legend">
@@ -186,7 +321,7 @@ const REGION_COLORS = Array.from({length: 10}, (_, i) =>
 );
 
 // ─── App state ────────────────────────────────────────────────────────────────
-const { size: N, regions, starsPerGroup: K } = PUZZLE;
+let N = PUZZLE.size, regions = PUZZLE.regions, K = PUZZLE.starsPerGroup;
 
 // Cycle: 0=empty → 2=mark → 1=star → 0
 const NEXT_STATE = [2, 0, 1];
@@ -214,6 +349,9 @@ function updateUndoRedoButtons() {
 }
 
 function init() {
+  N = PUZZLE.size;
+  regions = PUZZLE.regions;
+  K = PUZZLE.starsPerGroup;
   cellState = new Array(N * N).fill(0);
   undoStack = [];
   redoStack = [];
@@ -455,6 +593,114 @@ document.getElementById('btn-hint').addEventListener('click', () => {
 window.addEventListener('resize', () => {
   buildBoard();
   render();
+});
+
+// ─── New Puzzle panel ─────────────────────────────────────────────────────────
+let genWorker = null;
+
+const overlay    = document.getElementById('gen-overlay');
+const genStatus  = document.getElementById('gen-status');
+const btnGenGo   = document.getElementById('btn-gen-go');
+
+// Segmented button groups
+function setupSegGroup(groupId, onChange) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(parseInt(btn.dataset.val));
+    });
+  });
+}
+
+let genN = 8, genK = 2;
+
+setupSegGroup('seg-size', v => { genN = v; });
+setupSegGroup('seg-k',    v => { genK = v; });
+
+document.getElementById('btn-new').addEventListener('click', () => {
+  genStatus.textContent = '';
+  genStatus.className = '';
+  overlay.classList.add('open');
+});
+
+document.getElementById('btn-gen-cancel').addEventListener('click', closeGenPanel);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeGenPanel(); });
+
+function closeGenPanel() {
+  if (genWorker) { genWorker.terminate(); genWorker = null; }
+  overlay.classList.remove('open');
+  btnGenGo.disabled = false;
+  btnGenGo.innerHTML = 'Generate';
+}
+
+btnGenGo.addEventListener('click', () => {
+  if (genWorker) { genWorker.terminate(); genWorker = null; }
+
+  btnGenGo.disabled = true;
+  btnGenGo.innerHTML = '<span class="spinner"></span>Generating…';
+  genStatus.textContent = 'Searching for a unique-solution puzzle…';
+  genStatus.className = '';
+
+  const engineUrl = new URL('./engine.js', location.href).href;
+  const workerSrc = `
+    importScripts(${JSON.stringify(engineUrl)});
+    self.onmessage = function(e) {
+      const { N, K } = e.data;
+      // Larger grids need more attempts but hit diminishing returns quickly;
+      // cap wall-clock time so the UI never hangs indefinitely.
+      const maxAttempts = N <= 6 ? 400 : N <= 8 ? 200 : 60;
+      const deadline = Date.now() + (N <= 6 ? 10000 : N <= 8 ? 20000 : 30000);
+      const result = generatePuzzle(N, K, { maxAttempts, deadline });
+      if (!result) { self.postMessage({ error: true }); return; }
+      const difficulty = estimateDifficulty(result.regions, N);
+      self.postMessage({ regions: result.regions, solution: result.solution, difficulty });
+    };
+  `;
+  const blob = new Blob([workerSrc], { type: 'application/javascript' });
+  genWorker = new Worker(URL.createObjectURL(blob));
+
+  genWorker.onmessage = e => {
+    genWorker = null;
+    btnGenGo.disabled = false;
+    btnGenGo.innerHTML = 'Regenerate';
+
+    if (e.data.error) {
+      genStatus.textContent = 'Generation failed — try a smaller size or different settings.';
+      genStatus.className = 'fail';
+      return;
+    }
+
+    const { regions: newRegions, solution: solGrid, difficulty } = e.data;
+    const diffLabel = difficulty < 0.35 ? 'Easy' : difficulty < 0.6 ? 'Medium' : 'Hard';
+    genStatus.textContent = `Difficulty: ${diffLabel} (${Math.round(difficulty * 100)}%) — puzzle ready!`;
+    genStatus.className = 'ok';
+
+    // Rebuild region colours for the new region count
+    const numRegions = Math.max(...newRegions) + 1;
+    REGION_COLORS.length = 0;
+    for (let i = 0; i < numRegions; i++)
+      REGION_COLORS.push(`hsl(${Math.round(i * (360 / numRegions))}, 30%, 88%)`);
+
+    // Update PUZZLE and reinit — init() re-reads N/regions/K from PUZZLE
+    PUZZLE.size = genN;
+    PUZZLE.starsPerGroup = genK;
+    PUZZLE.regions = newRegions;
+    PUZZLE.solution = solGrid.reduce((a, v, i) => { if (v) a.push(i); return a; }, []);
+    init();
+    overlay.classList.remove('open');
+  };
+
+  genWorker.onerror = () => {
+    genWorker = null;
+    btnGenGo.disabled = false;
+    btnGenGo.innerHTML = 'Generate';
+    genStatus.textContent = 'Worker error — check console.';
+    genStatus.className = 'fail';
+  };
+
+  genWorker.postMessage({ N: genN, K: genK });
 });
 
 init();

@@ -109,11 +109,18 @@ function _runSolver(regions, N, K, limit) {
         solutions.push(grid.slice());
       return;
     }
+    // Prune: when entering a new row, the just-completed row must have exactly K stars.
+    const r = Math.floor(idx / N);
+    if (idx % N === 0 && r > 0 && rowCount[r - 1] !== K) return;
+    // Prune: remaining cells in current row can't possibly reach K stars for this row.
+    const cellsLeftInRow = N - (idx % N);
+    const starsNeeded = K - rowCount[r];
+    if (starsNeeded < 0 || starsNeeded > cellsLeftInRow) return;
     // branch: skip this cell
     solve(idx + 1);
     // branch: place star here
     if (canPlace(idx)) {
-      const r = Math.floor(idx / N), c = idx % N;
+      const c = idx % N;
       grid[idx] = 1; rowCount[r]++; colCount[c]++; regCount[regions[idx]]++;
       solve(idx + 1);
       grid[idx] = 0; rowCount[r]--; colCount[c]--; regCount[regions[idx]]--;
@@ -167,32 +174,66 @@ function generateStarPlacement(N, K, rng = Math.random) {
 
 // Grows N connected regions to cover all cells, seeded from `starGroups`
 // (array of K-length arrays of star indices, one per region).
-// Uses randomised Voronoi flood-fill over 4-connectivity.
+// Each region takes turns expanding by one cell so no region starves.
 function growRegions(starGroups, N, rng = Math.random) {
+  const numRegions = starGroups.length;
   const regions = new Array(N * N).fill(-1);
-  const frontier = [];
+  // Per-region frontier lists (may contain stale already-claimed entries).
+  const frontiers = Array.from({length: numRegions}, () => []);
 
-  function claim(idx, regionId) {
-    if (regions[idx] !== -1) return;
-    regions[idx] = regionId;
+  function expand(idx, r) {
+    regions[idx] = r;
     for (const n of get4AdjacentIndices(idx, N))
-      if (regions[n] === -1) frontier.push({ idx: n, regionId });
+      if (regions[n] === -1) frontiers[r].push(n);
   }
 
-  for (let r = 0; r < starGroups.length; r++)
-    for (const idx of starGroups[r]) claim(idx, r);
+  for (let r = 0; r < numRegions; r++)
+    for (const idx of starGroups[r]) expand(idx, r);
 
-  shuffle(frontier, rng);
-
-  while (frontier.length > 0) {
-    const i = Math.floor(rng() * frontier.length);
-    const { idx, regionId } = frontier[i];
-    frontier.splice(i, 1);
-    if (regions[idx] !== -1) continue;
-    claim(idx, regionId);
+  // Build a shuffled list of active region indices; each iteration every
+  // active region claims exactly one cell (round-robin with random order).
+  let remaining = regions.filter(v => v === -1).length;
+  while (remaining > 0) {
+    const order = shuffle(Array.from({length: numRegions}, (_, i) => i), rng);
+    let grew = false;
+    for (const r of order) {
+      const f = frontiers[r];
+      // Drain stale entries until we find an unclaimed cell.
+      while (f.length > 0) {
+        const i = Math.floor(rng() * f.length);
+        const idx = f[i];
+        f[i] = f[f.length - 1]; f.pop(); // swap-remove
+        if (regions[idx] !== -1) continue;
+        expand(idx, r);
+        remaining--;
+        grew = true;
+        break;
+      }
+    }
+    if (!grew) break; // all frontiers exhausted (shouldn't happen)
   }
 
   return regions;
+}
+
+// ─── Region feasibility ───────────────────────────────────────────────────────
+
+// Returns true if K mutually non-8-adjacent stars can fit in the given cells.
+// Used as a fast pre-check before the expensive solver.
+function _regionFeasible(cells, K, N) {
+  // Hard floor: need at least K*2 cells so there's room for stars plus spacing.
+  if (cells.length < K * 2) return false;
+  if (K <= 1) return true;
+  // K=2: need at least two cells that are NOT 8-adjacent to each other.
+  // All cells within a 2×2 bounding box are mutually adjacent, so the box
+  // must span beyond 2×2 (rowSpan>1 OR colSpan>1).
+  if (K === 2) {
+    const rows = cells.map(i => Math.floor(i / N));
+    const cols = cells.map(i => i % N);
+    return Math.max(...rows) - Math.min(...rows) > 1 ||
+           Math.max(...cols) - Math.min(...cols) > 1;
+  }
+  return true; // K>2: rely on solver for exact feasibility
 }
 
 // ─── Puzzle generation ────────────────────────────────────────────────────────
@@ -201,16 +242,26 @@ function growRegions(starGroups, N, rng = Math.random) {
 // Options:
 //   maxAttempts  — how many (star placement + region growth) tries before giving up
 //   rng          — seeded or default Math.random
+//   deadline     — Date.now() ms value after which to stop early
 // Returns { regions, solution } or null on failure.
-function generatePuzzle(N, K, { maxAttempts = 200, rng = Math.random } = {}) {
+function generatePuzzle(N, K, { maxAttempts = 200, rng = Math.random, deadline = Infinity } = {}) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (Date.now() > deadline) break;
     const starIndices = generateStarPlacement(N, K, rng);
     if (!starIndices) continue;
 
-    const groups = _partitionRandom(starIndices, K, rng);
+    const groups = _partitionStars(starIndices, K, N, rng);
     const regions = growRegions(groups, N, rng);
     if (regions.includes(-1)) continue;
 
+    // Fast pre-checks: reject boards with regions that are too small or
+    // geometrically unable to hold K non-adjacent stars (e.g. a 2×2 square).
+    const numRegions = Math.max(...regions) + 1;
+    const regionCells = Array.from({length: numRegions}, () => []);
+    for (let i = 0; i < N * N; i++) regionCells[regions[i]].push(i);
+    if (regionCells.some(cells => !_regionFeasible(cells, K, N))) continue;
+
+    // Definitive check: the board must have exactly one solution.
     if (countSolutions(regions, N, K, 2) === 1) {
       const solution = solvePuzzle(regions, N, K);
       return { regions, solution };
@@ -251,12 +302,37 @@ function shuffle(arr, rng = Math.random) {
   return arr;
 }
 
-// Split arr into chunks of size K in random order.
-function _partitionRandom(arr, K, rng) {
-  const shuffled = shuffle([...arr], rng);
+// Group star indices into K-sized groups.
+// For K=2: greedy nearest-neighbour matching so paired stars are geographically
+// close, giving each region a compact territory to grow into.
+// For other K values: random partition.
+function _partitionStars(arr, K, N, rng) {
+  if (K !== 2) {
+    const shuffled = shuffle([...arr], rng);
+    const groups = [];
+    for (let i = 0; i < shuffled.length; i += K)
+      groups.push(shuffled.slice(i, i + K));
+    return groups;
+  }
+
+  // Greedy minimum-distance matching: repeatedly pair the globally closest
+  // remaining two stars. shuffle first so ties break differently each run.
+  const rem = shuffle([...arr], rng);
   const groups = [];
-  for (let i = 0; i < shuffled.length; i += K)
-    groups.push(shuffled.slice(i, i + K));
+  while (rem.length >= 2) {
+    let bestDist = Infinity, bi = 0, bj = 1;
+    for (let i = 0; i < rem.length - 1; i++) {
+      const ri = Math.floor(rem[i] / N), ci = rem[i] % N;
+      for (let j = i + 1; j < rem.length; j++) {
+        const rj = Math.floor(rem[j] / N), cj = rem[j] % N;
+        const d = Math.abs(ri - rj) + Math.abs(ci - cj);
+        if (d < bestDist) { bestDist = d; bi = i; bj = j; }
+      }
+    }
+    const b = rem.splice(bj, 1)[0];
+    const a = rem.splice(bi, 1)[0];
+    groups.push([a, b]);
+  }
   return groups;
 }
 

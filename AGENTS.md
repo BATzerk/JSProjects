@@ -8,7 +8,8 @@ ACTIVE_PROJECT=BattleDice
 |--------|-------------|
 | `BattleDice/` | Dice combat game with AI opponents and history graph |
 | `HexDig1_1_2_1/` | Hex-grid digging/exploration game |
-| `StarsRemix/` | New project (description TBD) |
+| `StarsRemix_Claude/` | Stars Remix experiment built with Claude |
+| `StarsRemix_Codex/` | Stars Remix experiment built with Codex |
 
 ## Rules
 - Treat the folder matching `ACTIVE_PROJECT` as the primary project.
