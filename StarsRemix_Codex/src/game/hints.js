@@ -17,6 +17,13 @@ function findHint(puzzle, board) {
   };
 }
 
+function applyHint(board, hint) {
+  return (hint.moves ?? []).reduce((nextBoard, move) =>
+    nextBoard.map((row, rowIndex) => row.map((state, colIndex) =>
+      rowIndex === move.row && colIndex === move.col ? move.state : state,
+    )), board);
+}
+
 const hintStrategies = [
   findRuleConflictHint,
   findSurroundStarHint,
@@ -60,12 +67,13 @@ function findSurroundStarHint({ puzzle, board }) {
       if (openNeighbors.length > 0) {
         return {
           kind: "surround-star",
-          message: "All stars must be surrounded by Xs. Add Xs in the blue spaces around the gold star.",
-          cells: [
-            { row, col, color: "gold" },
-            ...openNeighbors.map((cell) => ({ ...cell, color: "blue" })),
-          ],
-        };
+          message: "All stars must be surrounded by Xs. Add Xs in the gray spaces around the gold star.",
+        cells: [
+          { row, col, color: "gold" },
+          ...openNeighbors.map((cell) => ({ ...cell, color: "blue" })),
+        ],
+        moves: openNeighbors.map((cell) => ({ ...cell, state: "mark" })),
+      };
       }
     }
   }
@@ -79,11 +87,12 @@ function findCompleteUnitHint({ puzzle, board, units }) {
     if (stars.length === puzzle.starsPerUnit && openCells.length > 0) {
       return {
         kind: "complete-unit",
-        message: `${unit.label} already has ${puzzle.starsPerUnit} stars. Fill the remaining blue spaces with Xs.`,
+        message: `${unit.label} already has ${puzzle.starsPerUnit} stars. Fill the remaining gray spaces with Xs.`,
         cells: [
           ...stars.map((cell) => ({ ...cell, color: "gold" })),
           ...openCells.map((cell) => ({ ...cell, color: "blue" })),
         ],
+        moves: openCells.map((cell) => ({ ...cell, state: "mark" })),
       };
     }
   }
@@ -101,6 +110,7 @@ function findForcedStarHint({ puzzle, board, units }) {
         kind: "forced-star",
         message: `${unit.label} needs ${starsNeeded === 1 ? "one more star" : `${starsNeeded} more stars`}, and every other space is marked with an X. Add a star in the gold space.`,
         cells: [{ ...forcedCell, color: "gold" }],
+        moves: [{ ...forcedCell, state: "star" }],
       };
     }
   }
@@ -132,11 +142,12 @@ function findImpossibleStarHint({ puzzle, board, units }) {
 
       return {
         kind: "impossible-star",
-        message: `At least one star must go somewhere in the gray spaces for ${blockedUnit.label}. A star in the blue space would block all of them, so mark the blue space with an X.`,
+        message: `At least one star must go somewhere in the marked spaces for ${blockedUnit.label}. A star in the gray space would block all of them, so mark the gray space with an X.`,
         cells: [
           { ...candidate, color: "blue" },
           ...grayCells.map((cell) => ({ ...cell, color: "gray" })),
         ],
+        moves: [{ ...candidate, state: "mark" }],
       };
     }
   }
@@ -265,4 +276,4 @@ function cellKey({ row, col }) {
   return `${row}:${col}`;
 }
 
-globalThis.StarsRemixHints = { findHint };
+globalThis.StarsRemixHints = { findHint, applyHint };

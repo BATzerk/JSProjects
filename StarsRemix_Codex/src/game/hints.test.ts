@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import "./hints.js";
 
-const { findHint } = globalThis.StarsRemixHints;
+const { findHint, applyHint } = globalThis.StarsRemixHints;
 
 const puzzle = {
   size: 4,
@@ -46,6 +46,18 @@ describe("findHint", () => {
       { row: 1, col: 0, color: "blue" },
       { row: 1, col: 1, color: "blue" },
     ]);
+    assert.deepEqual(hint.moves, [
+      { row: 0, col: 1, state: "mark" },
+      { row: 1, col: 0, state: "mark" },
+      { row: 1, col: 1, state: "mark" },
+    ]);
+
+    const applied = applyHint(board, hint);
+    assert.equal(applied[0][0], "star");
+    assert.equal(applied[0][1], "mark");
+    assert.equal(applied[1][0], "mark");
+    assert.equal(applied[1][1], "mark");
+    assert.equal(board[0][1], "empty", "applying a hint must not mutate the prior board");
   });
 
   it("points out the rest of a completed unit after star neighbors are marked", () => {
@@ -83,6 +95,7 @@ describe("findHint", () => {
     assert.equal(firstHint.kind, "forced-star");
     assert.match(firstHint.message, /^Row 1 needs 2 more stars/);
     assert.deepEqual(firstHint.cells, [{ row: 0, col: 1, color: "gold" }]);
+    assert.deepEqual(firstHint.moves, [{ row: 0, col: 1, state: "star" }]);
 
     board[0][1] = "star";
     board[1][0] = board[1][1] = board[1][2] = "mark";
@@ -122,7 +135,7 @@ describe("findHint", () => {
 
     const hint = findHint(squareHousePuzzle, board);
     assert.equal(hint.kind, "impossible-star");
-    assert.match(hint.message, /At least one star must go somewhere in the gray spaces/);
+    assert.match(hint.message, /At least one star must go somewhere in the marked spaces/);
     assert.match(hint.message, /House 1/);
     assert.deepEqual(hint.cells, [
       { row: 1, col: 1, color: "blue" },
@@ -135,5 +148,6 @@ describe("findHint", () => {
       { row: 2, col: 1, color: "gray" },
       { row: 2, col: 2, color: "gray" },
     ]);
+    assert.deepEqual(hint.moves, [{ row: 1, col: 1, state: "mark" }]);
   });
 });

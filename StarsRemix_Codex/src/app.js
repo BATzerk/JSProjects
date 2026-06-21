@@ -41,6 +41,7 @@
     "#f5faea",
     "#fff0fb",
   ];
+  const useHouseColors = false;
 
   let puzzle = starterPuzzle;
   let solution = starterSolution;
@@ -100,7 +101,8 @@
               ${currentHint ? `
                 <div class="hint-card" role="status" aria-live="polite">
                   <h2>Hint</h2>
-                  <p>${escapeHtml(currentHint.message)}</p>
+                  <p>${formatHintMessage(currentHint.message)}</p>
+                  ${currentHint.moves?.length ? '<p class="hint-apply-prompt">Press Hint again to apply.</p>' : ""}
                 </div>
               ` : ""}
             </aside>
@@ -176,6 +178,10 @@
     });
 
     root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
+      if (currentHint?.moves?.length) {
+        applyBoard(globalThis.StarsRemixHints.applyHint(board, currentHint));
+        return;
+      }
       currentHint = validation.solved
         ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
         : globalThis.StarsRemixHints.findHint(puzzle, board);
@@ -270,7 +276,7 @@
               .filter(Boolean)
               .join(" ");
             const borders = getBorderStyle(puzzle.houses, rowIndex, colIndex);
-            const content = renderCellContent(cell);
+            const content = renderCellContent(cell, hintColor);
             const debugSolution = solution.some((position) =>
               position.row === rowIndex && position.col === colIndex,
             ) ? '<span class="debug-solution-star" aria-hidden="true">✦</span>' : "";
@@ -283,7 +289,7 @@
                 aria-label="Row ${rowIndex + 1}, column ${colIndex + 1}, house ${houseId + 1}"
                 data-row="${rowIndex}"
                 data-col="${colIndex}"
-                style="background-color: ${housePalette[houseId % housePalette.length]}; ${borders}"
+                style="background-color: ${useHouseColors ? housePalette[houseId % housePalette.length] : "#ffffff"}; ${borders}"
               >${debugSolution}${content}</button>
             `;
           })
@@ -292,21 +298,13 @@
       .join("");
   }
 
-  function renderCellContent(cell) {
+  function renderCellContent(cell, hintColor) {
     if (cell === "star") {
-      return `
-        <svg class="star-token" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-          <defs>
-            <radialGradient id="star-shine" cx="36%" cy="26%" r="72%">
-              <stop offset="0%" stop-color="#fff2a1" />
-              <stop offset="42%" stop-color="#ffbd35" />
-              <stop offset="100%" stop-color="#f08318" />
-            </radialGradient>
-          </defs>
-          <path class="star-body" d="M50 8 C54 8 57 30 61 34 C65 38 88 33 90 37 C92 41 72 53 70 58 C68 64 82 82 78 86 C75 90 57 76 50 76 C43 76 25 90 22 86 C18 82 32 64 30 58 C28 53 8 41 10 37 C12 33 35 38 39 34 C43 30 46 8 50 8 Z" />
-          <path class="star-highlight" d="M38 32 C43 23 49 18 54 18 C57 18 55 25 49 31 C44 36 36 40 34 38 C32 37 34 35 38 32 Z" />
-        </svg>
-      `;
+      return renderStarToken();
+    }
+
+    if (cell === "empty" && hintColor === "gray") {
+      return renderStarToken("hint-ghost-star");
     }
 
     if (cell === "mark") {
@@ -314,6 +312,28 @@
     }
 
     return "";
+  }
+
+  function renderStarToken(extraClass = "") {
+    return `
+        <svg class="star-token${extraClass ? ` ${extraClass}` : ""}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <defs>
+            <radialGradient id="star-shine" cx="40%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#ffd447" />
+              <stop offset="88%" stop-color="#ffd447" />
+              <stop offset="100%" stop-color="#e5a512" />
+            </radialGradient>
+          </defs>
+          <path class="star-body" d="M50 8 C54 8 57 30 61 34 C65 38 88 33 90 37 C92 41 72 53 70 58 C68 64 82 82 78 86 C75 90 57 76 50 76 C43 76 25 90 22 86 C18 82 32 64 30 58 C28 53 8 41 10 37 C12 33 35 38 39 34 C43 30 46 8 50 8 Z" />
+          <path class="star-highlight" d="M40 30 C43 25 47 22 49 23 C50 24 47 28 44 31 C42 33 39 34 38 33 C37 32 38 31 40 30 Z" />
+        </svg>
+      `;
+  }
+
+  function formatHintMessage(message) {
+    return escapeHtml(message)
+      .replaceAll("marked spaces", '<strong class="hint-star-text">marked spaces</strong>')
+      .replace(/gray spaces?/g, (phrase) => `<strong class="hint-x-text">${phrase}</strong>`);
   }
 
   function applyBoard(nextBoard) {
@@ -791,6 +811,11 @@
     if (key === "r" || key === "y" || key === "x") {
       event.preventDefault();
       redo();
+    }
+
+    if (key === "h") {
+      event.preventDefault();
+      root.querySelector("[data-action='hint']")?.click();
     }
   });
 })();

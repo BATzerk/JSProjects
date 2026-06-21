@@ -22,5 +22,6 @@ declare global {
   // Runtime namespace shared by the classic browser script and Node tests.
   var StarsRemixHints: {
     findHint: (puzzle: any, board: string[][]) => any;
+    applyHint: (board: string[][], hint: any) => string[][];
   };
 }
