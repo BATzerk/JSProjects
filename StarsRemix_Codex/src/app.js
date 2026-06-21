@@ -68,6 +68,13 @@
     const hintColors = new Map(
       (currentHint?.cells ?? []).map((cell) => [getStarKey(cell), cell.color]),
     );
+    const hintPreviewStates = new Map(
+      (currentHint?.cells ?? [])
+        .filter((cell) => cell.previewState)
+        .map((cell) => [getStarKey(cell), cell.previewState]),
+    );
+    const hintAssumption = currentHint?.assumption ?? null;
+    const hintUnits = getMentionedHintUnits(currentHint?.message ?? "");
 
     validation.conflicts.forEach((conflict) => {
       conflict.cells.forEach((cell) => conflictKeys.add(getStarKey(cell)));
@@ -91,7 +98,7 @@
               <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
             </div>
             <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
-              ${renderCells(conflictKeys, hintColors)}
+              ${renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption)}
             </div>
           </div>
 
@@ -259,24 +266,32 @@
     overlay.querySelector(".generation-percent").textContent = `${percent}% of attempt budget`;
   }
 
-  function renderCells(conflictKeys, hintColors) {
+  function renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption) {
     return board
       .map((row, rowIndex) =>
         row
           .map((cell, colIndex) => {
             const houseId = puzzle.houses[rowIndex][colIndex];
             const hasConflict = conflictKeys.has(getStarKey({ row: rowIndex, col: colIndex }));
-            const hintColor = hintColors.get(getStarKey({ row: rowIndex, col: colIndex }));
+            const position = { row: rowIndex, col: colIndex };
+            const positionKey = getStarKey(position);
+            const hintColor = hintColors.get(positionKey);
+            const hintPreviewState = hintPreviewStates.get(positionKey);
+            const assumptionState = hintAssumption && getStarKey(hintAssumption) === positionKey
+              ? hintAssumption.state
+              : null;
+            const hintUnitEdges = getHintUnitEdgeClasses(rowIndex, colIndex, hintUnits);
             const classes = [
               "cell",
               cell !== "empty" ? `is-${cell}` : "",
               hasConflict ? "has-conflict" : "",
+              ...hintUnitEdges,
               hintColor ? `hint-${hintColor}` : "",
             ]
               .filter(Boolean)
               .join(" ");
             const borders = getBorderStyle(puzzle.houses, rowIndex, colIndex);
-            const content = renderCellContent(cell, hintColor);
+            const content = renderCellContent(cell, hintColor, hintPreviewState, assumptionState);
             const debugSolution = solution.some((position) =>
               position.row === rowIndex && position.col === colIndex,
             ) ? '<span class="debug-solution-star" aria-hidden="true">✦</span>' : "";
@@ -298,9 +313,25 @@
       .join("");
   }
 
-  function renderCellContent(cell, hintColor) {
+  function renderCellContent(cell, hintColor, hintPreviewState, assumptionState) {
     if (cell === "star") {
       return renderStarToken();
+    }
+
+    if (cell === "empty" && assumptionState === "star") {
+      return renderStarToken("hint-assumption-star");
+    }
+
+    if (cell === "empty" && assumptionState === "mark") {
+      return '<span class="mark-token hint-assumption-mark" aria-hidden="true">×</span>';
+    }
+
+    if (cell === "empty" && hintPreviewState === "star") {
+      return renderStarToken("hint-ghost-star hint-preview-star");
+    }
+
+    if (cell === "empty" && hintPreviewState === "mark") {
+      return '<span class="mark-token hint-preview-mark" aria-hidden="true">×</span>';
     }
 
     if (cell === "empty" && hintColor === "gray") {
@@ -333,7 +364,37 @@
   function formatHintMessage(message) {
     return escapeHtml(message)
       .replaceAll("marked spaces", '<strong class="hint-star-text">marked spaces</strong>')
-      .replace(/gray spaces?/g, (phrase) => `<strong class="hint-x-text">${phrase}</strong>`);
+      .replace(/blue spaces?/g, (phrase) => `<strong class="hint-blue-text">${phrase}</strong>`)
+      .replace(/\b(?:Row|Column|House) \d+\b/g, (label) =>
+        `<strong class="hint-unit-text">${label}</strong>`);
+  }
+
+  function getMentionedHintUnits(message) {
+    const labels = new Set(message.match(/\b(?:Row|Column|House) \d+\b/g) ?? []);
+    return getUnits(puzzle)
+      .filter((unit) => labels.has(unit.label))
+      .map((unit) => ({ ...unit, cellKeys: new Set(unit.cells.map(getStarKey)) }));
+  }
+
+  function getHintUnitEdgeClasses(row, col, hintUnits) {
+    const cellKey = getStarKey({ row, col });
+    const edges = new Set();
+    const directions = [
+      ["top", -1, 0],
+      ["right", 0, 1],
+      ["bottom", 1, 0],
+      ["left", 0, -1],
+    ];
+
+    hintUnits.forEach((unit) => {
+      if (!unit.cellKeys.has(cellKey)) return;
+      directions.forEach(([edge, rowOffset, colOffset]) => {
+        const neighborKey = getStarKey({ row: row + rowOffset, col: col + colOffset });
+        if (!unit.cellKeys.has(neighborKey)) edges.add(`hint-unit-${edge}`);
+      });
+    });
+
+    return [...edges];
   }
 
   function applyBoard(nextBoard) {

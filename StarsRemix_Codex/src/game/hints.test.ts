@@ -93,7 +93,7 @@ describe("findHint", () => {
 
     const firstHint = findHint(rowPuzzle, board);
     assert.equal(firstHint.kind, "forced-star");
-    assert.match(firstHint.message, /^Row 1 needs 2 more stars/);
+    assert.match(firstHint.message, /remaining 2 stars in Row 1/);
     assert.deepEqual(firstHint.cells, [{ row: 0, col: 1, color: "gold" }]);
     assert.deepEqual(firstHint.moves, [{ row: 0, col: 1, state: "star" }]);
 
@@ -101,7 +101,7 @@ describe("findHint", () => {
     board[1][0] = board[1][1] = board[1][2] = "mark";
     const secondHint = findHint(rowPuzzle, board);
     assert.equal(secondHint.kind, "forced-star");
-    assert.match(secondHint.message, /^Row 1 needs one more star/);
+    assert.match(secondHint.message, /remaining star in Row 1/);
     assert.deepEqual(secondHint.cells, [{ row: 0, col: 5, color: "gold" }]);
   });
 
@@ -110,15 +110,182 @@ describe("findHint", () => {
     columnBoard[0][1] = columnBoard[2][1] = "empty";
     const columnHint = findHint(puzzle, columnBoard);
     assert.equal(columnHint.kind, "forced-star");
-    assert.match(columnHint.message, /^Column 2/);
+    assert.match(columnHint.message, /Column 2/);
     assert.deepEqual(columnHint.cells, [{ row: 0, col: 1, color: "gold" }]);
 
+    const housePuzzle = {
+      size: 4,
+      starsPerUnit: 2,
+      houses: Array.from({ length: 4 }, () => Array(4).fill(0)),
+    };
     const houseBoard = Array.from({ length: 4 }, () => Array(4).fill("mark"));
-    houseBoard[0][0] = houseBoard[1][1] = "empty";
-    const houseHint = findHint(puzzle, houseBoard);
+    houseBoard[0][0] = houseBoard[2][2] = "empty";
+    const houseHint = findHint(housePuzzle, houseBoard);
     assert.equal(houseHint.kind, "forced-star");
-    assert.match(houseHint.message, /^House 1/);
+    assert.match(houseHint.message, /House 1/);
     assert.deepEqual(houseHint.cells, [{ row: 0, col: 0, color: "gold" }]);
+  });
+
+  it("finds a star forced by every viable placement in an irregular house", () => {
+    const housePuzzle = {
+      size: 4,
+      starsPerUnit: 2,
+      houses: Array.from({ length: 4 }, () => Array(4).fill(0)),
+    };
+    const board = Array.from({ length: 4 }, () => Array(4).fill("mark"));
+    board[0][0] = "empty";
+    board[2][2] = "empty";
+    board[3][3] = "empty";
+
+    const hint = findHint(housePuzzle, board);
+    assert.equal(hint.kind, "forced-star");
+    assert.match(hint.message, /remaining 2 stars in House 1/);
+    assert.deepEqual(hint.cells, [{ row: 0, col: 0, color: "gold" }]);
+    assert.deepEqual(hint.moves, [{ row: 0, col: 0, state: "star" }]);
+  });
+
+  it("reserves a row's remaining capacity for a house intersection", () => {
+    const intersectionPuzzle = {
+      size: 6,
+      starsPerUnit: 1,
+      houses: Array.from({ length: 6 }, () => Array(6).fill(1)),
+    };
+    intersectionPuzzle.houses[2][2] = 0;
+    intersectionPuzzle.houses[2][4] = 0;
+    const board = Array.from({ length: 6 }, () => Array(6).fill("empty"));
+
+    const hint = findHint(intersectionPuzzle, board);
+
+    assert.equal(hint.kind, "locked-intersection");
+    assert.match(hint.message, /House 1 reserves Row 3's remaining star/);
+    assert.deepEqual(hint.cells, [
+      { row: 2, col: 2, color: "gray" },
+      { row: 2, col: 4, color: "gray" },
+      { row: 2, col: 0, color: "blue" },
+    ]);
+    assert.deepEqual(hint.moves, [{ row: 2, col: 0, state: "mark" }]);
+  });
+
+  it("reserves a column's remaining capacity for a house intersection", () => {
+    const intersectionPuzzle = {
+      size: 6,
+      starsPerUnit: 1,
+      houses: Array.from({ length: 6 }, () => Array(6).fill(1)),
+    };
+    intersectionPuzzle.houses[2][2] = 0;
+    intersectionPuzzle.houses[4][2] = 0;
+    const board = Array.from({ length: 6 }, () => Array(6).fill("empty"));
+
+    const hint = findHint(intersectionPuzzle, board);
+
+    assert.equal(hint.kind, "locked-intersection");
+    assert.match(hint.message, /House 1 reserves Column 3's remaining star/);
+    assert.deepEqual(hint.cells, [
+      { row: 2, col: 2, color: "gray" },
+      { row: 4, col: 2, color: "gray" },
+      { row: 0, col: 2, color: "blue" },
+    ]);
+    assert.deepEqual(hint.moves, [{ row: 0, col: 2, state: "mark" }]);
+  });
+
+  it("combines two houses to reserve the remaining capacity of two rows", () => {
+    const capacityPuzzle = {
+      size: 6,
+      starsPerUnit: 1,
+      houses: Array.from({ length: 6 }, () => Array(6).fill(2)),
+    };
+    capacityPuzzle.houses[1][0] = 0;
+    capacityPuzzle.houses[4][3] = 0;
+    capacityPuzzle.houses[1][5] = 1;
+    capacityPuzzle.houses[4][2] = 1;
+    const board = Array.from({ length: 6 }, () => Array(6).fill("empty"));
+
+    const hint = findHint(capacityPuzzle, board);
+
+    assert.equal(hint.kind, "multi-unit-capacity");
+    assert.match(hint.message, /House 1 and House 2/);
+    assert.match(hint.message, /Row 2 and Row 5/);
+    assert.deepEqual(hint.cells, [
+      { row: 1, col: 0, color: "gray" },
+      { row: 1, col: 5, color: "gray" },
+      { row: 4, col: 2, color: "gray" },
+      { row: 4, col: 3, color: "gray" },
+      { row: 1, col: 1, color: "blue" },
+    ]);
+    assert.deepEqual(hint.unitCells, [
+      { row: 1, col: 0 },
+      { row: 4, col: 3 },
+      { row: 1, col: 5 },
+      { row: 4, col: 2 },
+    ]);
+    assert.deepEqual(hint.moves, [{ row: 1, col: 1, state: "mark" }]);
+  });
+
+  it("rejects an assumption only after its forced consequences create a contradiction", () => {
+    const propagationPuzzle = {
+      size: 9,
+      starsPerUnit: 2,
+      houses: [
+        [8, 8, 8, 7, 7, 7, 7, 6, 6],
+        [8, 8, 8, 8, 1, 1, 7, 1, 6],
+        [8, 8, 8, 8, 1, 1, 1, 1, 6],
+        [3, 3, 3, 8, 8, 1, 0, 1, 6],
+        [3, 3, 3, 8, 4, 4, 0, 1, 1],
+        [5, 5, 8, 8, 4, 4, 0, 1, 1],
+        [5, 4, 4, 4, 4, 0, 0, 2, 2],
+        [5, 5, 4, 2, 2, 2, 2, 2, 2],
+        [5, 5, 4, 4, 4, 4, 2, 2, 2],
+      ],
+    };
+    const board = [
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "mark", "mark", "mark", "empty", "mark", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "mark", "empty"],
+      ["empty", "mark", "empty", "mark", "empty", "mark", "empty", "mark", "empty"],
+      ["empty", "mark", "empty", "mark", "empty", "mark", "empty", "mark", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "mark", "empty", "empty", "empty"],
+      ["empty", "mark", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty", "empty"],
+    ];
+
+    const hint = findHint(propagationPuzzle, board);
+
+    assert.equal(hint.kind, "shallow-propagation");
+    assert.match(hint.message, /Suppose the purple star in the blue space were real/);
+    assert.match(hint.message, /House 8 would have no valid way/);
+    assert.deepEqual(hint.assumption, { row: 0, col: 7, state: "star" });
+    assert.deepEqual(hint.moves, [{ row: 0, col: 7, state: "mark" }]);
+    assert.ok(hint.cells.some((cell) => cell.color === "gray" && cell.previewState === "star"));
+    assert.ok(hint.cells.some((cell) => cell.color === "gray" && cell.previewState === "mark"));
+    assert.ok(hint.cells.some((cell) => cell.color === "red"));
+    assert.deepEqual(hint.cells.at(-1), { row: 0, col: 7, color: "blue" });
+
+    const applied = applyHint(board, hint);
+    assert.equal(applied[0][7], "mark");
+    assert.equal(board[0][7], "empty");
+  });
+
+  it("marks an outside cell that touches every option in a locked star group", () => {
+    const lockedHousePuzzle = {
+      size: 6,
+      starsPerUnit: 1,
+      houses: Array.from({ length: 6 }, () => Array(6).fill(1)),
+    };
+    lockedHousePuzzle.houses[2][2] = 0;
+    lockedHousePuzzle.houses[3][3] = 0;
+    const board = Array.from({ length: 6 }, () => Array(6).fill("empty"));
+
+    const hint = findHint(lockedHousePuzzle, board);
+
+    assert.equal(hint.kind, "locked-star-group");
+    assert.match(hint.message, /^House 1 must contain a star in one of the gray spaces/);
+    assert.deepEqual(hint.cells, [
+      { row: 2, col: 2, color: "gray" },
+      { row: 3, col: 3, color: "gray" },
+      { row: 2, col: 3, color: "blue" },
+    ]);
+    assert.deepEqual(hint.moves, [{ row: 2, col: 3, state: "mark" }]);
   });
 
   it("marks a 3 by 3 house's center because a star there would block a second star", () => {

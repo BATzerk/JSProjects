@@ -359,10 +359,66 @@ h2 {
   fill: #ef5b73;
 }
 
+.cell .hint-assumption-star {
+  opacity: 0.88;
+  transform: scale(0.9);
+}
+
+.cell .hint-assumption-star .star-body {
+  fill: #b881df;
+  stroke: #6f2da8;
+  stroke-width: 5;
+}
+
+.cell .hint-assumption-mark {
+  color: #7a3db8;
+  opacity: 0.9;
+}
+
+.cell.hint-gray .hint-preview-mark {
+  color: #667085;
+  opacity: 0.52;
+}
+
+.cell.hint-red .hint-preview-mark {
+  color: #dc3545;
+  opacity: 0.86;
+}
+
+.cell[class*="hint-unit-"] {
+  z-index: 1;
+  overflow: visible;
+}
+
+.cell[class*="hint-unit-"]::after {
+  position: absolute;
+  z-index: 4;
+  inset: -3px;
+  border: 0 solid rgba(122, 61, 184, 0.7);
+  content: "";
+  pointer-events: none;
+}
+
+.cell.hint-unit-top::after {
+  border-top-width: 5px;
+}
+
+.cell.hint-unit-right::after {
+  border-right-width: 5px;
+}
+
+.cell.hint-unit-bottom::after {
+  border-bottom-width: 5px;
+}
+
+.cell.hint-unit-left::after {
+  border-left-width: 5px;
+}
+
 .cell.hint-blue {
   z-index: 1;
-  box-shadow: inset 0 0 0 5px #6f7477;
-  animation: hint-pulse-gray 900ms ease-in-out infinite alternate;
+  box-shadow: inset 0 0 0 5px #17458f;
+  animation: hint-pulse-navy 900ms ease-in-out infinite alternate;
 }
 
 .cell.hint-gold {
@@ -372,12 +428,12 @@ h2 {
 
 .cell.hint-gray {
   z-index: 1;
-  background-color: #fffbed;
+  background-color: #fffbe8;
   animation: hint-pulse-gold-backing 1750ms ease-in-out infinite alternate;
 }
 
 .cell.hint-gray .hint-ghost-star {
-  opacity: 0.3;
+  opacity: 0.39;
   filter: blur(5px);
   transform: scale(1.08);
   animation: hint-pulse-ghost-star 1750ms ease-in-out infinite alternate;
@@ -393,24 +449,24 @@ h2 {
   to { box-shadow: inset 0 0 0 6px #dc3545; }
 }
 
-@keyframes hint-pulse-gray {
-  from { box-shadow: inset 0 0 0 4px rgba(111, 116, 119, 0.68); }
-  to { box-shadow: inset 0 0 0 6px #6f7477; }
+@keyframes hint-pulse-navy {
+  from { box-shadow: inset 0 0 0 4px rgba(23, 69, 143, 0.68); }
+  to { box-shadow: inset 0 0 0 6px #17458f; }
 }
 
 @keyframes hint-pulse-gold-backing {
-  from { background-color: #fffdf7; }
-  to { background-color: #fff7dc; }
+  from { background-color: #fffcf5; }
+  to { background-color: #fff5d1; }
 }
 
 @keyframes hint-pulse-ghost-star {
   from {
-    opacity: 0.24;
+    opacity: 0.31;
     filter: blur(5.5px);
     transform: scale(1.04);
   }
   to {
-    opacity: 0.36;
+    opacity: 0.47;
     filter: blur(4.5px);
     transform: scale(1.1);
   }
@@ -487,8 +543,13 @@ h2 {
   font-weight: 800;
 }
 
-.hint-card .hint-x-text {
-  color: #6f7477;
+.hint-card .hint-blue-text {
+  color: #17458f;
+  font-weight: 800;
+}
+
+.hint-card .hint-unit-text {
+  color: #7a3db8;
   font-weight: 800;
 }
 
@@ -532,7 +593,7 @@ h2 {
   }
 
   .cell.hint-gray {
-    background-color: #fffbed !important;
+    background-color: #fffbe8 !important;
   }
 }
 
