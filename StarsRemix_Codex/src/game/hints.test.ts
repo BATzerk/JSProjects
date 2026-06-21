@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import "./hints.js";
 
-const { findHint, findSoftHint, applyHint, analyzeDifficulty, techniques } = globalThis.StarsRemixHints;
+const { findHint, findSoftHint, findSoftHintByKind, isSoftHintTechniqueSatisfied, checkBoardForErrors, applyHint, analyzeDifficulty, techniques } = globalThis.StarsRemixHints;
 
 const puzzle = {
   size: 4,
@@ -257,6 +257,72 @@ describe("findHint", () => {
     assert.deepEqual(hint.moves, [{ row: 1, col: 1, state: "mark" }]);
   });
 
+  it("cross-checks surviving row, column, and house placement patterns", () => {
+    const crosscheckPuzzle = {
+      size: 9,
+      starsPerUnit: 2,
+      houses: [
+        [5, 4, 8, 8, 8, 8, 8, 8, 8],
+        [5, 4, 8, 8, 8, 1, 1, 1, 1],
+        [5, 4, 4, 8, 1, 1, 1, 1, 1],
+        [5, 4, 4, 4, 7, 7, 0, 0, 3],
+        [5, 4, 4, 7, 7, 7, 7, 0, 3],
+        [5, 6, 6, 6, 6, 6, 7, 0, 3],
+        [5, 6, 6, 2, 2, 7, 7, 3, 3],
+        [5, 6, 2, 2, 2, 7, 3, 3, 7],
+        [5, 5, 5, 2, 2, 7, 7, 7, 7],
+      ],
+    };
+    const board = [
+      ["empty", "empty", "empty", "empty", "empty", "empty", "empty", "mark", "empty"],
+      ["empty", "mark", "mark", "mark", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "mark", "mark", "mark", "mark"],
+      ["mark", "mark", "mark", "mark", "mark", "mark", "star", "mark", "star"],
+      ["empty", "empty", "empty", "empty", "empty", "mark", "mark", "mark", "mark"],
+      ["mark", "mark", "empty", "mark", "empty", "empty", "mark", "star", "mark"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "mark", "mark", "mark"],
+      ["empty", "empty", "empty", "mark", "empty", "empty", "empty", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty", "empty", "mark", "mark", "empty"],
+    ];
+
+    const hint = findHint(crosscheckPuzzle, board);
+
+    assert.equal(hint.kind, "placement-propagation");
+    assert.match(hint.message, /surviving pattern for Column 3/);
+    assert.deepEqual(hint.cells, [
+      { row: 2, col: 2, color: "gray" },
+      { row: 0, col: 2, color: "blue" },
+    ]);
+    assert.deepEqual(hint.moves, [{ row: 0, col: 2, state: "star" }]);
+  });
+
+  it("marks a space excluded from every surviving placement pattern", () => {
+    const crosscheckPuzzle = {
+      size: 5,
+      starsPerUnit: 1,
+      houses: [
+        [3, 3, 2, 2, 4],
+        [4, 0, 2, 4, 0],
+        [1, 1, 3, 1, 1],
+        [0, 0, 0, 2, 3],
+        [1, 3, 2, 4, 4],
+      ],
+    };
+    const board = [
+      ["empty", "empty", "mark", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "empty"],
+      ["empty", "mark", "mark", "empty", "empty"],
+      ["empty", "empty", "empty", "empty", "mark"],
+      ["empty", "empty", "empty", "empty", "empty"],
+    ];
+
+    const hint = findHint(crosscheckPuzzle, board);
+
+    assert.equal(hint.kind, "placement-propagation");
+    assert.match(hint.message, /surviving pattern for House 2/);
+    assert.deepEqual(hint.moves, [{ row: 4, col: 0, state: "mark" }]);
+  });
+
   it("rejects an assumption only after its forced consequences create a contradiction", () => {
     const propagationPuzzle = {
       size: 9,
@@ -405,6 +471,85 @@ describe("findSoftHint", () => {
     assert.match(hint.stages[0].message, /only one valid location/);
     assert.equal(hint.stages[1].message, "Look closely at Row 1.");
   });
+
+  it("keeps finding Only Place elsewhere while a forced star is temporarily an X", () => {
+    const rowPuzzle = {
+      size: 8,
+      starsPerUnit: 2,
+      houses: Array.from({ length: 8 }, (_, row) => Array(8).fill(row)),
+    };
+    const board = Array.from({ length: 8 }, () => Array(8).fill("empty"));
+    board[0] = ["mark", "mark", "empty", "mark", "mark", "empty", "mark", "mark"];
+    board[1] = ["mark", "empty", "mark", "mark", "mark", "mark", "empty", "mark"];
+    board[0][2] = "mark";
+
+    const hint = findSoftHintByKind(rowPuzzle, board, "forced-star");
+
+    assert.equal(hint?.title, "Only Place");
+    assert.equal(hint?.stages[1].message, "Look closely at Row 2.");
+  });
+
+  it("treats X-to-star as completing the intended Only Place move", () => {
+    const rowPuzzle = {
+      size: 8,
+      starsPerUnit: 1,
+      houses: Array.from({ length: 8 }, (_, row) => Array(8).fill(row)),
+    };
+    const previousBoard = Array.from({ length: 8 }, () => Array(8).fill("empty"));
+    previousBoard[0] = ["mark", "mark", "mark", "mark", "mark", "empty", "mark", "mark"];
+    const nextBoard = previousBoard.map((row) => [...row]);
+    nextBoard[0][5] = "star";
+    const solution = [{ row: 0, col: 5 }];
+
+    assert.equal(
+      isSoftHintTechniqueSatisfied(rowPuzzle, previousBoard, nextBoard, solution, "forced-star"),
+      true,
+    );
+  });
+
+  it("recognizes when the hinted technique is satisfied without requiring the same location", () => {
+    const previousBoard = emptyBoard();
+    previousBoard[0][0] = "star";
+    previousBoard[3][3] = "star";
+    const nextBoard = previousBoard.map((row) => [...row]);
+    nextBoard[2][2] = "mark";
+
+    assert.equal(
+      isSoftHintTechniqueSatisfied(puzzle, previousBoard, nextBoard, undefined, "surround-star"),
+      true,
+    );
+  });
+
+  it("does not celebrate a move that introduces a board error", () => {
+    const previousBoard = emptyBoard();
+    previousBoard[0][0] = "star";
+    const nextBoard = previousBoard.map((row) => [...row]);
+    nextBoard[0][1] = "star";
+    const solution = [{ row: 0, col: 0 }, { row: 0, col: 2 }];
+
+    assert.equal(
+      isSoftHintTechniqueSatisfied(puzzle, previousBoard, nextBoard, solution, "surround-star"),
+      false,
+    );
+  });
+});
+
+describe("checkBoardForErrors", () => {
+  const solution = [{ row: 0, col: 0 }, { row: 0, col: 2 }];
+
+  it("reports only whether a placed state disagrees with the solution", () => {
+    const cleanBoard = emptyBoard();
+    cleanBoard[0][1] = "mark";
+    assert.equal(checkBoardForErrors(puzzle, cleanBoard, solution), false);
+
+    const wrongStarBoard = emptyBoard();
+    wrongStarBoard[0][1] = "star";
+    assert.equal(checkBoardForErrors(puzzle, wrongStarBoard, solution), true);
+
+    const wrongMarkBoard = emptyBoard();
+    wrongMarkBoard[0][0] = "mark";
+    assert.equal(checkBoardForErrors(puzzle, wrongMarkBoard, solution), true);
+  });
 });
 
 describe("analyzeDifficulty", () => {
@@ -421,6 +566,7 @@ describe("analyzeDifficulty", () => {
         "impossible-star",
         "multi-unit-capacity",
         "triple-unit-capacity",
+        "placement-propagation",
         "shallow-propagation",
       ],
     );

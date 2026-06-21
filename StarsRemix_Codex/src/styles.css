@@ -136,6 +136,15 @@ h2 {
   font-weight: 850;
 }
 
+.check-button {
+  min-width: 82px;
+  min-height: 52px;
+  padding: 10px 14px;
+  background: #eefbf7;
+  font-size: 0.94rem;
+  font-weight: 850;
+}
+
 .soft-hint-button {
   position: static;
   min-width: 112px;
@@ -429,31 +438,31 @@ h2 {
 .cell[class*="hint-unit-"]::after {
   position: absolute;
   z-index: 4;
-  inset: -3px;
-  border: 0 solid rgba(122, 61, 184, 0.7);
+  inset: -4px;
+  border: 0 solid #b84dff;
   content: "";
   pointer-events: none;
 }
 
 .cell.hint-unit-top::after {
-  border-top-width: 5px;
+  border-top-width: 7px;
 }
 
 .cell.hint-unit-right::after {
-  border-right-width: 5px;
+  border-right-width: 7px;
 }
 
 .cell.hint-unit-bottom::after {
-  border-bottom-width: 5px;
+  border-bottom-width: 7px;
 }
 
 .cell.hint-unit-left::after {
-  border-left-width: 5px;
+  border-left-width: 7px;
 }
 
 .cell.hint-blue {
   z-index: 1;
-  box-shadow: inset 0 0 0 5px #17458f;
+  box-shadow: inset 0 0 0 5px #28b5f4;
   animation: hint-pulse-navy 900ms ease-in-out infinite alternate;
 }
 
@@ -472,7 +481,7 @@ h2 {
   opacity: 0.39;
   filter: blur(5px);
   transform: scale(1.08);
-  animation: hint-pulse-ghost-star 1750ms ease-in-out infinite alternate;
+  animation: hint-pulse-ghost-star 900ms ease-in-out infinite alternate;
 }
 
 .cell.hint-gray .hint-ghost-star .star-body {
@@ -486,8 +495,8 @@ h2 {
 }
 
 @keyframes hint-pulse-navy {
-  from { box-shadow: inset 0 0 0 4px rgba(23, 69, 143, 0.68); }
-  to { box-shadow: inset 0 0 0 6px #17458f; }
+  from { box-shadow: inset 0 0 0 4px rgba(40, 181, 244, 0.68); }
+  to { box-shadow: inset 0 0 0 6px #28b5f4; }
 }
 
 @keyframes hint-pulse-gold-backing {
@@ -601,6 +610,93 @@ h2 {
   line-height: 1.3;
 }
 
+.soft-hint-card.is-satisfied {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-color: #287a4a;
+  background: #eaf9ef;
+  box-shadow: 3px 3px 0 #287a4a;
+  animation: soft-hint-success-in 180ms ease-out both;
+}
+
+.soft-hint-card.is-satisfied .hint-kicker,
+.soft-hint-card.is-satisfied h2,
+.soft-hint-card.is-satisfied p {
+  color: #185c35;
+}
+
+.soft-hint-card.is-satisfied h2 {
+  margin-top: 2px;
+}
+
+.soft-hint-success-icon {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 3px solid #185c35;
+  border-radius: 50%;
+  color: #185c35;
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.soft-hint-card .soft-hint-success-message {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.soft-hint-card.is-satisfied.is-leaving {
+  animation: soft-hint-success-out 280ms ease-in both;
+}
+
+@keyframes soft-hint-success-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes soft-hint-success-out {
+  from { opacity: 1; transform: translateY(0) rotate(0); }
+  to { opacity: 0; transform: translateY(38px) rotate(1.5deg); }
+}
+
+.check-card {
+  padding: 14px;
+  border: 2px solid #1d1d1b;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 3px 3px 0 #1d1d1b;
+}
+
+.check-card h2,
+.check-card p {
+  margin: 0;
+}
+
+.check-card p {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.check-card.has-error {
+  border-color: #9b1c31;
+  background: #fff4f5;
+  box-shadow: 3px 3px 0 #9b1c31;
+  color: #7f1528;
+}
+
+.check-card.is-clear {
+  border-color: #287a4a;
+  background: #f1fbf4;
+  box-shadow: 3px 3px 0 #287a4a;
+  color: #185c35;
+}
+
 .difficulty-report {
   padding: 14px;
   border: 2px solid #1d1d1b;
@@ -702,7 +798,7 @@ h2 {
 }
 
 .hint-card .hint-blue-text {
-  color: #17458f;
+  color: #28b5f4;
   font-weight: 800;
 }
 

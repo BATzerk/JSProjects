@@ -80,10 +80,19 @@ const techniqueDefinitions = Object.freeze([
     nudge: "Three units together use all of the remaining star capacity in three other units.",
   },
   {
+    kind: "placement-propagation",
+    title: "Placement Crosscheck",
+    tier: "Expert",
+    weight: 5,
+    bigTicket: true,
+    nudge: "The remaining row, column, and house patterns constrain one another.",
+    strategy: findPlacementPropagationHint,
+  },
+  {
     kind: "shallow-propagation",
     title: "Contradiction Chain",
     tier: "Expert",
-    weight: 5,
+    weight: 6,
     bigTicket: true,
     nudge: "One possible move leads to a contradiction after a short chain.",
     strategy: findShallowPropagationHint,
@@ -137,6 +146,19 @@ function findSoftHint(puzzle, board, solution) {
   return createSoftHint(findHint(puzzle, board));
 }
 
+function findSoftHintByKind(puzzle, board, techniqueKind, solution) {
+  if (techniqueKind === "board-error") return findBoardMistake(puzzle, board, solution);
+
+  const technique = techniqueDefinitions.find(({ kind }) => kind === techniqueKind);
+  const strategy = techniqueKind === "triple-unit-capacity"
+    ? findMultiUnitCapacityHint
+    : technique?.strategy;
+  if (!strategy) return null;
+
+  const hint = strategy({ puzzle, board, units: getUnits(puzzle) });
+  return hint?.kind === techniqueKind ? createSoftHint(hint) : null;
+}
+
 function findBoardMistake(puzzle, board, solution) {
   if (!Array.isArray(solution) || solution.length === 0) return null;
   const solutionKeys = new Set(solution.map(cellKey));
@@ -164,6 +186,59 @@ function findBoardMistake(puzzle, board, solution) {
     }
   }
   return null;
+}
+
+function checkBoardForErrors(puzzle, board, solution) {
+  return Boolean(findBoardMistake(puzzle, board, solution));
+}
+
+function isSoftHintTechniqueSatisfied(puzzle, previousBoard, nextBoard, solution, techniqueKind) {
+  if (findBoardMistake(puzzle, nextBoard, solution)) return false;
+
+  if (techniqueKind === "board-error") {
+    return !findBoardMistake(puzzle, nextBoard, solution);
+  }
+
+  const changedCells = collectCells(puzzle.size, ({ row, col }) =>
+    previousBoard[row][col] !== nextBoard[row][col],
+  );
+  if (changedCells.length !== 1) return false;
+
+  const changedCell = changedCells[0];
+  const intendedMove = {
+    ...changedCell,
+    state: nextBoard[changedCell.row][changedCell.col],
+  };
+  const technique = techniqueDefinitions.find(({ kind }) => kind === techniqueKind);
+  const strategy = techniqueKind === "triple-unit-capacity"
+    ? findMultiUnitCapacityHint
+    : technique?.strategy;
+  if (!strategy) return false;
+
+  let techniqueBoard = previousBoard.map((row) => [...row]);
+  if (
+    previousBoard[changedCell.row][changedCell.col] === "mark"
+    && intendedMove.state === "star"
+  ) {
+    techniqueBoard[changedCell.row][changedCell.col] = "empty";
+  }
+  for (let step = 0; step < puzzle.size * puzzle.size; step += 1) {
+    const hint = strategy({
+      puzzle,
+      board: techniqueBoard,
+      units: getUnits(puzzle),
+    });
+    if (!hint?.moves?.length) return false;
+    if (hint.kind === techniqueKind && hint.moves.some((move) =>
+      move.row === intendedMove.row
+      && move.col === intendedMove.col
+      && move.state === intendedMove.state,
+    )) {
+      return true;
+    }
+    techniqueBoard = applyHint(techniqueBoard, hint);
+  }
+  return false;
 }
 
 function createSoftHint(hint) {
@@ -539,6 +614,134 @@ function findShallowPropagationHint({ puzzle, board, units }) {
     return createPropagationHint(candidate, markBranch, "mark");
   }
   return null;
+}
+
+function findPlacementPropagationHint({ puzzle, board, units }) {
+  const unitMasks = units.map((unit) => cellsToMask(unit.cells, puzzle.size));
+  const domains = units.map((unit) => getUnitStarPlacements(
+    unit,
+    board,
+    puzzle.starsPerUnit,
+    puzzle.size,
+  ).map((cells) => ({
+    cells,
+    mask: cellsToMask(cells, puzzle.size),
+    touchingMask: cellsToTouchingMask(cells, puzzle.size),
+  })));
+  if (domains.some((domain) => domain.length === 0)) return null;
+
+  const neighbors = units.map(() => []);
+  for (let left = 0; left < units.length; left += 1) {
+    for (let right = left + 1; right < units.length; right += 1) {
+      if (!unitsConstrainEachOther(units[left], units[right])) continue;
+      neighbors[left].push(right);
+      neighbors[right].push(left);
+    }
+  }
+
+  const queue = neighbors.flatMap((unitNeighbors, unitIndex) =>
+    unitNeighbors.map((neighborIndex) => [unitIndex, neighborIndex]));
+  let queueIndex = 0;
+  while (queueIndex < queue.length) {
+    const [unitIndex, neighborIndex] = queue[queueIndex];
+    queueIndex += 1;
+    const intersectionMask = unitMasks[unitIndex] & unitMasks[neighborIndex];
+    const enforceTouching = units[unitIndex].kind === "row" && units[neighborIndex].kind === "row";
+    const compatiblePlacements = domains[unitIndex].filter((placement) =>
+      domains[neighborIndex].some((neighborPlacement) => placementsAreCompatible(
+        placement,
+        neighborPlacement,
+        intersectionMask,
+        enforceTouching,
+      )),
+    );
+    if (compatiblePlacements.length === domains[unitIndex].length) continue;
+    if (compatiblePlacements.length === 0) return null;
+    domains[unitIndex] = compatiblePlacements;
+    for (const otherNeighbor of neighbors[unitIndex]) {
+      if (otherNeighbor !== neighborIndex) queue.push([otherNeighbor, unitIndex]);
+    }
+  }
+
+  const openCells = collectCells(puzzle.size, ({ row, col }) => board[row][col] === "empty");
+  for (const cell of openCells) {
+    const containingUnits = units
+      .map((unit, index) => ({ unit, index }))
+      .filter(({ unit }) => unit.cells.some((unitCell) => sameCell(unitCell, cell)))
+      .sort((left, right) => domains[left.index].length - domains[right.index].length);
+    const forcingUnit = containingUnits.find(({ index }) =>
+      domains[index].every((placement) => placement.cells.some((star) => sameCell(star, cell))));
+    if (!forcingUnit) continue;
+    return createPlacementPropagationHint(
+      forcingUnit.unit,
+      domains[forcingUnit.index].map((placement) => placement.cells),
+      cell,
+      "star",
+    );
+  }
+
+  for (const cell of openCells) {
+    const containingUnits = units
+      .map((unit, index) => ({ unit, index }))
+      .filter(({ unit }) => unit.cells.some((unitCell) => sameCell(unitCell, cell)))
+      .sort((left, right) => domains[left.index].length - domains[right.index].length);
+    const excludingUnit = containingUnits.find(({ index }) =>
+      domains[index].every((placement) => placement.cells.every((star) => !sameCell(star, cell))));
+    if (!excludingUnit) continue;
+    return createPlacementPropagationHint(
+      excludingUnit.unit,
+      domains[excludingUnit.index].map((placement) => placement.cells),
+      cell,
+      "mark",
+    );
+  }
+  return null;
+}
+
+function unitsConstrainEachOther(leftUnit, rightUnit) {
+  if (leftUnit.kind === "row" && rightUnit.kind === "row") {
+    return Math.abs(leftUnit.index - rightUnit.index) === 1;
+  }
+  if (leftUnit.kind !== "row" && rightUnit.kind !== "row") return false;
+  return leftUnit.cells.some((leftCell) =>
+    rightUnit.cells.some((rightCell) => sameCell(leftCell, rightCell)));
+}
+
+function placementsAreCompatible(leftPlacement, rightPlacement, intersectionMask, enforceTouching) {
+  if ((leftPlacement.mask & intersectionMask) !== (rightPlacement.mask & intersectionMask)) {
+    return false;
+  }
+  if (!enforceTouching) return true;
+  const sharedStars = leftPlacement.mask & rightPlacement.mask;
+  return (leftPlacement.touchingMask & rightPlacement.mask) === sharedStars;
+}
+
+function cellsToMask(cells, size) {
+  return cells.reduce(
+    (mask, { row, col }) => mask | (1n << BigInt(row * size + col)),
+    0n,
+  );
+}
+
+function cellsToTouchingMask(cells, size) {
+  return cellsToMask(cells.flatMap((cell) => [cell, ...surroundingCells(cell, size)]), size);
+}
+
+function createPlacementPropagationHint(unit, placements, cell, state) {
+  const possibleStars = uniqueCells(placements.flat())
+    .filter((possible) => !sameCell(possible, cell))
+    .sort(compareCells);
+  const result = state === "star" ? "must contain a star" : "cannot contain a star";
+  return {
+    kind: "placement-propagation",
+    message: `After cross-checking the compatible row, column, and house placements, every surviving pattern for ${unit.label} agrees that the blue space ${result}. ${state === "star" ? "Add a star there." : "Mark it with an X."}`,
+    cells: [
+      ...possibleStars.map((possible) => ({ ...possible, color: "gray" })),
+      { ...cell, color: "blue" },
+    ],
+    unitCells: unit.cells,
+    moves: [{ ...cell, state }],
+  };
 }
 
 function createPropagationHint(candidate, failedBranch, assumedState) {
@@ -1001,6 +1204,9 @@ function cellKey({ row, col }) {
 globalThis.StarsRemixHints = {
   findHint,
   findSoftHint,
+  findSoftHintByKind,
+  isSoftHintTechniqueSatisfied,
+  checkBoardForErrors,
   applyHint,
   analyzeDifficulty,
   techniques: techniqueDefinitions.map(({ strategy, ...technique }) => ({ ...technique })),

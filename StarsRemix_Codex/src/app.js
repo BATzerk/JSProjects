@@ -1,30 +1,23 @@
 (function () {
   const starterPuzzle = {
-    id: "codex-starter-8x8",
+    id: "codex-starter-10x10",
     title: "First Light",
-    size: 8,
+    size: 10,
     starsPerUnit: 2,
     houses: [
-      [4, 4, 4, 5, 5, 5, 6, 6],
-      [4, 4, 4, 5, 5, 5, 6, 6],
-      [3, 3, 5, 5, 1, 1, 6, 6],
-      [3, 3, 5, 0, 1, 1, 1, 7],
-      [3, 2, 5, 0, 1, 1, 1, 7],
-      [3, 2, 2, 0, 0, 0, 7, 7],
-      [3, 3, 2, 2, 0, 0, 7, 7],
-      [3, 3, 2, 2, 0, 0, 7, 7],
+      [0, 0, 0, 0, 1, 1, 2, 2, 2, 2],
+      [0, 0, 0, 0, 1, 1, 2, 2, 2, 2],
+      [3, 3, 3, 1, 1, 1, 4, 4, 2, 2],
+      [3, 3, 3, 1, 1, 1, 4, 4, 4, 5],
+      [3, 3, 1, 1, 1, 4, 4, 4, 5, 5],
+      [6, 3, 3, 7, 7, 7, 4, 4, 5, 5],
+      [6, 6, 3, 7, 8, 7, 7, 5, 5, 9],
+      [6, 6, 6, 7, 8, 8, 7, 7, 9, 9],
+      [6, 6, 6, 6, 8, 8, 8, 9, 9, 9],
+      [6, 6, 6, 6, 8, 8, 9, 9, 9, 9],
     ],
   };
-  const starterSolution = [
-    { row: 0, col: 4 }, { row: 0, col: 6 },
-    { row: 1, col: 0 }, { row: 1, col: 2 },
-    { row: 2, col: 4 }, { row: 2, col: 6 },
-    { row: 3, col: 0 }, { row: 3, col: 2 },
-    { row: 4, col: 5 }, { row: 4, col: 7 },
-    { row: 5, col: 1 }, { row: 5, col: 3 },
-    { row: 6, col: 5 }, { row: 6, col: 7 },
-    { row: 7, col: 1 }, { row: 7, col: 3 },
-  ];
+  const starterSolution = [];
 
   const housePalette = [
     "#fff3eb",
@@ -52,6 +45,9 @@
   let isDraggingMarks = false;
   let currentHint = null;
   let currentSoftHint = null;
+  let softHintSuccessTimer = null;
+  let softHintRemovalTimer = null;
+  let currentCheck = null;
   let generationProgress = null;
   let difficultyProgress = null;
   let difficultyReport = null;
@@ -68,7 +64,7 @@
   function render() {
     const validation = validateBoard(puzzle, board);
     const conflictKeys = new Set();
-    const softHintStage = currentSoftHint
+    const softHintStage = currentSoftHint && !currentSoftHint.isSatisfied
       ? currentSoftHint.hint.stages[currentSoftHint.stage]
       : null;
     const activeHint = currentHint ?? softHintStage;
@@ -103,6 +99,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
               </button>
               <button class="action-button soft-hint-button" type="button" data-action="soft-hint" title="Soft Hint (G)">Soft Hint <kbd>G</kbd></button>
+              <button class="action-button check-button" type="button" data-action="check">Check</button>
               <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
             </div>
             <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
@@ -121,11 +118,26 @@
                 </div>
               ` : ""}
               ${currentSoftHint ? `
-                <div class="hint-card soft-hint-card" role="status" aria-live="polite">
-                  <p class="hint-kicker">Soft Hint · ${currentSoftHint.stage + 1} of ${currentSoftHint.hint.stages.length}</p>
-                  <h2>${escapeHtml(currentSoftHint.hint.title)}</h2>
-                  <p>${formatHintMessage(softHintStage.message)}</p>
-                  <p class="hint-apply-prompt">${currentSoftHint.stage < currentSoftHint.hint.stages.length - 1 ? "Press G again for a little more." : "That's the full hint — the move is still yours."}</p>
+                <div class="hint-card soft-hint-card${currentSoftHint.isSatisfied ? " is-satisfied" : ""}" role="status" aria-live="polite">
+                  ${currentSoftHint.isSatisfied ? `
+                    <div class="soft-hint-success-icon" aria-hidden="true">✓</div>
+                    <div>
+                      <p class="hint-kicker">Soft Hint Complete</p>
+                      <h2>${escapeHtml(currentSoftHint.hint.title)}</h2>
+                      <p class="soft-hint-success-message">That’s exactly the technique.</p>
+                    </div>
+                  ` : `
+                    <p class="hint-kicker">Soft Hint · ${currentSoftHint.stage + 1} of ${currentSoftHint.hint.stages.length}</p>
+                    <h2>${escapeHtml(currentSoftHint.hint.title)}</h2>
+                    <p>${formatHintMessage(softHintStage.message)}</p>
+                    <p class="hint-apply-prompt">${currentSoftHint.stage < currentSoftHint.hint.stages.length - 1 ? "Press G again for a little more." : "That's the full hint — the move is still yours."}</p>
+                  `}
+                </div>
+              ` : ""}
+              ${currentCheck ? `
+                <div class="check-card ${currentCheck.hasError ? "has-error" : "is-clear"}" role="status" aria-live="polite">
+                  <h2>Check</h2>
+                  <p>${currentCheck.hasError ? "There is an error somewhere on the board." : "No errors found so far."}</p>
                 </div>
               ` : ""}
               ${difficultyReport ? renderDifficultyReport() : ""}
@@ -213,6 +225,7 @@
         return;
       }
       currentSoftHint = null;
+      currentCheck = null;
       currentHint = validation.solved
         ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
         : globalThis.StarsRemixHints.findHint(puzzle, board);
@@ -221,6 +234,7 @@
 
     root.querySelector("[data-action='soft-hint']")?.addEventListener("click", () => {
       currentHint = null;
+      currentCheck = null;
       if (!currentSoftHint) {
         const hint = globalThis.StarsRemixHints.findSoftHint(puzzle, board, solution);
         currentSoftHint = { hint, stage: 0 };
@@ -230,6 +244,15 @@
           currentSoftHint.hint.stages.length - 1,
         );
       }
+      render();
+    });
+
+    root.querySelector("[data-action='check']")?.addEventListener("click", () => {
+      currentHint = null;
+      currentSoftHint = null;
+      currentCheck = {
+        hasError: globalThis.StarsRemixHints.checkBoardForErrors(puzzle, board, solution),
+      };
       render();
     });
 
@@ -266,6 +289,7 @@
       redoStack = [];
       currentHint = null;
       currentSoftHint = null;
+      currentCheck = null;
       difficultyReport = null;
     } finally {
       generationProgress = null;
@@ -532,20 +556,89 @@
 
   function applyBoard(nextBoard) {
     if (boardsMatch(board, nextBoard)) return;
+    const previousBoard = board;
+    const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
+    if (!wasShowingSuccess) clearSoftHintSuccessTimers();
     undoStack = [...undoStack, board];
     redoStack = [];
     board = nextBoard;
     currentHint = null;
-    currentSoftHint = null;
+    currentCheck = null;
+    currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, board);
     render();
+    if (currentSoftHint?.isSatisfied && !wasShowingSuccess) scheduleSoftHintSuccessExit();
+  }
+
+  function updateSoftHintAfterMove(activeSoftHint, previousBoard, nextBoard) {
+    if (!activeSoftHint) return null;
+
+    const matchingHint = globalThis.StarsRemixHints.findSoftHintByKind(
+      puzzle,
+      nextBoard,
+      activeSoftHint.hint.kind,
+      solution,
+    );
+    if (activeSoftHint.isSatisfied) {
+      return { ...activeSoftHint, replacementHint: matchingHint };
+    }
+
+    const moveSatisfied = globalThis.StarsRemixHints.isSoftHintTechniqueSatisfied(
+      puzzle,
+      previousBoard,
+      nextBoard,
+      solution,
+      activeSoftHint.hint.kind,
+    );
+    if (moveSatisfied) {
+      return { ...activeSoftHint, isSatisfied: true, replacementHint: matchingHint };
+    }
+    if (!matchingHint) return null;
+
+    return {
+      hint: matchingHint,
+      stage: Math.min(activeSoftHint.stage, matchingHint.stages.length - 1),
+    };
+  }
+
+  function clearSoftHintSuccessTimers() {
+    window.clearTimeout(softHintSuccessTimer);
+    window.clearTimeout(softHintRemovalTimer);
+    softHintSuccessTimer = null;
+    softHintRemovalTimer = null;
+  }
+
+  function scheduleSoftHintSuccessExit() {
+    softHintSuccessTimer = window.setTimeout(() => {
+      const card = root.querySelector(".soft-hint-card.is-satisfied");
+      if (!card || !currentSoftHint?.isSatisfied) return;
+      card.classList.add("is-leaving");
+      softHintRemovalTimer = window.setTimeout(() => {
+        if (!currentSoftHint?.isSatisfied) return;
+        const replacementHint = currentSoftHint.replacementHint;
+        currentSoftHint = replacementHint
+          ? {
+              hint: replacementHint,
+              stage: Math.min(currentSoftHint.stage, replacementHint.stages.length - 1),
+            }
+          : null;
+        softHintSuccessTimer = null;
+        softHintRemovalTimer = null;
+        render();
+      }, 280);
+    }, 1500);
   }
 
   function replaceBoard(nextBoard) {
     if (boardsMatch(board, nextBoard)) return;
+    const previousBoard = board;
+    const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
+    if (!wasShowingSuccess) clearSoftHintSuccessTimers();
     board = nextBoard;
     currentHint = null;
-    currentSoftHint = null;
+    currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, board);
+    currentCheck = null;
     render();
+    if (currentSoftHint?.isSatisfied && !wasShowingSuccess) scheduleSoftHintSuccessExit();
   }
 
   function undo() {
@@ -556,6 +649,7 @@
     board = previous;
     currentHint = null;
     currentSoftHint = null;
+    currentCheck = null;
     render();
   }
 
@@ -567,6 +661,7 @@
     board = next;
     currentHint = null;
     currentSoftHint = null;
+    currentCheck = null;
     render();
   }
 
