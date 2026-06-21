@@ -5,16 +5,26 @@
     size: 8,
     starsPerUnit: 2,
     houses: [
-      [0, 0, 0, 1, 1, 1, 2, 2],
-      [0, 3, 3, 3, 1, 4, 4, 2],
-      [0, 3, 5, 3, 1, 4, 2, 2],
-      [6, 6, 5, 5, 5, 4, 4, 2],
-      [6, 7, 7, 5, 8, 8, 4, 9],
-      [6, 6, 7, 7, 8, 10, 10, 9],
-      [11, 6, 12, 12, 8, 8, 10, 9],
-      [11, 11, 11, 12, 12, 10, 10, 9],
+      [4, 4, 4, 5, 5, 5, 6, 6],
+      [4, 4, 4, 5, 5, 5, 6, 6],
+      [3, 3, 5, 5, 1, 1, 6, 6],
+      [3, 3, 5, 0, 1, 1, 1, 7],
+      [3, 2, 5, 0, 1, 1, 1, 7],
+      [3, 2, 2, 0, 0, 0, 7, 7],
+      [3, 3, 2, 2, 0, 0, 7, 7],
+      [3, 3, 2, 2, 0, 0, 7, 7],
     ],
   };
+  const starterSolution = [
+    { row: 0, col: 4 }, { row: 0, col: 6 },
+    { row: 1, col: 0 }, { row: 1, col: 2 },
+    { row: 2, col: 4 }, { row: 2, col: 6 },
+    { row: 3, col: 0 }, { row: 3, col: 2 },
+    { row: 4, col: 5 }, { row: 4, col: 7 },
+    { row: 5, col: 1 }, { row: 5, col: 3 },
+    { row: 6, col: 5 }, { row: 6, col: 7 },
+    { row: 7, col: 1 }, { row: 7, col: 3 },
+  ];
 
   const housePalette = [
     "#fff3eb",
@@ -32,10 +42,14 @@
     "#fff0fb",
   ];
 
-  let board = createEmptyBoard(starterPuzzle.size);
+  let puzzle = starterPuzzle;
+  let solution = starterSolution;
+  let selectedBoardSize = 10;
+  let board = createEmptyBoard(puzzle.size);
   let undoStack = [];
   let redoStack = [];
   let isDraggingMarks = false;
+  let currentHint = null;
 
   const root = document.querySelector("#root");
 
@@ -43,12 +57,15 @@
     throw new Error("Missing app root.");
   }
 
-  validatePuzzleShape(starterPuzzle);
+  validatePuzzleShape(puzzle);
   render();
 
   function render() {
-    const validation = validateBoard(starterPuzzle, board);
+    const validation = validateBoard(puzzle, board);
     const conflictKeys = new Set();
+    const hintColors = new Map(
+      (currentHint?.cells ?? []).map((cell) => [getStarKey(cell), cell.color]),
+    );
 
     validation.conflicts.forEach((conflict) => {
       conflict.cells.forEach((cell) => conflictKeys.add(getStarKey(cell)));
@@ -57,10 +74,15 @@
     root.innerHTML = `
       <main class="app-shell">
         <section class="top-bar" aria-label="Puzzle controls">
-          <div>
-            <p class="eyebrow">StarsRemix Codex</p>
-            <h1>${starterPuzzle.title}</h1>
+          <p class="brand">StarsRemix - Codex</p>
+          <div class="size-controls" aria-label="Board size">
+            ${[9, 10].map((size) => `
+              <button class="size-button${selectedBoardSize === size ? " is-active" : ""}" type="button" data-size="${size}" aria-pressed="${selectedBoardSize === size}">${size}×${size}</button>
+            `).join("")}
           </div>
+          <button class="action-button" type="button" data-action="generate">new board</button>
+          <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
+          <button class="action-button debug-reveal-button" type="button" data-action="reveal">DEBUG reveal solution</button>
           <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
             ↺
           </button>
@@ -71,13 +93,19 @@
 
         <section class="play-layout">
           <div class="board-wrap">
-            <div class="board" role="grid" aria-label="${starterPuzzle.size} by ${starterPuzzle.size} star puzzle">
-              ${renderCells(conflictKeys)}
+            <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
+              ${renderCells(conflictKeys, hintColors)}
             </div>
           </div>
 
           <aside class="status-panel" aria-label="Puzzle status">
-            <div class="${validation.solved ? "solved-banner is-visible" : "solved-banner"}">Solved</div>
+            ${validation.solved ? '<div class="solved-banner is-visible">Solved</div>' : ""}
+            ${currentHint ? `
+              <div class="hint-card" role="status" aria-live="polite">
+                <h2>Hint</h2>
+                <p>${escapeHtml(currentHint.message)}</p>
+              </div>
+            ` : ""}
             <div class="conflict-list">
               <h2>Conflicts</h2>
               ${
@@ -96,7 +124,7 @@
 
     const boardElement = root.querySelector(".board");
     if (boardElement) {
-      boardElement.style.gridTemplateColumns = `repeat(${starterPuzzle.size}, minmax(0, 1fr))`;
+      boardElement.style.gridTemplateColumns = `repeat(${puzzle.size}, minmax(0, 1fr))`;
     }
 
     root.querySelectorAll("[data-row][data-col]").forEach((cell) => {
@@ -145,20 +173,65 @@
     root.querySelector("[data-action='redo']")?.addEventListener("click", () => {
       redo();
     });
+
+    root.querySelector("[data-action='generate']")?.addEventListener("click", () => {
+      loadGeneratedPuzzle(selectedBoardSize);
+    });
+
+    root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
+      currentHint = validation.solved
+        ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
+        : globalThis.StarsRemixHints.findHint(puzzle, board, solution);
+      render();
+    });
+
+    root.querySelectorAll("[data-size]").forEach((button) => {
+      button.addEventListener("click", () => {
+        loadGeneratedPuzzle(Number(button.dataset.size));
+      });
+    });
+
+    const revealButton = root.querySelector("[data-action='reveal']");
+    revealButton?.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      setSolutionReveal(true);
+    });
+    revealButton?.addEventListener("pointerleave", () => setSolutionReveal(false));
   }
 
-  function renderCells(conflictKeys) {
+  function loadGeneratedPuzzle(size) {
+    selectedBoardSize = size;
+    const generated = generatePuzzle(size);
+    puzzle = generated.puzzle;
+    solution = generated.solution;
+    board = createEmptyBoard(puzzle.size);
+    undoStack = [];
+    redoStack = [];
+    currentHint = null;
+    render();
+  }
+
+  function renderCells(conflictKeys, hintColors) {
     return board
       .map((row, rowIndex) =>
         row
           .map((cell, colIndex) => {
-            const houseId = starterPuzzle.houses[rowIndex][colIndex];
+            const houseId = puzzle.houses[rowIndex][colIndex];
             const hasConflict = conflictKeys.has(getStarKey({ row: rowIndex, col: colIndex }));
-            const classes = ["cell", cell !== "empty" ? `is-${cell}` : "", hasConflict ? "has-conflict" : ""]
+            const hintColor = hintColors.get(getStarKey({ row: rowIndex, col: colIndex }));
+            const classes = [
+              "cell",
+              cell !== "empty" ? `is-${cell}` : "",
+              hasConflict ? "has-conflict" : "",
+              hintColor ? `hint-${hintColor}` : "",
+            ]
               .filter(Boolean)
               .join(" ");
-            const borders = getBorderStyle(starterPuzzle.houses, rowIndex, colIndex);
+            const borders = getBorderStyle(puzzle.houses, rowIndex, colIndex);
             const content = renderCellContent(cell);
+            const debugSolution = solution.some((position) =>
+              position.row === rowIndex && position.col === colIndex,
+            ) ? '<span class="debug-solution-star" aria-hidden="true">✦</span>' : "";
 
             return `
               <button
@@ -169,7 +242,7 @@
                 data-row="${rowIndex}"
                 data-col="${colIndex}"
                 style="background-color: ${housePalette[houseId % housePalette.length]}; ${borders}"
-              >${content}</button>
+              >${debugSolution}${content}</button>
             `;
           })
           .join(""),
@@ -206,12 +279,14 @@
     undoStack = [...undoStack, board];
     redoStack = [];
     board = nextBoard;
+    currentHint = null;
     render();
   }
 
   function replaceBoard(nextBoard) {
     if (boardsMatch(board, nextBoard)) return;
     board = nextBoard;
+    currentHint = null;
     render();
   }
 
@@ -221,6 +296,7 @@
     undoStack = undoStack.slice(0, -1);
     redoStack = [...redoStack, board];
     board = previous;
+    currentHint = null;
     render();
   }
 
@@ -230,6 +306,7 @@
     redoStack = redoStack.slice(0, -1);
     undoStack = [...undoStack, board];
     board = next;
+    currentHint = null;
     render();
   }
 
@@ -255,6 +332,217 @@
         currentRow === row && currentCol === col ? state : cell,
       ),
     );
+  }
+
+  function generatePuzzle(size) {
+    const starsPerUnit = 2;
+    if (size < 9) {
+      throw new Error(
+        "Random two-star boards require at least 9 rows and columns to avoid predictable maximum-density layouts.",
+      );
+    }
+    const patterns = createRowPatterns(size, starsPerUnit);
+
+    for (let attempt = 0; attempt < 1000; attempt += 1) {
+      const solution = generateSolution(size, starsPerUnit, patterns);
+      const houses = solution && generateHouses(size, solution, starsPerUnit);
+      if (!houses) continue;
+
+      const candidate = {
+        id: `generated-${Date.now()}-${attempt}`,
+        title: "Random Constellation",
+        size,
+        starsPerUnit,
+        houses,
+      };
+      if (countSolutions(candidate, patterns, 2) === 1) return { puzzle: candidate, solution };
+    }
+    throw new Error("Unable to generate a unique puzzle. Please try again.");
+  }
+
+  function generateSolution(size, required, patterns) {
+    const columnCounts = Array(size).fill(0);
+    const chosen = [];
+
+    function search(row) {
+      if (row === size) return columnCounts.every((count) => count === required);
+      const rowsRemaining = size - row - 1;
+      for (const pattern of shuffle(patterns)) {
+        if (!canFollow(chosen[row - 1], pattern)) continue;
+        if (pattern.some((col) => columnCounts[col] >= required)) continue;
+        pattern.forEach((col) => columnCounts[col] += 1);
+        const possible = columnCounts.every((count) => count + rowsRemaining >= required);
+        if (possible) {
+          chosen.push(pattern);
+          if (search(row + 1)) return true;
+          chosen.pop();
+        }
+        pattern.forEach((col) => columnCounts[col] -= 1);
+      }
+      return false;
+    }
+
+    if (!search(0)) return null;
+    return chosen.flatMap((columns, row) => columns.map((col) => ({ row, col })));
+  }
+
+  function generateHouses(size, solution, starsPerHouse) {
+    const starKeys = new Set(solution.map(getStarKey));
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      const houses = Array.from({ length: size }, () => Array(size).fill(-1));
+      const stars = shuffle(solution);
+      let failed = false;
+
+      for (let house = 0; house < stars.length / starsPerHouse; house += 1) {
+        if (starsPerHouse === 1) {
+          houses[stars[house].row][stars[house].col] = house;
+          continue;
+        }
+        const path = findPath(stars[house * 2], stars[house * 2 + 1], houses, starKeys);
+        if (!path) {
+          failed = true;
+          break;
+        }
+        path.forEach(({ row, col }) => houses[row][col] = house);
+      }
+      if (failed) continue;
+
+      while (houses.flat().includes(-1)) {
+        const frontier = [];
+        for (let row = 0; row < size; row += 1) {
+          for (let col = 0; col < size; col += 1) {
+            if (houses[row][col] !== -1) continue;
+            if (neighbors({ row, col }, size).some((cell) => houses[cell.row][cell.col] !== -1)) {
+              frontier.push({ row, col });
+            }
+          }
+        }
+        const cell = pick(frontier);
+        const adjacentHouses = neighbors(cell, size)
+          .map(({ row, col }) => houses[row][col])
+          .filter((house) => house !== -1);
+        houses[cell.row][cell.col] = pick(adjacentHouses);
+      }
+      return houses;
+    }
+    return null;
+  }
+
+  function findPath(start, target, houses, starKeys) {
+    const size = houses.length;
+    const targetKey = getStarKey(target);
+    const queue = [start];
+    const previous = new Map([[getStarKey(start), null]]);
+
+    for (let index = 0; index < queue.length; index += 1) {
+      const current = queue[index];
+      if (getStarKey(current) === targetKey) break;
+      for (const next of shuffle(neighbors(current, size))) {
+        const key = getStarKey(next);
+        if (previous.has(key) || houses[next.row][next.col] !== -1) continue;
+        if (starKeys.has(key) && key !== targetKey) continue;
+        previous.set(key, current);
+        queue.push(next);
+      }
+    }
+    if (!previous.has(targetKey)) return null;
+
+    const path = [];
+    let current = target;
+    while (current) {
+      path.push(current);
+      current = previous.get(getStarKey(current)) ?? null;
+    }
+    return path;
+  }
+
+  function countSolutions(candidate, patterns, limit) {
+    const columns = Array(candidate.size).fill(0);
+    const houseCounts = Array(candidate.size).fill(0);
+    const chosen = [];
+    let count = 0;
+
+    function search(row) {
+      if (count >= limit) return;
+      if (row === candidate.size) {
+        if (columns.every((value) => value === candidate.starsPerUnit) &&
+            houseCounts.every((value) => value === candidate.starsPerUnit)) count += 1;
+        return;
+      }
+      const rowsRemaining = candidate.size - row - 1;
+      for (const pattern of patterns) {
+        if (!canFollow(chosen[row - 1], pattern)) continue;
+        if (pattern.some((col) => columns[col] >= candidate.starsPerUnit)) continue;
+        const additions = new Map();
+        pattern.forEach((col) => {
+          const house = candidate.houses[row][col];
+          additions.set(house, (additions.get(house) ?? 0) + 1);
+        });
+        if ([...additions].some(([house, value]) => houseCounts[house] + value > candidate.starsPerUnit)) continue;
+
+        pattern.forEach((col) => columns[col] += 1);
+        additions.forEach((value, house) => houseCounts[house] += value);
+        if (columns.every((value) => value + rowsRemaining >= candidate.starsPerUnit)) {
+          chosen.push(pattern);
+          search(row + 1);
+          chosen.pop();
+        }
+        pattern.forEach((col) => columns[col] -= 1);
+        additions.forEach((value, house) => houseCounts[house] -= value);
+        if (count >= limit) return;
+      }
+    }
+
+    search(0);
+    return count;
+  }
+
+  function createRowPatterns(size, required) {
+    const patterns = [];
+    function build(start, chosen) {
+      if (chosen.length === required) {
+        patterns.push([...chosen]);
+        return;
+      }
+      const needed = required - chosen.length;
+      for (let col = start; col <= size - (needed * 2 - 1); col += 1) {
+        chosen.push(col);
+        build(col + 2, chosen);
+        chosen.pop();
+      }
+    }
+    build(0, []);
+    return patterns;
+  }
+
+  function canFollow(previous, current) {
+    return !previous || current.every((col) => previous.every((other) => Math.abs(col - other) > 1));
+  }
+
+  function neighbors(position, size) {
+    return [
+      { row: position.row - 1, col: position.col },
+      { row: position.row + 1, col: position.col },
+      { row: position.row, col: position.col - 1 },
+      { row: position.row, col: position.col + 1 },
+    ].filter(({ row, col }) => row >= 0 && col >= 0 && row < size && col < size);
+  }
+
+  function shuffle(values) {
+    const result = [...values];
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [result[index], result[other]] = [result[other], result[index]];
+    }
+    return result;
+  }
+
+  function pick(values) {
+    return values[Math.floor(Math.random() * values.length)];
+  }
+
+  function setSolutionReveal(visible) {
+    root.querySelector(".board")?.classList.toggle("is-debug-revealed", visible);
   }
 
   function validatePuzzleShape(puzzle) {
@@ -427,10 +715,14 @@
 
   window.addEventListener("pointerup", () => {
     isDraggingMarks = false;
+    setSolutionReveal(false);
   });
+
+  window.addEventListener("pointercancel", () => setSolutionReveal(false));
 
   window.addEventListener("blur", () => {
     isDraggingMarks = false;
+    setSolutionReveal(false);
   });
 
   window.addEventListener("keydown", (event) => {

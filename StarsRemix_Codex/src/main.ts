@@ -1,7 +1,8 @@
 import { createEmptyBoard, cycleCellState, setCell, validatePuzzleShape } from "./game/board.ts";
+import { generatePuzzle } from "./game/generation/index.ts";
 import { starterPuzzle } from "./game/puzzles.ts";
 import { getStarKey, validateBoard } from "./game/rules.ts";
-import type { BoardState, UnitStatus } from "./game/types.ts";
+import type { BoardState, Puzzle, UnitStatus } from "./game/types.ts";
 
 validatePuzzleShape(starterPuzzle);
 
@@ -21,7 +22,8 @@ const housePalette = [
   "#e6bdde",
 ];
 
-let board = createEmptyBoard(starterPuzzle.size);
+let puzzle: Puzzle = starterPuzzle;
+let board = createEmptyBoard(puzzle.size);
 
 const root = document.querySelector<HTMLDivElement>("#root");
 
@@ -32,7 +34,7 @@ if (!root) {
 render();
 
 function render() {
-  const validation = validateBoard(starterPuzzle, board);
+  const validation = validateBoard(puzzle, board);
   const conflictKeys = new Set<string>();
 
   validation.conflicts.forEach((conflict) => {
@@ -44,16 +46,17 @@ function render() {
       <section class="top-bar" aria-label="Puzzle controls">
         <div>
           <p class="eyebrow">StarsRemix Codex</p>
-          <h1>${starterPuzzle.title}</h1>
+          <h1>${puzzle.title}</h1>
         </div>
-        <button class="icon-button" type="button" aria-label="Reset puzzle" title="Reset puzzle" data-action="reset">
-          ↺
-        </button>
+        <div class="top-actions">
+          <button class="icon-button" type="button" aria-label="Generate random puzzle" title="Generate random puzzle" data-action="generate">✧</button>
+          <button class="icon-button" type="button" aria-label="Reset puzzle" title="Reset puzzle" data-action="reset">↺</button>
+        </div>
       </section>
 
       <section class="play-layout">
         <div class="board-wrap">
-          <div class="board" role="grid" aria-label="${starterPuzzle.size} by ${starterPuzzle.size} star puzzle">
+          <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
             ${renderCells(conflictKeys)}
           </div>
         </div>
@@ -81,7 +84,7 @@ function render() {
 
   const boardElement = root!.querySelector<HTMLElement>(".board");
   if (boardElement) {
-    boardElement.style.gridTemplateColumns = `repeat(${starterPuzzle.size}, minmax(0, 1fr))`;
+    boardElement.style.gridTemplateColumns = `repeat(${puzzle.size}, minmax(0, 1fr))`;
   }
 
   root!.querySelectorAll<HTMLButtonElement>("[data-row][data-col]").forEach((cell) => {
@@ -94,7 +97,13 @@ function render() {
   });
 
   root!.querySelector<HTMLButtonElement>("[data-action='reset']")?.addEventListener("click", () => {
-    board = createEmptyBoard(starterPuzzle.size);
+    board = createEmptyBoard(puzzle.size);
+    render();
+  });
+
+  root!.querySelector<HTMLButtonElement>("[data-action='generate']")?.addEventListener("click", () => {
+    puzzle = generatePuzzle().puzzle;
+    board = createEmptyBoard(puzzle.size);
     render();
   });
 }
@@ -104,12 +113,12 @@ function renderCells(conflictKeys: Set<string>): string {
     .map((row, rowIndex) =>
       row
         .map((cell, colIndex) => {
-          const houseId = starterPuzzle.houses[rowIndex][colIndex];
+          const houseId = puzzle.houses[rowIndex][colIndex];
           const hasConflict = conflictKeys.has(getStarKey({ row: rowIndex, col: colIndex }));
           const classes = ["cell", cell !== "empty" ? `is-${cell}` : "", hasConflict ? "has-conflict" : ""]
             .filter(Boolean)
             .join(" ");
-          const borders = getBorderStyle(starterPuzzle.houses, rowIndex, colIndex);
+          const borders = getBorderStyle(puzzle.houses, rowIndex, colIndex);
           const content = cell === "star" ? "✦" : cell === "mark" ? "x" : "";
 
           return `

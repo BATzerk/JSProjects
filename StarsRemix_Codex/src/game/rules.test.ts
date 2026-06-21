@@ -35,9 +35,10 @@ describe("validateBoard", () => {
 
     const validation = validateBoard(starterPuzzle, board);
     const reasons = validation.conflicts.map((conflict) => conflict.reason);
+    const houseNumber = starterPuzzle.houses[0][0] + 1;
 
     assert.ok(reasons.includes("Row 1 has 3 stars."));
-    assert.ok(reasons.includes("House 1 has 3 stars."));
+    assert.ok(reasons.includes(`House ${houseNumber} has 3 stars.`));
   });
 
   it("does not call an incomplete board solved", () => {

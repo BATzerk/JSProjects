@@ -1,4 +1,6 @@
-import type { BoardState, CellState, Puzzle } from "./types.ts";
+import type { BoardState, CellState } from "./types.ts";
+
+export { validatePuzzleShape } from "./puzzle.ts";
 
 export function createEmptyBoard(size: number): BoardState {
   return Array.from({ length: size }, () =>
@@ -23,20 +25,4 @@ export function setCell(
       currentRow === row && currentCol === col ? state : cell,
     ),
   );
-}
-
-export function validatePuzzleShape(puzzle: Puzzle): void {
-  if (puzzle.size <= 0) {
-    throw new Error("Puzzle size must be positive.");
-  }
-
-  if (puzzle.houses.length !== puzzle.size) {
-    throw new Error("Puzzle must include one house row per board row.");
-  }
-
-  puzzle.houses.forEach((row, index) => {
-    if (row.length !== puzzle.size) {
-      throw new Error(`House row ${index} must have ${puzzle.size} cells.`);
-    }
-  });
 }
