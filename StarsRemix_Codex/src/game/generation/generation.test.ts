@@ -58,7 +58,7 @@ describe("generatePuzzle", () => {
   });
 
   it("uses a roomy default board and rejects predictable 8 by 8 generation", () => {
-    assert.equal(generatePuzzle({ seed: "room-to-wander" }).puzzle.size, 10);
+    assert.equal(generatePuzzle({ seed: "room-to-wander" }).puzzle.size, 9);
     assert.throws(
       () => generatePuzzle({ size: 8, seed: "too-tight" }),
       /at least 9 rows and columns/,
@@ -77,6 +77,17 @@ describe("generatePuzzle", () => {
       assert.equal(generated.puzzle.size, size);
       assert.equal(generated.puzzle.starsPerUnit, starsPerUnit);
       assert.equal(countSolutions(generated.puzzle, 2), 1);
+    }
+  });
+
+  it("can place a varied, valid constellation on an 11 by 11 board", () => {
+    const solution = generateSolution(11, 2, createSeededRandom("eleven-stars"));
+    assert.ok(solution);
+    assert.equal(solution.length, 22);
+
+    for (let index = 0; index < 11; index += 1) {
+      assert.equal(solution.filter(({ row }) => row === index).length, 2);
+      assert.equal(solution.filter(({ col }) => col === index).length, 2);
     }
   });
 });

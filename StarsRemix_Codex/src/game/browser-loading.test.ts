@@ -13,12 +13,14 @@ describe("browser loading contract", () => {
     assert.ok(appPosition > hintsPosition, "hint runtime must load before app.js");
     assert.doesNotMatch(index, /<script[^>]+type=["']module["']/i);
     assert.doesNotMatch(app, /^\s*import\s/m);
+    assert.match(app, /StarsRemixHints\.findHint\(puzzle, board\)/);
+    assert.doesNotMatch(app, /StarsRemixHints\.findHint\(puzzle, board, solution\)/);
   });
 });
 
 declare global {
   // Runtime namespace shared by the classic browser script and Node tests.
   var StarsRemixHints: {
-    findHint: (puzzle: any, board: string[][], solution: any[]) => any;
+    findHint: (puzzle: any, board: string[][]) => any;
   };
 }

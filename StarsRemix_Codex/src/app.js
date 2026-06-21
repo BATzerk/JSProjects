@@ -44,12 +44,13 @@
 
   let puzzle = starterPuzzle;
   let solution = starterSolution;
-  let selectedBoardSize = 10;
+  let selectedBoardSize = 9;
   let board = createEmptyBoard(puzzle.size);
   let undoStack = [];
   let redoStack = [];
   let isDraggingMarks = false;
   let currentHint = null;
+  let generationProgress = null;
 
   const root = document.querySelector("#root");
 
@@ -75,50 +76,46 @@
       <main class="app-shell">
         <section class="top-bar" aria-label="Puzzle controls">
           <p class="brand">StarsRemix - Codex</p>
-          <div class="size-controls" aria-label="Board size">
-            ${[9, 10].map((size) => `
-              <button class="size-button${selectedBoardSize === size ? " is-active" : ""}" type="button" data-size="${size}" aria-pressed="${selectedBoardSize === size}">${size}×${size}</button>
-            `).join("")}
-          </div>
-          <button class="action-button" type="button" data-action="generate">new board</button>
-          <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
-          <button class="action-button debug-reveal-button" type="button" data-action="reveal">DEBUG reveal solution</button>
-          <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
-            ↺
-          </button>
-          <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
-            ↻
-          </button>
         </section>
 
         <section class="play-layout">
-          <div class="board-wrap">
+          <div class="board-column">
+            <div class="history-controls" aria-label="Move history">
+              <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M5 12h8a6 6 0 0 1 6 6" /></svg>
+              </button>
+              <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
+              </button>
+              <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
+            </div>
             <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
               ${renderCells(conflictKeys, hintColors)}
             </div>
           </div>
 
-          <aside class="status-panel" aria-label="Puzzle status">
-            ${validation.solved ? '<div class="solved-banner is-visible">Solved</div>' : ""}
-            ${currentHint ? `
-              <div class="hint-card" role="status" aria-live="polite">
-                <h2>Hint</h2>
-                <p>${escapeHtml(currentHint.message)}</p>
+          <div class="board-sidebar">
+            <aside class="status-panel" aria-label="Puzzle status">
+              ${validation.solved ? '<div class="solved-banner is-visible">Solved</div>' : ""}
+              ${currentHint ? `
+                <div class="hint-card" role="status" aria-live="polite">
+                  <h2>Hint</h2>
+                  <p>${escapeHtml(currentHint.message)}</p>
+                </div>
+              ` : ""}
+            </aside>
+            <div class="new-board-controls" aria-label="New board controls">
+              <div class="size-controls" aria-label="Board size">
+                ${[9, 10, 11].map((size) => `
+                  <button class="size-button${selectedBoardSize === size ? " is-active" : ""}" type="button" data-size="${size}" aria-pressed="${selectedBoardSize === size}" ${generationProgress ? "disabled" : ""}>${size}×${size}</button>
+                `).join("")}
               </div>
-            ` : ""}
-            <div class="conflict-list">
-              <h2>Conflicts</h2>
-              ${
-                validation.conflicts.length === 0
-                  ? "<p>None</p>"
-                  : validation.conflicts
-                      .slice(0, 4)
-                      .map((conflict) => `<p>${escapeHtml(conflict.reason)}</p>`)
-                      .join("")
-              }
+              <button class="action-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>new board</button>
+              <button class="action-button debug-reveal-button" type="button" data-action="reveal">DEBUG reveal solution</button>
             </div>
-          </aside>
+          </div>
         </section>
+        ${generationProgress ? renderGenerationOverlay() : ""}
       </main>
     `;
 
@@ -160,7 +157,7 @@
         if (!isDraggingMarks) return;
         const row = Number(cell.dataset.row);
         const col = Number(cell.dataset.col);
-        if (board[row][col] !== "mark") {
+        if (board[row][col] === "empty") {
           replaceBoard(setCell(board, row, col, "mark"));
         }
       });
@@ -181,7 +178,7 @@
     root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
       currentHint = validation.solved
         ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
-        : globalThis.StarsRemixHints.findHint(puzzle, board, solution);
+        : globalThis.StarsRemixHints.findHint(puzzle, board);
       render();
     });
 
@@ -199,16 +196,61 @@
     revealButton?.addEventListener("pointerleave", () => setSolutionReveal(false));
   }
 
-  function loadGeneratedPuzzle(size) {
+  async function loadGeneratedPuzzle(size) {
+    if (generationProgress) return;
     selectedBoardSize = size;
-    const generated = generatePuzzle(size);
-    puzzle = generated.puzzle;
-    solution = generated.solution;
-    board = createEmptyBoard(puzzle.size);
-    undoStack = [];
-    redoStack = [];
-    currentHint = null;
+    generationProgress = { attempt: 0, maximum: size === 11 ? 250 : 1000 };
     render();
+
+    try {
+      await nextPaint();
+      const generated = await generatePuzzle(size, (attempt, maximum) => {
+        generationProgress = { attempt, maximum };
+        updateGenerationOverlay();
+      });
+      puzzle = generated.puzzle;
+      solution = generated.solution;
+      board = createEmptyBoard(puzzle.size);
+      undoStack = [];
+      redoStack = [];
+      currentHint = null;
+    } finally {
+      generationProgress = null;
+      render();
+    }
+  }
+
+  function renderGenerationOverlay() {
+    const percent = generationProgress.maximum === 0
+      ? 0
+      : Math.min(99, Math.round((generationProgress.attempt / generationProgress.maximum) * 100));
+    return `
+      <div class="generation-overlay" role="dialog" aria-modal="true" aria-labelledby="generation-title">
+        <div class="generation-card">
+          <div class="generation-sparkle" aria-hidden="true">✦</div>
+          <h2 id="generation-title">Generating Board</h2>
+          <p class="generation-detail">Trying constellation ${generationProgress.attempt + 1} of ${generationProgress.maximum}</p>
+          <div class="generation-track" role="progressbar" aria-label="Board generation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+            <div class="generation-fill" style="width: ${percent}%"></div>
+          </div>
+          <p class="generation-percent">${percent}% of attempt budget</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateGenerationOverlay() {
+    const overlay = root.querySelector(".generation-overlay");
+    if (!overlay) return;
+    const percent = Math.min(
+      99,
+      Math.round((generationProgress.attempt / generationProgress.maximum) * 100),
+    );
+    overlay.querySelector(".generation-detail").textContent =
+      `Trying constellation ${generationProgress.attempt + 1} of ${generationProgress.maximum}`;
+    overlay.querySelector(".generation-fill").style.width = `${percent}%`;
+    overlay.querySelector(".generation-track").setAttribute("aria-valuenow", String(percent));
+    overlay.querySelector(".generation-percent").textContent = `${percent}% of attempt budget`;
   }
 
   function renderCells(conflictKeys, hintColors) {
@@ -334,7 +376,7 @@
     );
   }
 
-  function generatePuzzle(size) {
+  async function generatePuzzle(size, onProgress) {
     const starsPerUnit = 2;
     if (size < 9) {
       throw new Error(
@@ -343,7 +385,13 @@
     }
     const patterns = createRowPatterns(size, starsPerUnit);
 
-    for (let attempt = 0; attempt < 1000; attempt += 1) {
+    const maximumAttempts = size === 11 ? 250 : 1000;
+    let validFallback = null;
+    for (let attempt = 0; attempt < maximumAttempts; attempt += 1) {
+      if (attempt % 5 === 0) {
+        onProgress(attempt, maximumAttempts);
+        await nextPaint();
+      }
       const solution = generateSolution(size, starsPerUnit, patterns);
       const houses = solution && generateHouses(size, solution, starsPerUnit);
       if (!houses) continue;
@@ -355,9 +403,15 @@
         starsPerUnit,
         houses,
       };
+      validFallback ??= { puzzle: candidate, solution };
       if (countSolutions(candidate, patterns, 2) === 1) return { puzzle: candidate, solution };
     }
+    if (size === 11 && validFallback) return validFallback;
     throw new Error("Unable to generate a unique puzzle. Please try again.");
+  }
+
+  function nextPaint() {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
 
   function generateSolution(size, required, patterns) {

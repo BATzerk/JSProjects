@@ -7,7 +7,7 @@ import { createSeededRandom } from "./random.ts";
 import type { GeneratedPuzzle, GenerationDiagnostics, GeneratorConfig } from "./types.ts";
 
 export function generatePuzzle(config: GeneratorConfig = {}): GeneratedPuzzle {
-  const size = config.size ?? 10;
+  const size = config.size ?? 9;
   const starsPerUnit = config.starsPerUnit ?? 2;
   const maxAttempts = config.maxAttempts ?? 1_000;
   const seed = String(config.seed ?? `${Date.now()}-${Math.random()}`);
