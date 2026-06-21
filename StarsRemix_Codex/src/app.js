@@ -51,7 +51,10 @@
   let redoStack = [];
   let isDraggingMarks = false;
   let currentHint = null;
+  let currentSoftHint = null;
   let generationProgress = null;
+  let difficultyProgress = null;
+  let difficultyReport = null;
 
   const root = document.querySelector("#root");
 
@@ -65,16 +68,20 @@
   function render() {
     const validation = validateBoard(puzzle, board);
     const conflictKeys = new Set();
+    const softHintStage = currentSoftHint
+      ? currentSoftHint.hint.stages[currentSoftHint.stage]
+      : null;
+    const activeHint = currentHint ?? softHintStage;
     const hintColors = new Map(
-      (currentHint?.cells ?? []).map((cell) => [getStarKey(cell), cell.color]),
+      (activeHint?.cells ?? []).map((cell) => [getStarKey(cell), cell.color]),
     );
     const hintPreviewStates = new Map(
-      (currentHint?.cells ?? [])
+      (activeHint?.cells ?? [])
         .filter((cell) => cell.previewState)
         .map((cell) => [getStarKey(cell), cell.previewState]),
     );
-    const hintAssumption = currentHint?.assumption ?? null;
-    const hintUnits = getMentionedHintUnits(currentHint?.message ?? "");
+    const hintAssumption = activeHint?.assumption ?? null;
+    const hintUnits = getMentionedHintUnits(activeHint?.message ?? "");
 
     validation.conflicts.forEach((conflict) => {
       conflict.cells.forEach((cell) => conflictKeys.add(getStarKey(cell)));
@@ -95,6 +102,7 @@
               <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
               </button>
+              <button class="action-button soft-hint-button" type="button" data-action="soft-hint" title="Soft Hint (G)">Soft Hint <kbd>G</kbd></button>
               <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
             </div>
             <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
@@ -112,6 +120,15 @@
                   ${currentHint.moves?.length ? '<p class="hint-apply-prompt">Press Hint again to apply.</p>' : ""}
                 </div>
               ` : ""}
+              ${currentSoftHint ? `
+                <div class="hint-card soft-hint-card" role="status" aria-live="polite">
+                  <p class="hint-kicker">Soft Hint · ${currentSoftHint.stage + 1} of ${currentSoftHint.hint.stages.length}</p>
+                  <h2>${escapeHtml(currentSoftHint.hint.title)}</h2>
+                  <p>${formatHintMessage(softHintStage.message)}</p>
+                  <p class="hint-apply-prompt">${currentSoftHint.stage < currentSoftHint.hint.stages.length - 1 ? "Press G again for a little more." : "That's the full hint — the move is still yours."}</p>
+                </div>
+              ` : ""}
+              ${difficultyReport ? renderDifficultyReport() : ""}
             </aside>
             <div class="new-board-controls" aria-label="New board controls">
               <div class="size-controls" aria-label="Board size">
@@ -120,11 +137,13 @@
                 `).join("")}
               </div>
               <button class="action-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>new board</button>
+              <button class="action-button difficulty-button" type="button" data-action="difficulty" ${generationProgress || difficultyProgress ? "disabled" : ""}>Rate difficulty</button>
               <button class="action-button debug-reveal-button" type="button" data-action="reveal">DEBUG reveal solution</button>
             </div>
           </div>
         </section>
         ${generationProgress ? renderGenerationOverlay() : ""}
+        ${difficultyProgress ? renderDifficultyOverlay() : ""}
       </main>
     `;
 
@@ -184,14 +203,33 @@
       loadGeneratedPuzzle(selectedBoardSize);
     });
 
+    root.querySelector("[data-action='difficulty']")?.addEventListener("click", () => {
+      calculateDifficulty();
+    });
+
     root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
       if (currentHint?.moves?.length) {
         applyBoard(globalThis.StarsRemixHints.applyHint(board, currentHint));
         return;
       }
+      currentSoftHint = null;
       currentHint = validation.solved
         ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
         : globalThis.StarsRemixHints.findHint(puzzle, board);
+      render();
+    });
+
+    root.querySelector("[data-action='soft-hint']")?.addEventListener("click", () => {
+      currentHint = null;
+      if (!currentSoftHint) {
+        const hint = globalThis.StarsRemixHints.findSoftHint(puzzle, board, solution);
+        currentSoftHint = { hint, stage: 0 };
+      } else {
+        currentSoftHint.stage = Math.min(
+          currentSoftHint.stage + 1,
+          currentSoftHint.hint.stages.length - 1,
+        );
+      }
       render();
     });
 
@@ -227,8 +265,38 @@
       undoStack = [];
       redoStack = [];
       currentHint = null;
+      currentSoftHint = null;
+      difficultyReport = null;
     } finally {
       generationProgress = null;
+      render();
+    }
+  }
+
+  async function calculateDifficulty() {
+    if (difficultyProgress || generationProgress) return;
+    difficultyReport = null;
+    difficultyProgress = {
+      percent: 0,
+      starsPlaced: 0,
+      totalStars: puzzle.size * puzzle.starsPerUnit,
+      stepsCompleted: 0,
+      technique: "basic rules",
+      tier: "Basic",
+    };
+    render();
+
+    try {
+      await nextPaint();
+      difficultyReport = await globalThis.StarsRemixHints.analyzeDifficulty(puzzle, {
+        onProgress(progress) {
+          difficultyProgress = progress;
+          updateDifficultyOverlay();
+        },
+        yieldControl: nextPaint,
+      });
+    } finally {
+      difficultyProgress = null;
       render();
     }
   }
@@ -264,6 +332,71 @@
     overlay.querySelector(".generation-fill").style.width = `${percent}%`;
     overlay.querySelector(".generation-track").setAttribute("aria-valuenow", String(percent));
     overlay.querySelector(".generation-percent").textContent = `${percent}% of attempt budget`;
+  }
+
+  function renderDifficultyOverlay() {
+    const percent = difficultyProgress.percent;
+    return `
+      <div class="generation-overlay" role="dialog" aria-modal="true" aria-labelledby="difficulty-title">
+        <div class="generation-card difficulty-loading-card">
+          <div class="generation-sparkle" aria-hidden="true">✦</div>
+          <h2 id="difficulty-title">Calculating Difficulty</h2>
+          <p class="generation-detail">Checking ${escapeHtml(difficultyProgress.technique)} · ${escapeHtml(difficultyProgress.tier)}</p>
+          <div class="generation-track" role="progressbar" aria-label="Difficulty analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+            <div class="generation-fill difficulty-fill" style="width: ${Math.max(3, percent)}%"></div>
+          </div>
+          <p class="generation-percent">${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateDifficultyOverlay() {
+    const overlay = root.querySelector(".generation-overlay");
+    if (!overlay) return;
+    overlay.querySelector(".generation-detail").textContent =
+      `Checking ${difficultyProgress.technique} · ${difficultyProgress.tier}`;
+    overlay.querySelector(".generation-fill").style.width = `${Math.max(3, difficultyProgress.percent)}%`;
+    overlay.querySelector(".generation-track").setAttribute("aria-valuenow", String(difficultyProgress.percent));
+    overlay.querySelector(".generation-percent").textContent =
+      `${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps`;
+  }
+
+  function renderDifficultyReport() {
+    const report = difficultyReport;
+    const summary = report.techniqueCounts.map((technique) => `
+      <li>
+        <span>${escapeHtml(technique.title)}</span>
+        <span class="technique-tier">${escapeHtml(technique.tier)}</span>
+        <strong>×${technique.count}</strong>
+      </li>
+    `).join("");
+    const steps = report.steps.map((step) => `
+      <li class="difficulty-step${step.bigTicket ? " is-big-ticket" : ""}">
+        <div><strong>${step.number}. ${escapeHtml(step.title)}</strong><span>${escapeHtml(step.tier)}</span></div>
+        <p>${step.moves.map(formatDifficultyMove).join(", ")}</p>
+      </li>
+    `).join("");
+
+    return `
+      <section class="difficulty-report" aria-label="Board difficulty report">
+        <p class="hint-kicker">Board difficulty</p>
+        <div class="difficulty-grade">${escapeHtml(report.label)}</div>
+        <p>${report.solved
+          ? `${report.bigTicketCount} big-ticket deduction${report.bigTicketCount === 1 ? "" : "s"} · weighted score ${report.score}`
+          : `The current technique set placed ${report.starsPlaced} of ${report.totalStars} stars, so this board cannot be rated completely yet.`}</p>
+        <ul class="technique-summary">${summary}</ul>
+        <details class="difficulty-details">
+          <summary>Every logical move (${report.steps.length})</summary>
+          <ol>${steps}</ol>
+        </details>
+      </section>
+    `;
+  }
+
+  function formatDifficultyMove(move) {
+    const token = move.state === "star" ? "★" : "×";
+    return `${token} R${move.row + 1}C${move.col + 1}`;
   }
 
   function renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption) {
@@ -403,6 +536,7 @@
     redoStack = [];
     board = nextBoard;
     currentHint = null;
+    currentSoftHint = null;
     render();
   }
 
@@ -410,6 +544,7 @@
     if (boardsMatch(board, nextBoard)) return;
     board = nextBoard;
     currentHint = null;
+    currentSoftHint = null;
     render();
   }
 
@@ -420,6 +555,7 @@
     redoStack = [...redoStack, board];
     board = previous;
     currentHint = null;
+    currentSoftHint = null;
     render();
   }
 
@@ -430,6 +566,7 @@
     undoStack = [...undoStack, board];
     board = next;
     currentHint = null;
+    currentSoftHint = null;
     render();
   }
 
@@ -877,6 +1014,17 @@
     if (key === "h") {
       event.preventDefault();
       root.querySelector("[data-action='hint']")?.click();
+    }
+
+    if (key === "g") {
+      event.preventDefault();
+      root.querySelector("[data-action='soft-hint']")?.click();
+    }
+
+    if (key === "escape" && currentSoftHint) {
+      event.preventDefault();
+      currentSoftHint = null;
+      render();
     }
   });
 })();

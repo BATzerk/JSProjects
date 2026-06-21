@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import "./hints.js";
 
-const { findHint, applyHint } = globalThis.StarsRemixHints;
+const { findHint, findSoftHint, applyHint, analyzeDifficulty, techniques } = globalThis.StarsRemixHints;
 
 const puzzle = {
   size: 4,
@@ -221,6 +221,42 @@ describe("findHint", () => {
     assert.deepEqual(hint.moves, [{ row: 1, col: 1, state: "mark" }]);
   });
 
+  it("combines three houses to reserve the remaining capacity of three rows", () => {
+    const capacityPuzzle = {
+      size: 8,
+      starsPerUnit: 1,
+      houses: Array.from({ length: 8 }, () => Array(8).fill(3)),
+    };
+    [
+      [1, 0, 0], [3, 3, 0], [5, 6, 0],
+      [1, 3, 1], [3, 6, 1], [5, 0, 1],
+      [1, 6, 2], [3, 0, 2], [5, 3, 2],
+    ].forEach(([row, col, house]) => {
+      capacityPuzzle.houses[row][col] = house;
+    });
+    const board = Array.from({ length: 8 }, () => Array(8).fill("empty"));
+
+    const hint = findHint(capacityPuzzle, board);
+
+    assert.equal(hint.kind, "triple-unit-capacity");
+    assert.match(hint.message, /House 1, House 2, and House 3/);
+    assert.match(hint.message, /Row 2, Row 4, and Row 6/);
+    assert.deepEqual(hint.cells, [
+      { row: 1, col: 0, color: "gray" },
+      { row: 1, col: 3, color: "gray" },
+      { row: 1, col: 6, color: "gray" },
+      { row: 3, col: 0, color: "gray" },
+      { row: 3, col: 3, color: "gray" },
+      { row: 3, col: 6, color: "gray" },
+      { row: 5, col: 0, color: "gray" },
+      { row: 5, col: 3, color: "gray" },
+      { row: 5, col: 6, color: "gray" },
+      { row: 1, col: 1, color: "blue" },
+    ]);
+    assert.equal(hint.unitCells.length, 9);
+    assert.deepEqual(hint.moves, [{ row: 1, col: 1, state: "mark" }]);
+  });
+
   it("rejects an assumption only after its forced consequences create a contradiction", () => {
     const propagationPuzzle = {
       size: 9,
@@ -316,5 +352,104 @@ describe("findHint", () => {
       { row: 2, col: 2, color: "gray" },
     ]);
     assert.deepEqual(hint.moves, [{ row: 1, col: 1, state: "mark" }]);
+  });
+});
+
+describe("findSoftHint", () => {
+  it("reports a board error before offering a solving technique", () => {
+    const board = emptyBoard();
+    board[0][0] = "mark";
+    const solution = [
+      { row: 0, col: 0 }, { row: 0, col: 2 },
+      { row: 1, col: 1 }, { row: 1, col: 3 },
+    ];
+
+    const hint = findSoftHint(puzzle, board, solution);
+
+    assert.equal(hint.kind, "board-error");
+    assert.equal(hint.title, "Board Error");
+    assert.equal(hint.stages[0].message, "There is an error somewhere on the board.");
+    assert.equal(hint.stages[1].message, "The error is somewhere in Row 1.");
+    assert.deepEqual(hint.stages[2].cells, [{ row: 0, col: 0, color: "red" }]);
+    assert.match(hint.stages[2].message, /must contain a star/);
+  });
+
+  it("reveals a named technique, then its location, then the full deduction", () => {
+    const board = emptyBoard();
+    board[0][0] = "star";
+
+    const hint = findSoftHint(puzzle, board);
+
+    assert.equal(hint.title, "Star Halo");
+    assert.equal(hint.stages.length, 3);
+    assert.match(hint.stages[0].message, /missing Xs around a star/);
+    assert.deepEqual(hint.stages[0].cells, []);
+    assert.deepEqual(hint.stages[1].cells, [{ row: 0, col: 0, color: "gold" }]);
+    assert.match(hint.stages[2].message, /surrounded by Xs/);
+    assert.ok(hint.stages[2].cells.some((cell) => cell.color === "blue"));
+    assert.equal(hint.stages[2].moves, undefined, "soft hints never apply moves");
+  });
+
+  it("names a forced star technique Only Place", () => {
+    const rowPuzzle = {
+      size: 8,
+      starsPerUnit: 2,
+      houses: Array.from({ length: 8 }, (_, row) => Array(8).fill(row)),
+    };
+    const board = Array.from({ length: 8 }, () => Array(8).fill("empty"));
+    board[0] = ["mark", "empty", "mark", "mark", "mark", "empty", "mark", "mark"];
+
+    const hint = findSoftHint(rowPuzzle, board);
+
+    assert.equal(hint.title, "Only Place");
+    assert.match(hint.stages[0].message, /only one valid location/);
+    assert.equal(hint.stages[1].message, "Look closely at Row 1.");
+  });
+});
+
+describe("analyzeDifficulty", () => {
+  it("codifies techniques in strict simplest-first order", () => {
+    assert.deepEqual(
+      techniques.map(({ kind }) => kind),
+      [
+        "rule-conflict",
+        "surround-star",
+        "complete-unit",
+        "forced-star",
+        "locked-intersection",
+        "locked-star-group",
+        "impossible-star",
+        "multi-unit-capacity",
+        "triple-unit-capacity",
+        "shallow-propagation",
+      ],
+    );
+    assert.deepEqual(
+      techniques.map(({ weight }) => weight),
+      [...techniques.map(({ weight }) => weight)].sort((left, right) => left - right),
+    );
+  });
+
+  it("records every logical move and rates an obvious board Easy", async () => {
+    const progress = [];
+    const report = await analyzeDifficulty(
+      { size: 1, starsPerUnit: 1, houses: [[0]] },
+      { onProgress: (update) => progress.push(update) },
+    );
+
+    assert.equal(report.solved, true);
+    assert.equal(report.label, "Easy");
+    assert.equal(report.bigTicketCount, 0);
+    assert.deepEqual(report.steps, [{
+      number: 1,
+      kind: "forced-star",
+      title: "Only Place",
+      tier: "Basic",
+      weight: 0,
+      bigTicket: false,
+      message: "Every valid way to fit the remaining star in Row 1 uses the gold space. Add a star there.",
+      moves: [{ row: 0, col: 0, state: "star" }],
+    }]);
+    assert.ok(progress.some(({ technique }) => technique === "Only Place"));
   });
 });

@@ -1,3 +1,97 @@
+const techniqueDefinitions = Object.freeze([
+  {
+    kind: "rule-conflict",
+    title: "Rule Check",
+    tier: "Basic",
+    weight: 0,
+    bigTicket: false,
+    nudge: "Something on the board breaks one of the puzzle rules.",
+    strategy: findRuleConflictHint,
+  },
+  {
+    kind: "surround-star",
+    title: "Star Halo",
+    tier: "Basic",
+    weight: 0,
+    bigTicket: false,
+    nudge: "There are missing Xs around a star.",
+    strategy: findSurroundStarHint,
+  },
+  {
+    kind: "complete-unit",
+    title: "Complete Unit",
+    tier: "Basic",
+    weight: 0,
+    bigTicket: false,
+    nudge: "A row, column, or house already has all of its stars.",
+    strategy: findCompleteUnitHint,
+  },
+  {
+    kind: "forced-star",
+    title: "Only Place",
+    tier: "Basic",
+    weight: 0,
+    bigTicket: false,
+    nudge: "There is only one valid location for a remaining star in a unit.",
+    strategy: findForcedStarHint,
+  },
+  {
+    kind: "locked-intersection",
+    title: "Locked Intersection",
+    tier: "Intermediate",
+    weight: 1,
+    bigTicket: false,
+    nudge: "A house's remaining stars are confined to one row or column.",
+    strategy: findLockedIntersectionHint,
+  },
+  {
+    kind: "locked-star-group",
+    title: "Star Barrier",
+    tier: "Intermediate",
+    weight: 1,
+    bigTicket: false,
+    nudge: "One space touches every possible location for a star in a unit.",
+    strategy: findLockedStarGroupHint,
+  },
+  {
+    kind: "impossible-star",
+    title: "Impossible Star",
+    tier: "Advanced",
+    weight: 2,
+    bigTicket: true,
+    nudge: "A star in one space would leave another unit without enough room.",
+    strategy: findImpossibleStarHint,
+  },
+  {
+    kind: "multi-unit-capacity",
+    title: "Capacity Lock",
+    tier: "Advanced",
+    weight: 3,
+    bigTicket: true,
+    nudge: "Several units together use all of the remaining star capacity elsewhere.",
+    strategy: findMultiUnitCapacityHint,
+  },
+  {
+    kind: "triple-unit-capacity",
+    title: "Triple Capacity Lock",
+    tier: "Expert",
+    weight: 4,
+    bigTicket: true,
+    nudge: "Three units together use all of the remaining star capacity in three other units.",
+  },
+  {
+    kind: "shallow-propagation",
+    title: "Contradiction Chain",
+    tier: "Expert",
+    weight: 5,
+    bigTicket: true,
+    nudge: "One possible move leads to a contradiction after a short chain.",
+    strategy: findShallowPropagationHint,
+  },
+]);
+
+const hintStrategies = techniqueDefinitions.filter(({ strategy }) => strategy);
+
 function findHint(puzzle, board) {
   const context = {
     puzzle,
@@ -5,8 +99,8 @@ function findHint(puzzle, board) {
     units: getUnits(puzzle),
   };
 
-  for (const strategy of hintStrategies) {
-    const hint = strategy(context);
+  for (const technique of hintStrategies) {
+    const hint = technique.strategy(context);
     if (hint) return hint;
   }
 
@@ -24,17 +118,105 @@ function applyHint(board, hint) {
     )), board);
 }
 
-const hintStrategies = [
-  findRuleConflictHint,
-  findSurroundStarHint,
-  findCompleteUnitHint,
-  findForcedStarHint,
-  findLockedIntersectionHint,
-  findLockedStarGroupHint,
-  findImpossibleStarHint,
-  findMultiUnitCapacityHint,
-  findShallowPropagationHint,
-];
+function findSoftHint(puzzle, board, solution) {
+  const mistake = findBoardMistake(puzzle, board, solution);
+  if (mistake) return mistake;
+
+  const units = getUnits(puzzle);
+  const hasConflict = Boolean(findRuleConflictHint({ puzzle, board, units }));
+  const isSolved = !hasConflict && units.every((unit) =>
+    unit.cells.filter(({ row, col }) => board[row][col] === "star").length === puzzle.starsPerUnit,
+  );
+  if (isSolved) {
+    return createSoftHint({
+      kind: "solved",
+      message: "The puzzle is solved — no hint needed!",
+      cells: [],
+    });
+  }
+  return createSoftHint(findHint(puzzle, board));
+}
+
+function findBoardMistake(puzzle, board, solution) {
+  if (!Array.isArray(solution) || solution.length === 0) return null;
+  const solutionKeys = new Set(solution.map(cellKey));
+
+  for (let row = 0; row < puzzle.size; row += 1) {
+    for (let col = 0; col < puzzle.size; col += 1) {
+      const state = board[row][col];
+      const shouldBeStar = solutionKeys.has(cellKey({ row, col }));
+      if ((state === "star" && shouldBeStar) || (state === "mark" && !shouldBeStar) || state === "empty") {
+        continue;
+      }
+
+      const message = state === "star"
+        ? "The highlighted star cannot be here. Remove it or replace it with an X."
+        : "The highlighted X covers a space that must contain a star. Clear it or place a star.";
+      return {
+        kind: "board-error",
+        title: "Board Error",
+        stages: [
+          { message: "There is an error somewhere on the board.", cells: [] },
+          { message: `The error is somewhere in Row ${row + 1}.`, cells: [] },
+          { message, cells: [{ row, col, color: "red" }] },
+        ],
+      };
+    }
+  }
+  return null;
+}
+
+function createSoftHint(hint) {
+  const technique = getTechniqueDefinition(hint.kind);
+  const focusCells = (hint.cells ?? [])
+    .filter((cell) => cell.color !== "blue" || hint.kind === "rule-conflict")
+    .map(({ previewState, ...cell }) => cell);
+  const unitLabels = [...new Set(
+    (hint.message.match(/\b(?:Row|Column|House) \d+\b/g) ?? []),
+  )];
+  const locationMessage = unitLabels.length > 0
+    ? `Look closely at ${joinLabels(unitLabels)}.`
+    : hint.kind === "surround-star"
+      ? "Look around the highlighted star."
+      : "Look closely at the highlighted part of the board.";
+
+  return {
+    kind: hint.kind,
+    title: technique.title,
+    stages: [
+      { message: technique.nudge, cells: [] },
+      { message: locationMessage, cells: focusCells },
+      {
+        message: hint.message,
+        cells: hint.cells ?? [],
+        assumption: hint.assumption,
+      },
+    ],
+  };
+}
+
+function joinLabels(labels) {
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
+}
+
+function getTechniqueDefinition(kind) {
+  if (kind === "solved") {
+    return { kind, title: "All Done", tier: "Basic", weight: 0, bigTicket: false, nudge: "The puzzle is solved — no hint needed!" };
+  }
+  if (kind === "none") {
+    return { kind, title: "No Technique Found", tier: "Unknown", weight: 0, bigTicket: false, nudge: "No soft hint from the current set applies yet." };
+  }
+  return techniqueDefinitions.find((technique) => technique.kind === kind) ?? {
+    kind,
+    title: "Next Step",
+    tier: "Unknown",
+    weight: 0,
+    bigTicket: false,
+    nudge: "There is a logical next step available.",
+  };
+}
 
 function findRuleConflictHint({ puzzle, board, units }) {
   const stars = collectCells(puzzle.size, ({ row, col }) => board[row][col] === "star");
@@ -214,72 +396,110 @@ function findMultiUnitCapacityHint({ puzzle, board, units }) {
     return placementCache.get(unit);
   }
 
-  for (const sourceFamily of unitFamilies) {
-    for (let leftIndex = 0; leftIndex < sourceFamily.length; leftIndex += 1) {
-      for (let rightIndex = leftIndex + 1; rightIndex < sourceFamily.length; rightIndex += 1) {
-        const sourceUnits = [sourceFamily[leftIndex], sourceFamily[rightIndex]];
-        const leftPlacements = placementsFor(sourceUnits[0]);
-        const rightPlacements = placementsFor(sourceUnits[1]);
-        if (leftPlacements.length === 0 || rightPlacements.length === 0) continue;
-
-        const combinedPlacements = [];
-        for (const leftPlacement of leftPlacements) {
-          for (const rightPlacement of rightPlacements) {
-            const combined = [...leftPlacement, ...rightPlacement];
-            if (hasTouchingPair(combined)) continue;
-            if (!placementFitsUnitCapacities(combined, board, puzzle.starsPerUnit, units)) continue;
-            combinedPlacements.push(combined);
-          }
-        }
+  for (const groupSize of [2, 3]) {
+    for (const sourceFamily of unitFamilies) {
+      for (const sourceUnits of chooseUnitGroups(sourceFamily, groupSize)) {
+        const combinedPlacements = combineUnitPlacements(
+          sourceUnits,
+          placementsFor,
+          board,
+          puzzle.starsPerUnit,
+          units,
+        );
         if (combinedPlacements.length === 0) continue;
 
         const sourceKeys = new Set(sourceUnits.flatMap((unit) => unit.cells).map(cellKey));
         for (const targetFamily of unitFamilies) {
           if (targetFamily[0]?.kind === sourceUnits[0].kind) continue;
-          for (let firstIndex = 0; firstIndex < targetFamily.length; firstIndex += 1) {
-            for (let secondIndex = firstIndex + 1; secondIndex < targetFamily.length; secondIndex += 1) {
-              const targetUnits = [targetFamily[firstIndex], targetFamily[secondIndex]];
-              const capacities = targetUnits.map((unit) =>
-                puzzle.starsPerUnit - unit.cells.filter(({ row, col }) => board[row][col] === "star").length,
+          for (const targetUnits of chooseUnitGroups(targetFamily, groupSize)) {
+            const capacities = targetUnits.map((unit) =>
+              puzzle.starsPerUnit - unit.cells.filter(({ row, col }) => board[row][col] === "star").length,
+            );
+            if (capacities.some((capacity) => capacity <= 0)) continue;
+
+            const targetKeys = new Set(targetUnits.flatMap((unit) => unit.cells).map(cellKey));
+            const totalCapacity = capacities.reduce((total, capacity) => total + capacity, 0);
+            const reservesAllCapacity = combinedPlacements.every((placement) =>
+              placement.filter((cell) => targetKeys.has(cellKey(cell))).length === totalCapacity,
+            );
+            if (!reservesAllCapacity) continue;
+
+            const competingCell = targetUnits
+              .flatMap((unit) => unit.cells)
+              .find(({ row, col }) =>
+                board[row][col] === "empty" && !sourceKeys.has(cellKey({ row, col })),
               );
-              if (capacities.some((capacity) => capacity <= 0)) continue;
+            if (!competingCell) continue;
 
-              const targetKeys = new Set(targetUnits.flatMap((unit) => unit.cells).map(cellKey));
-              const totalCapacity = capacities[0] + capacities[1];
-              const reservesAllCapacity = combinedPlacements.every((placement) =>
-                placement.filter((cell) => targetKeys.has(cellKey(cell))).length === totalCapacity,
-              );
-              if (!reservesAllCapacity) continue;
+            const lockedCells = uniqueCells(combinedPlacements.flat())
+              .filter((cell) => targetKeys.has(cellKey(cell)))
+              .sort(compareCells);
+            if (lockedCells.length < groupSize) continue;
 
-              const competingCell = targetUnits
-                .flatMap((unit) => unit.cells)
-                .find(({ row, col }) =>
-                  board[row][col] === "empty" && !sourceKeys.has(cellKey({ row, col })),
-                );
-              if (!competingCell) continue;
-
-              const lockedCells = uniqueCells(combinedPlacements.flat())
-                .filter((cell) => targetKeys.has(cellKey(cell)))
-                .sort(compareCells);
-              if (lockedCells.length < 2) continue;
-
-              return {
-                kind: "multi-unit-capacity",
-                message: `Together, ${joinUnitLabels(sourceUnits)} must fill all remaining star spaces in ${joinUnitLabels(targetUnits)}. The gray spaces show that reserved capacity, so the competing blue space cannot contain a star. Mark it with an X.`,
-                cells: [
-                  ...lockedCells.map((cell) => ({ ...cell, color: "gray" })),
-                  { ...competingCell, color: "blue" },
-                ],
-                unitCells: uniqueCells(sourceUnits.flatMap((unit) => unit.cells)),
-                moves: [{ ...competingCell, state: "mark" }],
-              };
-            }
+            return {
+              kind: groupSize === 3 ? "triple-unit-capacity" : "multi-unit-capacity",
+              message: `Together, ${joinUnitLabels(sourceUnits)} must fill all remaining star spaces in ${joinUnitLabels(targetUnits)}. The gray spaces show that reserved capacity, so the competing blue space cannot contain a star. Mark it with an X.`,
+              cells: [
+                ...lockedCells.map((cell) => ({ ...cell, color: "gray" })),
+                { ...competingCell, color: "blue" },
+              ],
+              unitCells: uniqueCells(sourceUnits.flatMap((unit) => unit.cells)),
+              moves: [{ ...competingCell, state: "mark" }],
+            };
           }
         }
       }
     }
   }
   return null;
+}
+
+function chooseUnitGroups(items, groupSize) {
+  const groups = [];
+  const chosen = [];
+
+  function choose(start) {
+    if (chosen.length === groupSize) {
+      groups.push([...chosen]);
+      return;
+    }
+    for (let index = start; index <= items.length - (groupSize - chosen.length); index += 1) {
+      chosen.push(items[index]);
+      choose(index + 1);
+      chosen.pop();
+    }
+  }
+
+  choose(0);
+  return groups;
+}
+
+function combineUnitPlacements(sourceUnits, placementsFor, board, required, units) {
+  const placementLists = sourceUnits.map(placementsFor);
+  if (placementLists.some((placements) => placements.length === 0)) return [];
+  const rawCombinationCount = placementLists.reduce(
+    (count, placements) => count * placements.length,
+    1,
+  );
+  if (sourceUnits.length === 3 && rawCombinationCount > 256) return [];
+
+  const combinedPlacements = [];
+
+  function combine(unitIndex, chosenCells) {
+    if (unitIndex === sourceUnits.length) {
+      combinedPlacements.push(chosenCells);
+      return;
+    }
+    for (const placement of placementLists[unitIndex]) {
+      const combined = [...chosenCells, ...placement];
+      if (hasTouchingPair(combined)) continue;
+      if (!placementFitsUnitCapacities(combined, board, required, units)) continue;
+      combine(unitIndex + 1, combined);
+    }
+  }
+
+  combine(0, []);
+  return combinedPlacements;
 }
 
 function placementFitsUnitCapacities(placement, board, required, units) {
@@ -292,7 +512,8 @@ function placementFitsUnitCapacities(placement, board, required, units) {
 }
 
 function joinUnitLabels(units) {
-  return `${units[0].label} and ${units[1].label}`;
+  if (units.length === 2) return `${units[0].label} and ${units[1].label}`;
+  return `${units.slice(0, -1).map((unit) => unit.label).join(", ")}, and ${units.at(-1).label}`;
 }
 
 function findShallowPropagationHint({ puzzle, board, units }) {
@@ -654,8 +875,133 @@ function forEachCell(size, callback) {
   }
 }
 
+async function analyzeDifficulty(puzzle, options = {}) {
+  const onProgress = options.onProgress ?? (() => {});
+  const yieldControl = options.yieldControl ?? (() => Promise.resolve());
+  const maximumSteps = puzzle.size * puzzle.size * 2;
+  let analysisBoard = Array.from(
+    { length: puzzle.size },
+    () => Array(puzzle.size).fill("empty"),
+  );
+  const steps = [];
+
+  while (!boardIsSolved(puzzle, analysisBoard) && steps.length < maximumSteps) {
+    const hint = await findHintForAnalysis(puzzle, analysisBoard, {
+      onTechnique: (technique, techniqueIndex) => {
+        onProgress(makeDifficultyProgress(
+          puzzle,
+          analysisBoard,
+          steps.length,
+          technique,
+          techniqueIndex,
+        ));
+      },
+      yieldControl,
+    });
+    const moves = (hint.moves ?? []).filter(
+      (move) => analysisBoard[move.row][move.col] !== move.state,
+    );
+    if (moves.length === 0) break;
+
+    const technique = getTechniqueDefinition(hint.kind);
+    analysisBoard = applyHint(analysisBoard, { moves });
+    steps.push({
+      number: steps.length + 1,
+      kind: hint.kind,
+      title: technique.title,
+      tier: technique.tier,
+      weight: technique.weight,
+      bigTicket: technique.bigTicket,
+      message: hint.message,
+      moves,
+    });
+    onProgress(makeDifficultyProgress(puzzle, analysisBoard, steps.length, technique, 0));
+    await yieldControl();
+  }
+
+  const solved = boardIsSolved(puzzle, analysisBoard);
+  const bigTicketCount = steps.filter(({ bigTicket }) => bigTicket).length;
+  const score = steps.reduce((total, { weight }) => total + weight, 0);
+  const techniqueCounts = techniqueDefinitions
+    .map((technique) => ({
+      kind: technique.kind,
+      title: technique.title,
+      tier: technique.tier,
+      weight: technique.weight,
+      bigTicket: technique.bigTicket,
+      count: steps.filter((step) => step.kind === technique.kind).length,
+    }))
+    .filter(({ count }) => count > 0);
+
+  return {
+    solved,
+    label: solved ? getDifficultyLabel(bigTicketCount, score) : "Unrated",
+    bigTicketCount,
+    score,
+    steps,
+    techniqueCounts,
+    starsPlaced: countBoardState(analysisBoard, "star"),
+    totalStars: puzzle.size * puzzle.starsPerUnit,
+  };
+}
+
+async function findHintForAnalysis(puzzle, board, { onTechnique, yieldControl }) {
+  const context = { puzzle, board, units: getUnits(puzzle) };
+  for (let index = 0; index < hintStrategies.length; index += 1) {
+    const technique = hintStrategies[index];
+    onTechnique(technique, index);
+    if (technique.weight >= 2) await yieldControl();
+    const hint = technique.strategy(context);
+    if (hint) return hint;
+  }
+  return { kind: "none", message: "No technique applies.", cells: [] };
+}
+
+function makeDifficultyProgress(puzzle, board, stepsCompleted, technique, techniqueIndex) {
+  const starsPlaced = countBoardState(board, "star");
+  const totalStars = puzzle.size * puzzle.starsPerUnit;
+  return {
+    percent: Math.min(99, Math.round((starsPlaced / totalStars) * 100)),
+    starsPlaced,
+    totalStars,
+    stepsCompleted,
+    technique: technique.title,
+    tier: technique.tier,
+    strategyIndex: techniqueIndex,
+    strategyCount: hintStrategies.length,
+  };
+}
+
+function countBoardState(board, state) {
+  return board.reduce(
+    (total, row) => total + row.filter((cellState) => cellState === state).length,
+    0,
+  );
+}
+
+function boardIsSolved(puzzle, board) {
+  const units = getUnits(puzzle);
+  return !findRuleConflictHint({ puzzle, board, units }) && units.every((unit) =>
+    unit.cells.filter(({ row, col }) => board[row][col] === "star").length === puzzle.starsPerUnit,
+  );
+}
+
+function getDifficultyLabel(bigTicketCount, score) {
+  if (bigTicketCount === 0 && score <= 2) return "Easy";
+  if (bigTicketCount === 0) return "Moderate";
+  if (bigTicketCount <= 2) return "Hard";
+  if (bigTicketCount <= 4) return "Very Hard";
+  return "Expert";
+}
+
 function cellKey({ row, col }) {
   return `${row}:${col}`;
 }
 
-globalThis.StarsRemixHints = { findHint, applyHint };
+globalThis.StarsRemixHints = {
+  findHint,
+  findSoftHint,
+  applyHint,
+  analyzeDifficulty,
+  techniques: techniqueDefinitions.map(({ strategy, ...technique }) => ({ ...technique })),
+};

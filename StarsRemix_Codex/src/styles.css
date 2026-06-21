@@ -122,15 +122,42 @@ h2 {
   font-size: 0.72rem;
 }
 
+.difficulty-button {
+  background: #fff0f5;
+}
+
 .hint-button {
-  position: absolute;
-  right: 0;
+  position: static;
   min-width: 88px;
   min-height: 52px;
   padding: 10px 16px;
   background: #dceeff;
   font-size: 1rem;
   font-weight: 850;
+}
+
+.soft-hint-button {
+  position: static;
+  min-width: 112px;
+  min-height: 52px;
+  padding: 10px 13px;
+  background: #f5f0ff;
+  font-size: 0.94rem;
+  font-weight: 850;
+}
+
+.soft-hint-button kbd {
+  display: inline-grid;
+  min-width: 20px;
+  min-height: 20px;
+  margin-left: 3px;
+  border: 1px solid rgba(29, 29, 27, 0.55);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.7rem;
+  place-items: center;
+  box-shadow: 0 1px 0 rgba(29, 29, 27, 0.45);
 }
 
 .generation-overlay {
@@ -192,6 +219,14 @@ h2 {
   transition: width 120ms ease;
 }
 
+.difficulty-fill {
+  background: linear-gradient(90deg, #75c893, #e3a008, #b881df);
+}
+
+.difficulty-loading-card {
+  background: #fdfbff;
+}
+
 .generation-percent {
   margin: 8px 0 0;
 }
@@ -237,6 +272,7 @@ h2 {
 .history-controls {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
   padding-bottom: 16px;
@@ -531,11 +567,133 @@ h2 {
   line-height: 1.45;
 }
 
+.soft-hint-card {
+  border-color: #6f2da8;
+  background: #fdfbff;
+  box-shadow: 3px 3px 0 #6f2da8;
+}
+
+.soft-hint-card h2 {
+  margin: 3px 0 0;
+  color: #512078;
+  font-size: 1.45rem;
+  line-height: 1.12;
+}
+
+.soft-hint-card .hint-kicker {
+  margin: 0;
+  color: #7a3db8;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .hint-card .hint-apply-prompt {
   margin-top: 8px;
   color: rgba(24, 60, 92, 0.58);
   font-style: italic;
   font-weight: 400;
+}
+
+.soft-hint-card .hint-apply-prompt {
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+
+.difficulty-report {
+  padding: 14px;
+  border: 2px solid #1d1d1b;
+  border-radius: 8px;
+  background: #fffdf7;
+  box-shadow: 3px 3px 0 #1d1d1b;
+}
+
+.difficulty-report > p {
+  margin-bottom: 10px;
+  color: #58605c;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.difficulty-report .hint-kicker {
+  margin-bottom: 2px;
+  color: #9b1c62;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.difficulty-grade {
+  margin-bottom: 5px;
+  color: #512078;
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.technique-summary {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.technique-summary li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+}
+
+.technique-tier,
+.difficulty-step span {
+  color: #7a6d79;
+  font-size: 0.66rem;
+}
+
+.difficulty-details summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.difficulty-details ol {
+  display: grid;
+  max-height: 330px;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0 2px 0 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.difficulty-step {
+  padding: 7px;
+  border-left: 3px solid #aab2b0;
+  background: #f7f6f2;
+}
+
+.difficulty-step.is-big-ticket {
+  border-left-color: #9b1c62;
+  background: #fff0f5;
+}
+
+.difficulty-step div {
+  display: flex;
+  justify-content: space-between;
+  gap: 7px;
+  font-size: 0.72rem;
+}
+
+.difficulty-step p {
+  margin: 3px 0 0;
+  color: #58605c;
+  font-size: 0.68rem;
+  line-height: 1.25;
 }
 
 .hint-card .hint-star-text {
