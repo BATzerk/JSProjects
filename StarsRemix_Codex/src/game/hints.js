@@ -260,6 +260,7 @@ function createSoftHint(hint) {
     title: technique.title,
     stages: [
       { message: technique.nudge, cells: [] },
+      { message: locationMessage, cells: [] },
       { message: locationMessage, cells: focusCells },
       {
         message: hint.message,
@@ -1138,7 +1139,7 @@ async function analyzeDifficulty(puzzle, options = {}) {
 
   return {
     solved,
-    label: solved ? getDifficultyLabel(bigTicketCount, score) : "Unrated",
+    label: solved ? getDifficultyLabel(bigTicketCount, score) : "Incalculable",
     bigTicketCount,
     score,
     steps,

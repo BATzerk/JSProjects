@@ -440,20 +440,21 @@ describe("findSoftHint", () => {
     assert.match(hint.stages[2].message, /must contain a star/);
   });
 
-  it("reveals a named technique, then its location, then the full deduction", () => {
+  it("reveals a named technique, then its location, visual focus, and full deduction", () => {
     const board = emptyBoard();
     board[0][0] = "star";
 
     const hint = findSoftHint(puzzle, board);
 
     assert.equal(hint.title, "Star Halo");
-    assert.equal(hint.stages.length, 3);
+    assert.equal(hint.stages.length, 4);
     assert.match(hint.stages[0].message, /missing Xs around a star/);
     assert.deepEqual(hint.stages[0].cells, []);
-    assert.deepEqual(hint.stages[1].cells, [{ row: 0, col: 0, color: "gold" }]);
-    assert.match(hint.stages[2].message, /surrounded by Xs/);
-    assert.ok(hint.stages[2].cells.some((cell) => cell.color === "blue"));
-    assert.equal(hint.stages[2].moves, undefined, "soft hints never apply moves");
+    assert.deepEqual(hint.stages[1].cells, [], "location callout has no visual hints");
+    assert.deepEqual(hint.stages[2].cells, [{ row: 0, col: 0, color: "gold" }]);
+    assert.match(hint.stages[3].message, /surrounded by Xs/);
+    assert.ok(hint.stages[3].cells.some((cell) => cell.color === "blue"));
+    assert.equal(hint.stages[3].moves, undefined, "soft hints never apply moves");
   });
 
   it("names a forced star technique Only Place", () => {
@@ -470,6 +471,7 @@ describe("findSoftHint", () => {
     assert.equal(hint.title, "Only Place");
     assert.match(hint.stages[0].message, /only one valid location/);
     assert.equal(hint.stages[1].message, "Look closely at Row 1.");
+    assert.deepEqual(hint.stages[1].cells, []);
   });
 
   it("keeps finding Only Place elsewhere while a forced star is temporarily an X", () => {

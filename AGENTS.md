@@ -1,7 +1,7 @@
 # Codex Instructions
 
 ## Active Project
-ACTIVE_PROJECT=BattleDice
+ACTIVE_PROJECT=StarsRemix_Codex
 
 ## Projects
 | Folder | Description |

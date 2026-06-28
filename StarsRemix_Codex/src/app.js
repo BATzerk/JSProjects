@@ -38,7 +38,7 @@
 
   let puzzle = starterPuzzle;
   let solution = starterSolution;
-  let selectedBoardSize = 9;
+  let selectedBoardSize = puzzle.size;
   let board = createEmptyBoard(puzzle.size);
   let undoStack = [];
   let redoStack = [];
@@ -51,6 +51,8 @@
   let generationProgress = null;
   let difficultyProgress = null;
   let difficultyReport = null;
+  let fileMenuOpen = false;
+  let fileNotice = null;
 
   const root = document.querySelector("#root");
 
@@ -86,7 +88,20 @@
     root.innerHTML = `
       <main class="app-shell">
         <section class="top-bar" aria-label="Puzzle controls">
-          <p class="brand">StarsRemix - Codex</p>
+          <div>
+            <p class="brand">StarsRemix - Codex</p>
+            <p class="board-title">${escapeHtml(puzzle.title)} · ${puzzle.size}×${puzzle.size} · ${difficultyReport ? escapeHtml(difficultyReport.label) : "Unrated"}</p>
+          </div>
+          <div class="file-menu">
+            <button class="action-button file-menu-button" type="button" data-action="file-menu" aria-expanded="${fileMenuOpen}">Boards</button>
+            ${fileMenuOpen ? `
+              <div class="file-menu-popover" role="menu" aria-label="Saved boards">
+                <button type="button" role="menuitem" data-action="save-board">Save current board…</button>
+                <button type="button" role="menuitem" data-action="load-board">Load board file…</button>
+              </div>
+            ` : ""}
+            <input class="board-file-input" type="file" accept=".stars.json,.json,application/json" data-board-file hidden>
+          </div>
         </section>
 
         <section class="play-layout">
@@ -141,6 +156,7 @@
                 </div>
               ` : ""}
               ${difficultyReport ? renderDifficultyReport() : ""}
+              ${fileNotice ? `<div class="file-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</div>` : ""}
             </aside>
             <div class="new-board-controls" aria-label="New board controls">
               <div class="size-controls" aria-label="Board size">
@@ -218,6 +234,17 @@
     root.querySelector("[data-action='difficulty']")?.addEventListener("click", () => {
       calculateDifficulty();
     });
+
+    root.querySelector("[data-action='file-menu']")?.addEventListener("click", () => {
+      fileMenuOpen = !fileMenuOpen;
+      render();
+    });
+
+    root.querySelector("[data-action='save-board']")?.addEventListener("click", saveBoardFile);
+    root.querySelector("[data-action='load-board']")?.addEventListener("click", () => {
+      root.querySelector("[data-board-file]")?.click();
+    });
+    root.querySelector("[data-board-file]")?.addEventListener("change", loadBoardFile);
 
     root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
       if (currentHint?.moves?.length) {
@@ -323,6 +350,49 @@
       difficultyProgress = null;
       render();
     }
+  }
+
+  function saveBoardFile() {
+    const contents = globalThis.StarsRemixSerialization.serializeBoard({
+      puzzle, board, solution, difficultyReport,
+    });
+    const blobUrl = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `${safeFilename(puzzle.title)}-${puzzle.size}x${puzzle.size}.stars.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
+    fileMenuOpen = false;
+    fileNotice = { kind: "success", message: "Board file saved." };
+    render();
+  }
+
+  async function loadBoardFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const loaded = globalThis.StarsRemixSerialization.deserializeBoard(await file.text());
+      validatePuzzleShape(loaded.puzzle);
+      puzzle = loaded.puzzle;
+      board = loaded.board;
+      solution = loaded.solution;
+      difficultyReport = loaded.difficultyReport;
+      selectedBoardSize = puzzle.size;
+      undoStack = [];
+      redoStack = [];
+      currentHint = null;
+      currentSoftHint = null;
+      currentCheck = null;
+      fileNotice = { kind: "success", message: `Loaded ${file.name}.` };
+    } catch (error) {
+      fileNotice = { kind: "error", message: error instanceof Error ? error.message : "Unable to load that board." };
+    }
+    fileMenuOpen = false;
+    render();
+  }
+
+  function safeFilename(value) {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "board";
   }
 
   function renderGenerationOverlay() {
@@ -571,6 +641,7 @@
 
   function updateSoftHintAfterMove(activeSoftHint, previousBoard, nextBoard) {
     if (!activeSoftHint) return null;
+    if (activeSoftHint.isSatisfied) return activeSoftHint;
 
     const matchingHint = globalThis.StarsRemixHints.findSoftHintByKind(
       puzzle,
@@ -578,9 +649,6 @@
       activeSoftHint.hint.kind,
       solution,
     );
-    if (activeSoftHint.isSatisfied) {
-      return { ...activeSoftHint, replacementHint: matchingHint };
-    }
 
     const moveSatisfied = globalThis.StarsRemixHints.isSoftHintTechniqueSatisfied(
       puzzle,
@@ -590,7 +658,7 @@
       activeSoftHint.hint.kind,
     );
     if (moveSatisfied) {
-      return { ...activeSoftHint, isSatisfied: true, replacementHint: matchingHint };
+      return { ...activeSoftHint, isSatisfied: true };
     }
     if (!matchingHint) return null;
 
@@ -614,13 +682,7 @@
       card.classList.add("is-leaving");
       softHintRemovalTimer = window.setTimeout(() => {
         if (!currentSoftHint?.isSatisfied) return;
-        const replacementHint = currentSoftHint.replacementHint;
-        currentSoftHint = replacementHint
-          ? {
-              hint: replacementHint,
-              stage: Math.min(currentSoftHint.stage, replacementHint.stages.length - 1),
-            }
-          : null;
+        currentSoftHint = null;
         softHintSuccessTimer = null;
         softHintRemovalTimer = null;
         render();

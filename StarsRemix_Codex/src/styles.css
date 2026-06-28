@@ -42,6 +42,67 @@ button:disabled {
   padding-bottom: 22px;
 }
 
+.board-title {
+  margin: 3px 0 0;
+  color: #7a6d79;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.file-menu {
+  position: relative;
+  margin-left: auto;
+}
+
+.file-menu-button {
+  min-width: 92px;
+  background: #fff9df;
+}
+
+.file-menu-popover {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 7px);
+  right: 0;
+  display: grid;
+  width: 210px;
+  overflow: hidden;
+  border: 2px solid #1d1d1b;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 4px 4px 0 #1d1d1b;
+}
+
+.file-menu-popover button {
+  padding: 11px 13px;
+  border: 0;
+  border-bottom: 1px solid #d9d5ca;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.file-menu-popover button:last-child { border-bottom: 0; }
+.file-menu-popover button:hover { background: #fff9df; }
+
+.file-notice {
+  padding: 10px;
+  border: 2px solid #287a4a;
+  border-radius: 7px;
+  background: #f1fbf4;
+  color: #185c35;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.file-notice.error {
+  border-color: #9b1c31;
+  background: #fff4f5;
+  color: #7f1528;
+}
+
 .brand {
   flex: 1;
   min-width: max-content;
