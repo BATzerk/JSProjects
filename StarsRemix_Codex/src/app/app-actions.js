@@ -6,8 +6,12 @@
 
 async function loadGeneratedPuzzle(size) {
   if (generationProgress) return;
+  difficultyAnalysisId += 1;
+  difficultyProgress = null;
+  difficultyReport = null;
   selectedBoardSize = size;
   generationProgress = { attempt: 0, maximum: size === 11 ? 250 : 1000 };
+  let boardWasLoaded = false;
   render();
 
   try {
@@ -24,15 +28,20 @@ async function loadGeneratedPuzzle(size) {
     currentHint = null;
     currentSoftHint = null;
     currentCheck = null;
-    difficultyReport = null;
+    solutionRevealVisible = false;
+    boardWasLoaded = true;
   } finally {
     generationProgress = null;
     render();
   }
+
+  if (boardWasLoaded) await calculateDifficulty();
 }
 
 async function calculateDifficulty() {
-  if (difficultyProgress || generationProgress) return;
+  if (generationProgress) return;
+  const analysisId = ++difficultyAnalysisId;
+  const puzzleToAnalyze = puzzle;
   difficultyReport = null;
   difficultyProgress = {
     percent: 0,
@@ -46,16 +55,20 @@ async function calculateDifficulty() {
 
   try {
     await nextPaint();
-    difficultyReport = await globalThis.StarsRemixHints.analyzeDifficulty(puzzle, {
+    const report = await globalThis.StarsRemixHints.analyzeDifficulty(puzzleToAnalyze, {
       onProgress(progress) {
+        if (analysisId !== difficultyAnalysisId) return;
         difficultyProgress = progress;
-        updateDifficultyOverlay();
+        updateDifficultyPanel();
       },
       yieldControl: nextPaint,
     });
+    if (analysisId === difficultyAnalysisId) difficultyReport = report;
   } finally {
-    difficultyProgress = null;
-    render();
+    if (analysisId === difficultyAnalysisId) {
+      difficultyProgress = null;
+      render();
+    }
   }
 }
 
@@ -77,6 +90,7 @@ function saveBoardFile() {
 async function loadBoardFile(event) {
   const file = event.target.files?.[0];
   if (!file) return;
+  let boardWasLoaded = false;
   try {
     const loaded = globalThis.StarsRemixSerialization.deserializeBoard(await file.text());
     validatePuzzleShape(loaded.puzzle);
@@ -90,12 +104,15 @@ async function loadBoardFile(event) {
     currentHint = null;
     currentSoftHint = null;
     currentCheck = null;
+    solutionRevealVisible = false;
     fileNotice = { kind: "success", message: `Loaded ${file.name}.` };
+    boardWasLoaded = true;
   } catch (error) {
     fileNotice = { kind: "error", message: error instanceof Error ? error.message : "Unable to load that board." };
   }
   fileMenuOpen = false;
   render();
+  if (boardWasLoaded) await calculateDifficulty();
 }
 
 function safeFilename(value) {
@@ -141,20 +158,46 @@ function nextPaint() {
 
 window.addEventListener("pointerup", () => {
   isDraggingMarks = false;
-  setSolutionReveal(false);
 });
 
-window.addEventListener("pointercancel", () => setSolutionReveal(false));
+window.addEventListener("click", (event) => {
+  if (fileMenuOpen && event.target instanceof Element && !event.target.closest(".file-menu")) {
+    fileMenuOpen = false;
+    render();
+  }
+});
 
 window.addEventListener("blur", () => {
   isDraggingMarks = false;
-  setSolutionReveal(false);
 });
+
+function dismissActiveUi() {
+  if (fileMenuOpen) {
+    fileMenuOpen = false;
+  } else if (currentHint) {
+    currentHint = null;
+  } else if (currentSoftHint) {
+    clearSoftHintSuccessTimers();
+    currentSoftHint = null;
+  } else if (currentCheck) {
+    currentCheck = null;
+  } else {
+    return false;
+  }
+
+  render();
+  return true;
+}
 
 window.addEventListener("keydown", (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
 
   const key = event.key.toLowerCase();
+  if (key === "escape") {
+    if (dismissActiveUi()) event.preventDefault();
+    return;
+  }
+
   if (key === "z") {
     event.preventDefault();
     undo();
@@ -175,13 +218,12 @@ window.addEventListener("keydown", (event) => {
     root.querySelector("[data-action='soft-hint']")?.click();
   }
 
-  if (key === "escape" && currentSoftHint) {
+  if (key === "c") {
     event.preventDefault();
-    currentSoftHint = null;
-    render();
+    root.querySelector("[data-action='check']")?.click();
   }
 });
 
-// Boot: validate the starting puzzle and paint the first frame.
+// Boot: validate the starting puzzle, paint it, and rate it automatically.
 validatePuzzleShape(puzzle);
-render();
+calculateDifficulty();

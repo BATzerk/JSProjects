@@ -27,19 +27,40 @@ button:disabled {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
   width: min(1180px, 100%);
   min-height: 100vh;
   margin: 0 auto;
   padding: clamp(18px, 3vw, 36px);
 }
 
+.site-footer {
+  margin-top: auto;
+  padding-top: 28px;
+  color: #7a6d79;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.site-footer a {
+  color: inherit;
+  font-weight: 700;
+}
+
 .top-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(300px, 78vh) minmax(190px, 1fr);
   align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-bottom: 22px;
+  gap: clamp(18px, 4vw, 38px);
+  padding-bottom: 16px;
+}
+
+.top-bar > div:first-child,
+.history-controls {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .board-title {
@@ -51,7 +72,8 @@ button:disabled {
 
 .file-menu {
   position: relative;
-  margin-left: auto;
+  grid-column: 2;
+  justify-self: end;
 }
 
 .file-menu-button {
@@ -133,6 +155,7 @@ h2 {
 }
 
 .icon-button {
+  position: relative;
   display: inline-grid;
   width: 52px;
   height: 52px;
@@ -183,51 +206,45 @@ h2 {
   font-size: 0.72rem;
 }
 
-.difficulty-button {
-  background: #fff0f5;
-}
-
 .hint-button {
-  position: static;
+  position: relative;
   min-width: 88px;
   min-height: 52px;
   padding: 10px 16px;
-  background: #dceeff;
+  background: hsl(209 78% 83%);
   font-size: 1rem;
   font-weight: 850;
 }
 
 .check-button {
+  position: relative;
   min-width: 82px;
   min-height: 52px;
   padding: 10px 14px;
-  background: #eefbf7;
+  background: hsl(158 68% 82%);
   font-size: 0.94rem;
   font-weight: 850;
 }
 
 .soft-hint-button {
-  position: static;
+  position: relative;
   min-width: 112px;
   min-height: 52px;
   padding: 10px 13px;
-  background: #f5f0ff;
+  background: hsl(209 78% 94%);
   font-size: 0.94rem;
   font-weight: 850;
 }
 
-.soft-hint-button kbd {
-  display: inline-grid;
-  min-width: 20px;
-  min-height: 20px;
-  margin-left: 3px;
-  border: 1px solid rgba(29, 29, 27, 0.55);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.7);
-  font: inherit;
-  font-size: 0.7rem;
-  place-items: center;
-  box-shadow: 0 1px 0 rgba(29, 29, 27, 0.45);
+.shortcut-key {
+  position: absolute;
+  right: 5px;
+  bottom: 3px;
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .generation-overlay {
@@ -293,10 +310,6 @@ h2 {
   background: linear-gradient(90deg, #75c893, #e3a008, #b881df);
 }
 
-.difficulty-loading-card {
-  background: #fdfbff;
-}
-
 .generation-percent {
   margin: 8px 0 0;
 }
@@ -342,10 +355,15 @@ h2 {
 .history-controls {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
+  justify-self: end;
+  gap: 16px;
+}
+
+.history-control-group {
+  display: flex;
   gap: 12px;
-  padding-bottom: 16px;
 }
 
 .board {
@@ -745,10 +763,10 @@ h2 {
 }
 
 .check-card.has-error {
-  border-color: #9b1c31;
-  background: #fff4f5;
-  box-shadow: 3px 3px 0 #9b1c31;
-  color: #7f1528;
+  border-color: #8f1027;
+  background: #ffc9cf;
+  box-shadow: 3px 3px 0 #8f1027;
+  color: #6f0b1d;
 }
 
 .check-card.is-clear {
@@ -788,6 +806,24 @@ h2 {
   font-size: 1.7rem;
   font-weight: 900;
   line-height: 1;
+}
+
+.difficulty-loading {
+  background: #fdfbff;
+}
+
+.difficulty-loading .generation-track {
+  margin: 12px 0 0;
+}
+
+.difficulty-report .difficulty-progress-detail,
+.difficulty-report .difficulty-progress-count {
+  margin-bottom: 0;
+}
+
+.difficulty-report .difficulty-progress-count {
+  margin-top: 8px;
+  font-size: 0.72rem;
 }
 
 .technique-summary {
@@ -869,6 +905,16 @@ h2 {
 }
 
 @media (max-width: 820px) {
+  .top-bar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .history-controls {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+  }
+
   .play-layout {
     grid-template-columns: 1fr;
   }

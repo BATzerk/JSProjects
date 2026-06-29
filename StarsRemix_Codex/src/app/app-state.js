@@ -15,25 +15,7 @@ const {
   validatePuzzleShape,
 } = engine;
 
-const starterPuzzle = {
-  id: "codex-starter-10x10",
-  title: "First Light",
-  size: 10,
-  starsPerUnit: 2,
-  houses: [
-    [0, 0, 0, 0, 1, 1, 2, 2, 2, 2],
-    [0, 0, 0, 0, 1, 1, 2, 2, 2, 2],
-    [3, 3, 3, 1, 1, 1, 4, 4, 2, 2],
-    [3, 3, 3, 1, 1, 1, 4, 4, 4, 5],
-    [3, 3, 1, 1, 1, 4, 4, 4, 5, 5],
-    [6, 3, 3, 7, 7, 7, 4, 4, 5, 5],
-    [6, 6, 3, 7, 8, 7, 7, 5, 5, 9],
-    [6, 6, 6, 7, 8, 8, 7, 7, 9, 9],
-    [6, 6, 6, 6, 8, 8, 8, 9, 9, 9],
-    [6, 6, 6, 6, 8, 8, 9, 9, 9, 9],
-  ],
-};
-const starterSolution = [];
+const initialGame = engine.generatePuzzle({ size: 9 });
 
 const housePalette = [
   "#fff3eb",
@@ -52,8 +34,8 @@ const housePalette = [
 ];
 const useHouseColors = false;
 
-let puzzle = starterPuzzle;
-let solution = starterSolution;
+let puzzle = initialGame.puzzle;
+let solution = initialGame.solution;
 let selectedBoardSize = puzzle.size;
 let board = createEmptyBoard(puzzle.size);
 let undoStack = [];
@@ -67,12 +49,13 @@ let currentCheck = null;
 let generationProgress = null;
 let difficultyProgress = null;
 let difficultyReport = null;
+let difficultyAnalysisId = 0;
 let fileMenuOpen = false;
 let fileNotice = null;
+let solutionRevealVisible = false;
 
 const root = document.querySelector("#root");
 
 if (!root) {
   throw new Error("Missing app root.");
 }
-

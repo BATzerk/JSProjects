@@ -112,6 +112,7 @@ globalThis.StarsRemixHints = {
   findHint,
   findSoftHint,
   findSoftHintByKind,
+  findBoardMistake,
   isSoftHintTechniqueSatisfied,
   checkBoardForErrors,
   applyHint,

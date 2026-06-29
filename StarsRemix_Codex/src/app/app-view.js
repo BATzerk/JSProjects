@@ -10,7 +10,8 @@ function render() {
   const softHintStage = currentSoftHint && !currentSoftHint.isSatisfied
     ? currentSoftHint.hint.stages[currentSoftHint.stage]
     : null;
-  const activeHint = currentHint ?? softHintStage;
+  const activeCheck = currentCheck?.revealLocation ? currentCheck : null;
+  const activeHint = currentHint ?? softHintStage ?? activeCheck;
   const hintColors = new Map(
     (activeHint?.cells ?? []).map((cell) => [getStarKey(cell), cell.color]),
   );
@@ -30,8 +31,25 @@ function render() {
     <main class="app-shell">
       <section class="top-bar" aria-label="Puzzle controls">
         <div>
-          <p class="brand">StarsRemix - Codex</p>
-          <p class="board-title">${escapeHtml(puzzle.title)} · ${puzzle.size}×${puzzle.size} · ${difficultyReport ? escapeHtml(difficultyReport.label) : "Unrated"}</p>
+          <p class="brand">StarsRemix</p>
+          <p class="board-title">${puzzle.size}×${puzzle.size} · ${difficultyProgress ? "Evaluating…" : difficultyReport ? escapeHtml(difficultyReport.label) : "Unrated"}</p>
+        </div>
+        <div class="history-controls" aria-label="Move history and puzzle help">
+          <div class="history-control-group">
+            <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M5 12h8a6 6 0 0 1 6 6" /></svg>
+              <span class="shortcut-key" aria-hidden="true">Z</span>
+            </button>
+            <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
+              <span class="shortcut-key" aria-hidden="true">R</span>
+            </button>
+          </div>
+          <div class="history-control-group">
+            <button class="action-button soft-hint-button" type="button" data-action="soft-hint" title="Soft Hint (G)">Soft Hint<span class="shortcut-key" aria-hidden="true">G</span></button>
+            <button class="action-button hint-button" type="button" data-action="hint" title="Hint (H)">Hint<span class="shortcut-key" aria-hidden="true">H</span></button>
+            <button class="action-button check-button" type="button" data-action="check" title="Check (C)">Check<span class="shortcut-key" aria-hidden="true">C</span></button>
+          </div>
         </div>
         <div class="file-menu">
           <button class="action-button file-menu-button" type="button" data-action="file-menu" aria-expanded="${fileMenuOpen}">Boards</button>
@@ -47,18 +65,7 @@ function render() {
 
       <section class="play-layout">
         <div class="board-column">
-          <div class="history-controls" aria-label="Move history">
-            <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M5 12h8a6 6 0 0 1 6 6" /></svg>
-            </button>
-            <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
-            </button>
-            <button class="action-button soft-hint-button" type="button" data-action="soft-hint" title="Soft Hint (G)">Soft Hint <kbd>G</kbd></button>
-            <button class="action-button check-button" type="button" data-action="check">Check</button>
-            <button class="action-button hint-button" type="button" data-action="hint">Hint</button>
-          </div>
-          <div class="board" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
+          <div class="board${solutionRevealVisible ? " is-debug-revealed" : ""}" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
             ${renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption)}
           </div>
         </div>
@@ -93,10 +100,11 @@ function render() {
             ${currentCheck ? `
               <div class="check-card ${currentCheck.hasError ? "has-error" : "is-clear"}" role="status" aria-live="polite">
                 <h2>Check</h2>
-                <p>${currentCheck.hasError ? "There is an error somewhere on the board." : "No errors found so far."}</p>
+                <p>${formatHintMessage(currentCheck.message)}</p>
+                ${currentCheck.hasError && !currentCheck.revealLocation ? '<p class="hint-apply-prompt">Press Check again to reveal it.</p>' : ""}
               </div>
             ` : ""}
-            ${difficultyReport ? renderDifficultyReport() : ""}
+            ${difficultyProgress ? renderDifficultyProgress() : difficultyReport ? renderDifficultyReport() : ""}
             ${fileNotice ? `<div class="file-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</div>` : ""}
           </aside>
           <div class="new-board-controls" aria-label="New board controls">
@@ -106,13 +114,14 @@ function render() {
               `).join("")}
             </div>
             <button class="action-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>new board</button>
-            <button class="action-button difficulty-button" type="button" data-action="difficulty" ${generationProgress || difficultyProgress ? "disabled" : ""}>Rate difficulty</button>
-            <button class="action-button debug-reveal-button" type="button" data-action="reveal">DEBUG reveal solution</button>
+            <button class="action-button debug-reveal-button" type="button" data-action="reveal" aria-pressed="${solutionRevealVisible}">DEBUG ${solutionRevealVisible ? "hide" : "reveal"} solution</button>
           </div>
         </div>
       </section>
+      <footer class="site-footer">
+        Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.
+      </footer>
       ${generationProgress ? renderGenerationOverlay() : ""}
-      ${difficultyProgress ? renderDifficultyOverlay() : ""}
     </main>
   `;
 
@@ -172,10 +181,6 @@ function render() {
     loadGeneratedPuzzle(selectedBoardSize);
   });
 
-  root.querySelector("[data-action='difficulty']")?.addEventListener("click", () => {
-    calculateDifficulty();
-  });
-
   root.querySelector("[data-action='file-menu']")?.addEventListener("click", () => {
     fileMenuOpen = !fileMenuOpen;
     render();
@@ -194,9 +199,15 @@ function render() {
     }
     currentSoftHint = null;
     currentCheck = null;
-    currentHint = validation.solved
-      ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
-      : globalThis.StarsRemixHints.findHint(puzzle, board);
+    const mistake = globalThis.StarsRemixHints.findBoardMistake(puzzle, board, solution);
+    if (mistake) {
+      const locationStage = mistake.stages.at(-1);
+      currentHint = { ...mistake, ...locationStage };
+    } else {
+      currentHint = validation.solved
+        ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
+        : globalThis.StarsRemixHints.findHint(puzzle, board);
+    }
     render();
   });
 
@@ -218,8 +229,16 @@ function render() {
   root.querySelector("[data-action='check']")?.addEventListener("click", () => {
     currentHint = null;
     currentSoftHint = null;
+    const mistake = globalThis.StarsRemixHints.findBoardMistake(puzzle, board, solution);
+    const revealLocation = Boolean(currentCheck?.hasError && mistake);
+    const locationStage = mistake?.stages.at(-1);
     currentCheck = {
-      hasError: globalThis.StarsRemixHints.checkBoardForErrors(puzzle, board, solution),
+      hasError: Boolean(mistake),
+      revealLocation,
+      message: revealLocation
+        ? locationStage.message
+        : mistake?.stages[0].message ?? "No errors found so far.",
+      cells: revealLocation ? locationStage.cells : [],
     };
     render();
   });
@@ -230,12 +249,9 @@ function render() {
     });
   });
 
-  const revealButton = root.querySelector("[data-action='reveal']");
-  revealButton?.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    setSolutionReveal(true);
+  root.querySelector("[data-action='reveal']")?.addEventListener("click", () => {
+    setSolutionReveal(!solutionRevealVisible);
   });
-  revealButton?.addEventListener("pointerleave", () => setSolutionReveal(false));
 }
 
 function renderGenerationOverlay() {
@@ -271,31 +287,29 @@ function updateGenerationOverlay() {
   overlay.querySelector(".generation-percent").textContent = `${percent}% of attempt budget`;
 }
 
-function renderDifficultyOverlay() {
+function renderDifficultyProgress() {
   const percent = difficultyProgress.percent;
   return `
-    <div class="generation-overlay" role="dialog" aria-modal="true" aria-labelledby="difficulty-title">
-      <div class="generation-card difficulty-loading-card">
-        <div class="generation-sparkle" aria-hidden="true">✦</div>
-        <h2 id="difficulty-title">Calculating Difficulty</h2>
-        <p class="generation-detail">Checking ${escapeHtml(difficultyProgress.technique)} · ${escapeHtml(difficultyProgress.tier)}</p>
-        <div class="generation-track" role="progressbar" aria-label="Difficulty analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
-          <div class="generation-fill difficulty-fill" style="width: ${Math.max(3, percent)}%"></div>
-        </div>
-        <p class="generation-percent">${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps</p>
+    <section class="difficulty-report difficulty-loading" aria-label="Board difficulty is being evaluated" aria-live="polite">
+      <p class="hint-kicker">Board difficulty</p>
+      <div class="difficulty-grade">Evaluating…</div>
+      <p class="difficulty-progress-detail">Checking ${escapeHtml(difficultyProgress.technique)} · ${escapeHtml(difficultyProgress.tier)}</p>
+      <div class="generation-track" role="progressbar" aria-label="Difficulty analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+        <div class="generation-fill difficulty-fill" style="width: ${Math.max(3, percent)}%"></div>
       </div>
-    </div>
+      <p class="difficulty-progress-count">${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps</p>
+    </section>
   `;
 }
 
-function updateDifficultyOverlay() {
-  const overlay = root.querySelector(".generation-overlay");
-  if (!overlay) return;
-  overlay.querySelector(".generation-detail").textContent =
+function updateDifficultyPanel() {
+  const panel = root.querySelector(".difficulty-loading");
+  if (!panel) return;
+  panel.querySelector(".difficulty-progress-detail").textContent =
     `Checking ${difficultyProgress.technique} · ${difficultyProgress.tier}`;
-  overlay.querySelector(".generation-fill").style.width = `${Math.max(3, difficultyProgress.percent)}%`;
-  overlay.querySelector(".generation-track").setAttribute("aria-valuenow", String(difficultyProgress.percent));
-  overlay.querySelector(".generation-percent").textContent =
+  panel.querySelector(".generation-fill").style.width = `${Math.max(3, difficultyProgress.percent)}%`;
+  panel.querySelector(".generation-track").setAttribute("aria-valuenow", String(difficultyProgress.percent));
+  panel.querySelector(".difficulty-progress-count").textContent =
     `${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps`;
 }
 
@@ -337,7 +351,11 @@ function formatDifficultyMove(move) {
 }
 
 function setSolutionReveal(visible) {
+  solutionRevealVisible = visible;
   root.querySelector(".board")?.classList.toggle("is-debug-revealed", visible);
+  const revealButton = root.querySelector("[data-action='reveal']");
+  revealButton?.setAttribute("aria-pressed", String(visible));
+  if (revealButton) revealButton.textContent = `DEBUG ${visible ? "hide" : "reveal"} solution`;
 }
 
 function getBorderStyle(houses, row, col) {
@@ -357,4 +375,3 @@ function getBorderStyle(houses, row, col) {
 function escapeHtml(value) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
-
