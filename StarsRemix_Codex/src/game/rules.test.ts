@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createEmptyBoard, cycleCellState, setCell } from "./board.ts";
+import "./engine.js";
 import { starterPuzzle } from "./puzzles.ts";
-import { validateBoard } from "./rules.ts";
+
+const { createEmptyBoard, cycleCellState, setCell, validateBoard } = globalThis.StarsRemixEngine;
 
 describe("validateBoard", () => {
   it("cycles cells from X to star to clear", () => {

@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import "./hints.js";
+import "./hints/core.js";
+import "./hints/strategies-basic.js";
+import "./hints/strategies-advanced.js";
+import "./hints/difficulty.js";
+import "./hints/registry.js";
 
 const { findHint, findSoftHint, findSoftHintByKind, isSoftHintTechniqueSatisfied, checkBoardForErrors, applyHint, analyzeDifficulty, techniques } = globalThis.StarsRemixHints;
 

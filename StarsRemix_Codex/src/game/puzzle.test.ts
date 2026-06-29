@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { starterPuzzle } from "./puzzles.ts";
-import { validatePuzzleShape } from "./puzzle.ts";
+import "./engine.js";
+
+const { validatePuzzleShape } = globalThis.StarsRemixEngine;
 
 describe("validatePuzzleShape", () => {
   it("accepts the valid starter puzzle", () => {

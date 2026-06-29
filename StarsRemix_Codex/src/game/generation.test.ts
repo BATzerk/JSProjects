@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isHouseConnected, validatePuzzleShape } from "../puzzle.ts";
-import { countSolutions } from "../solver.ts";
-import { generatePuzzle } from "./generate-puzzle.ts";
-import { generateSolution } from "./generate-solution.ts";
-import { createSeededRandom } from "./random.ts";
+import "./engine.js";
+
+const {
+  isHouseConnected,
+  validatePuzzleShape,
+  countSolutions,
+  generatePuzzle,
+  generateSolution,
+  createSeededRandom,
+} = globalThis.StarsRemixEngine;
 
 describe("generatePuzzle", () => {
   it("creates a reproducible, connected puzzle with one solution", () => {
