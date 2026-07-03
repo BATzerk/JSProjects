@@ -7,6 +7,7 @@
 function applyBoard(nextBoard) {
   if (boardsMatch(board, nextBoard)) return;
   const previousBoard = board;
+  enteringTokenKeys = getEnteringTokenKeys(previousBoard, nextBoard);
   const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
   if (!wasShowingSuccess) clearSoftHintSuccessTimers();
   undoStack = [...undoStack, board];
@@ -73,6 +74,7 @@ function scheduleSoftHintSuccessExit() {
 function replaceBoard(nextBoard) {
   if (boardsMatch(board, nextBoard)) return;
   const previousBoard = board;
+  enteringTokenKeys = getEnteringTokenKeys(previousBoard, nextBoard);
   const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
   if (!wasShowingSuccess) clearSoftHintSuccessTimers();
   board = nextBoard;
@@ -113,6 +115,17 @@ function boardsMatch(left, right) {
   );
 }
 
+function getEnteringTokenKeys(previousBoard, nextBoard) {
+  const keys = new Set();
+  nextBoard.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      if (cell !== "empty" && cell !== previousBoard[rowIndex][colIndex]) {
+        keys.add(getStarKey({ row: rowIndex, col: colIndex }));
+      }
+    });
+  });
+  return keys;
+}
+
 // Progressive generation shell: keeps the UI responsive and the attempt
 // counter live by yielding to the browser between batches, while delegating
-

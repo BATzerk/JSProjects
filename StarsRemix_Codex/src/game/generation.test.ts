@@ -9,6 +9,7 @@ const {
   generatePuzzle,
   generateSolution,
   createSeededRandom,
+  hasThreeCellHouse,
 } = globalThis.StarsRemixEngine;
 
 describe("generatePuzzle", () => {
@@ -21,6 +22,7 @@ describe("generatePuzzle", () => {
     assert.equal(countSolutions(first.puzzle, 2), 1);
     assert.doesNotThrow(() => validatePuzzleShape(first.puzzle));
     assert.equal(new Set(first.puzzle.houses.flat()).size, first.puzzle.size);
+    assert.equal(hasThreeCellHouse(first.puzzle.houses), false);
 
     for (let house = 0; house < first.puzzle.size; house += 1) {
       assert.equal(isHouseConnected(first.puzzle, house), true);
@@ -29,6 +31,21 @@ describe("generatePuzzle", () => {
         first.puzzle.starsPerUnit,
       );
     }
+  });
+
+  it("identifies a region containing exactly three cells", () => {
+    assert.equal(hasThreeCellHouse([
+      [0, 0, 0, 1],
+      [2, 2, 1, 1],
+      [2, 2, 1, 1],
+      [2, 2, 1, 1],
+    ]), true);
+    assert.equal(hasThreeCellHouse([
+      [0, 0, 0, 0],
+      [1, 1, 1, 1],
+      [2, 2, 2, 2],
+      [3, 3, 3, 3],
+    ]), false);
   });
 
   it("places the required non-touching stars in every row and column", () => {

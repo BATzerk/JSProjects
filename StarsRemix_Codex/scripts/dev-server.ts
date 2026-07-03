@@ -13,6 +13,7 @@ const mimeTypes = new Map([
   [".js", "text/javascript; charset=utf-8"],
   [".ts", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
+  [".png", "image/png"],
 ]);
 
 const server = createServer(async (request, response) => {
@@ -28,10 +29,10 @@ const server = createServer(async (request, response) => {
     }
 
     const extension = extname(filePath);
-    const source = await readFile(filePath, "utf8");
+    const source = await readFile(filePath);
     const body =
       extension === ".ts"
-        ? stripTypeScriptTypes(source, { mode: "strip" })
+        ? stripTypeScriptTypes(source.toString("utf8"), { mode: "strip" })
         : source;
 
     response.writeHead(200, {

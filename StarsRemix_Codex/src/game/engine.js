@@ -489,6 +489,14 @@
     }
   }
 
+  function hasThreeCellHouse(houses) {
+    const houseSizes = new Map();
+    for (const house of houses.flat()) {
+      houseSizes.set(house, (houseSizes.get(house) ?? 0) + 1);
+    }
+    return [...houseSizes.values()].some((size) => size === 3);
+  }
+
   function generatePuzzle(config = {}) {
     const size = config.size ?? 9;
     const starsPerUnit = config.starsPerUnit ?? 2;
@@ -534,6 +542,10 @@
         starsPerUnit,
       );
       if (!houses) {
+        diagnostics.rejectedHouseLayouts += 1;
+        continue;
+      }
+      if (hasThreeCellHouse(houses)) {
         diagnostics.rejectedHouseLayouts += 1;
         continue;
       }
@@ -587,6 +599,7 @@
     // Generation
     generateSolution,
     generateHouses,
+    hasThreeCellHouse,
     generatePuzzle,
   };
 })(globalThis);

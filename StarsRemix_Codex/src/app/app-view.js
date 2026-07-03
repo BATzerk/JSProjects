@@ -65,7 +65,12 @@ function render() {
 
       <section class="play-layout">
         <div class="board-column">
-          <div class="board${solutionRevealVisible ? " is-debug-revealed" : ""}" role="grid" aria-label="${puzzle.size} by ${puzzle.size} star puzzle">
+          <div
+            class="board${solutionRevealVisible ? " is-debug-revealed" : ""}"
+            role="grid"
+            aria-label="${puzzle.size} by ${puzzle.size} star puzzle"
+            style="--board-border-width: ${5 / puzzle.size}cqw; --house-border-width: ${4 / puzzle.size}cqw; --cell-border-width: ${1.67 / puzzle.size}cqw"
+          >
             ${renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption)}
           </div>
         </div>
@@ -124,6 +129,7 @@ function render() {
       ${generationProgress ? renderGenerationOverlay() : ""}
     </main>
   `;
+  enteringTokenKeys = new Set();
 
   const boardElement = root.querySelector(".board");
   if (boardElement) {
@@ -361,8 +367,8 @@ function setSolutionReveal(visible) {
 function getBorderStyle(houses, row, col) {
   const house = houses[row][col];
   const size = houses.length;
-  const border = "3px solid #1d1d1b";
-  const thin = "1px solid rgba(29, 29, 27, 0.28)";
+  const border = "var(--house-border-width) solid #1d1d1b";
+  const thin = "var(--cell-border-width) solid rgba(29, 29, 27, 0.28)";
 
   return [
     `border-top: ${row === 0 || houses[row - 1][col] !== house ? border : thin}`,

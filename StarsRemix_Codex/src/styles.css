@@ -350,6 +350,7 @@ h2 {
 
 .board-column {
   width: min(100%, 78vh);
+  container-type: inline-size;
 }
 
 .history-controls {
@@ -371,7 +372,7 @@ h2 {
   width: min(100%, 78vh);
   aspect-ratio: 1;
   grid-auto-rows: minmax(0, 1fr);
-  border: 3px solid #1d1d1b;
+  border: var(--board-border-width) solid #1d1d1b;
   background: #1d1d1b;
   box-shadow: 8px 8px 0 #1d1d1b;
 }
@@ -431,32 +432,39 @@ h2 {
 }
 
 .star-token {
-  width: 60%;
-  overflow: visible;
-}
-
-.star-token .star-body {
-  fill: url("#star-shine");
-  stroke: #1d1d1b;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  stroke-width: 7;
-}
-
-.star-token .star-highlight {
-  fill: rgba(255, 255, 255, 0.38);
-  stroke: none;
+  width: 78%;
+  object-fit: contain;
 }
 
 .mark-token {
   color: #1d1d1b;
-  width: 65%;
-  font-size: clamp(1.39rem, 5.6vmin, 2.46rem);
-  font-weight: 380;
-  line-height: 1;
-  opacity: 0.42;
-  text-align: center;
-  transform: translateY(0.04em);
+  width: 33.6%;
+  opacity: 0.336;
+}
+
+.mark-token path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 12;
+}
+
+.cell.token-entering > .star-token {
+  animation: token-enter-star 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.cell.token-entering > .mark-token {
+  animation: token-enter-mark 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes token-enter-star {
+  from { opacity: 0; transform: rotate(-28deg) scale(0.2); }
+  to { opacity: 1; transform: rotate(0) scale(1); }
+}
+
+@keyframes token-enter-mark {
+  from { opacity: 0; transform: rotate(28deg) scale(0.2); }
+  to { opacity: 0.336; transform: rotate(0) scale(1); }
 }
 
 .cell.has-conflict {
@@ -468,9 +476,8 @@ h2 {
   color: #9b1c31;
 }
 
-.cell.has-conflict .star-token .star-body {
-  fill: #ef5b73;
-  stroke: #1d1d1b;
+.cell.has-conflict .star-token {
+  filter: hue-rotate(-55deg) saturate(1.35);
 }
 
 .cell.hint-red {
@@ -479,8 +486,8 @@ h2 {
   animation: hint-pulse-red 900ms ease-in-out infinite alternate;
 }
 
-.cell.hint-red .star-token .star-body {
-  fill: #ef5b73;
+.cell.hint-red .star-token {
+  filter: hue-rotate(-55deg) saturate(1.35);
 }
 
 .cell .hint-assumption-star {
@@ -488,10 +495,8 @@ h2 {
   transform: scale(0.9);
 }
 
-.cell .hint-assumption-star .star-body {
-  fill: #b881df;
-  stroke: #6f2da8;
-  stroke-width: 5;
+.cell .hint-assumption-star {
+  filter: hue-rotate(220deg) saturate(0.8);
 }
 
 .cell .hint-assumption-mark {
@@ -517,8 +522,8 @@ h2 {
 .cell[class*="hint-unit-"]::after {
   position: absolute;
   z-index: 4;
-  inset: -4px;
-  border: 0 solid #b84dff;
+  inset: calc(0px - var(--house-border-width) - 6px);
+  border: 0 solid rgb(184 77 255 / 50%);
   content: "";
   pointer-events: none;
 }
@@ -561,11 +566,6 @@ h2 {
   filter: blur(5px);
   transform: scale(1.08);
   animation: hint-pulse-ghost-star 900ms ease-in-out infinite alternate;
-}
-
-.cell.hint-gray .hint-ghost-star .star-body {
-  stroke: #f08318;
-  stroke-width: 4;
 }
 
 @keyframes hint-pulse-red {
@@ -949,6 +949,8 @@ h2 {
   .cell.hint-blue,
   .cell.hint-gray,
   .cell.hint-gray .hint-ghost-star,
+  .cell.token-entering > .star-token,
+  .cell.token-entering > .mark-token,
   .generation-sparkle {
     animation: none;
   }
@@ -984,13 +986,11 @@ h2 {
     box-shadow: 4px 4px 0 #1d1d1b;
   }
 
-  .star-token,
-  .mark-token {
-    width: 62%;
+  .star-token {
+    width: 78%;
   }
 
   .mark-token {
-    width: 67%;
-    font-size: clamp(1.3rem, 7.14vmin, 2.24rem);
+    width: 34.72%;
   }
 }

@@ -15,7 +15,40 @@ const {
   validatePuzzleShape,
 } = engine;
 
-const initialGame = engine.generatePuzzle({ size: 9 });
+const initialGame = {
+  puzzle: {
+    id: "codex-default-11x11",
+    title: "Default Constellation",
+    size: 11,
+    starsPerUnit: 2,
+    houses: [
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+      [0, 0, 3, 3, 1, 4, 1, 2, 2, 2, 2],
+      [0, 3, 3, 3, 4, 4, 4, 2, 2, 2, 2],
+      [0, 0, 4, 3, 4, 4, 4, 2, 4, 2, 2],
+      [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2],
+      [5, 5, 4, 4, 4, 4, 4, 4, 4, 6, 6],
+      [5, 7, 7, 4, 4, 4, 4, 4, 6, 6, 6],
+      [5, 7, 4, 4, 4, 4, 4, 4, 4, 6, 8],
+      [5, 7, 7, 7, 7, 4, 9, 9, 8, 8, 8],
+      [5, 10, 10, 7, 4, 4, 4, 9, 8, 9, 8],
+      [5, 5, 10, 10, 10, 10, 9, 9, 9, 9, 8],
+    ],
+  },
+  solution: [
+    { row: 0, col: 5 }, { row: 0, col: 9 },
+    { row: 1, col: 1 }, { row: 1, col: 3 },
+    { row: 2, col: 7 }, { row: 2, col: 9 },
+    { row: 3, col: 1 }, { row: 3, col: 3 },
+    { row: 4, col: 5 }, { row: 4, col: 7 },
+    { row: 5, col: 0 }, { row: 5, col: 10 },
+    { row: 6, col: 2 }, { row: 6, col: 8 },
+    { row: 7, col: 0 }, { row: 7, col: 10 },
+    { row: 8, col: 4 }, { row: 8, col: 6 },
+    { row: 9, col: 2 }, { row: 9, col: 8 },
+    { row: 10, col: 4 }, { row: 10, col: 6 },
+  ],
+};
 
 const housePalette = [
   "#fff3eb",
@@ -53,6 +86,7 @@ let difficultyAnalysisId = 0;
 let fileMenuOpen = false;
 let fileNotice = null;
 let solutionRevealVisible = false;
+let enteringTokenKeys = new Set();
 
 const root = document.querySelector("#root");
 

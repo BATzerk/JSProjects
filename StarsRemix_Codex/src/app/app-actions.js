@@ -136,7 +136,7 @@ async function generatePuzzle(size, onProgress) {
     }
     const solution = engine.generateSolution(size, starsPerUnit);
     const houses = solution && engine.generateHouses(size, solution);
-    if (!houses) continue;
+    if (!houses || engine.hasThreeCellHouse(houses)) continue;
 
     const candidate = {
       id: `generated-${Date.now()}-${attempt}`,
