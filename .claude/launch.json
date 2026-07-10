@@ -18,6 +18,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "StarsRemix_Codex", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "LinelightII",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-p", "8123", "LinelightII"],
+      "port": 8123
     }
   ]
 }
