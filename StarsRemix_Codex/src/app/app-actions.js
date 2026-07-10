@@ -8,7 +8,7 @@ async function loadGeneratedPuzzle(size) {
   if (generationProgress) return;
   difficultyAnalysisId += 1;
   difficultyProgress = null;
-  difficultyReport = null;
+  gameState = globalThis.StarsRemixState.setDifficultyReport(gameState, null);
   selectedBoardSize = size;
   generationProgress = { attempt: 0, maximum: size === 11 ? 250 : 1000 };
   let boardWasLoaded = false;
@@ -20,15 +20,13 @@ async function loadGeneratedPuzzle(size) {
       generationProgress = { attempt, maximum };
       updateGenerationOverlay();
     });
-    puzzle = generated.puzzle;
-    solution = generated.solution;
-    board = createEmptyBoard(puzzle.size);
-    undoStack = [];
-    redoStack = [];
-    currentHint = null;
-    currentSoftHint = null;
-    currentCheck = null;
-    solutionRevealVisible = false;
+    gameState = globalThis.StarsRemixState.replaceGame(gameState, {
+      puzzle: generated.puzzle,
+      solution: generated.solution,
+      board: createEmptyBoard(generated.puzzle.size),
+    });
+    resetGameSessionState();
+    saveBoardToDevice();
     boardWasLoaded = true;
   } finally {
     generationProgress = null;
@@ -41,12 +39,12 @@ async function loadGeneratedPuzzle(size) {
 async function calculateDifficulty() {
   if (generationProgress) return;
   const analysisId = ++difficultyAnalysisId;
-  const puzzleToAnalyze = puzzle;
-  difficultyReport = null;
+  const puzzleToAnalyze = gameState.puzzle;
+  gameState = globalThis.StarsRemixState.setDifficultyReport(gameState, null);
   difficultyProgress = {
     percent: 0,
     starsPlaced: 0,
-    totalStars: puzzle.size * puzzle.starsPerUnit,
+    totalStars: gameState.puzzle.size * gameState.puzzle.starsPerUnit,
     stepsCompleted: 0,
     technique: "basic rules",
     tier: "Basic",
@@ -63,7 +61,9 @@ async function calculateDifficulty() {
       },
       yieldControl: nextPaint,
     });
-    if (analysisId === difficultyAnalysisId) difficultyReport = report;
+    if (analysisId === difficultyAnalysisId) {
+      gameState = globalThis.StarsRemixState.setDifficultyReport(gameState, report);
+    }
   } finally {
     if (analysisId === difficultyAnalysisId) {
       difficultyProgress = null;
@@ -73,13 +73,11 @@ async function calculateDifficulty() {
 }
 
 function saveBoardFile() {
-  const contents = globalThis.StarsRemixSerialization.serializeBoard({
-    puzzle, board, solution, difficultyReport,
-  });
-  const blobUrl = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
+  const contents = encodeCurrentSnapshot();
+  const blobUrl = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
   const link = document.createElement("a");
   link.href = blobUrl;
-  link.download = `${safeFilename(puzzle.title)}-${puzzle.size}x${puzzle.size}.stars.json`;
+  link.download = `${safeFilename(gameState.puzzle.title)}-${gameState.puzzle.size}x${gameState.puzzle.size}.stars`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
   fileMenuOpen = false;
@@ -92,20 +90,9 @@ async function loadBoardFile(event) {
   if (!file) return;
   let boardWasLoaded = false;
   try {
-    const loaded = globalThis.StarsRemixSerialization.deserializeBoard(await file.text());
-    validatePuzzleShape(loaded.puzzle);
-    puzzle = loaded.puzzle;
-    board = loaded.board;
-    solution = loaded.solution;
-    difficultyReport = loaded.difficultyReport;
-    selectedBoardSize = puzzle.size;
-    undoStack = [];
-    redoStack = [];
-    currentHint = null;
-    currentSoftHint = null;
-    currentCheck = null;
-    solutionRevealVisible = false;
+    decodeAndApplySnapshot(await file.text());
     fileNotice = { kind: "success", message: `Loaded ${file.name}.` };
+    saveBoardToDevice();
     boardWasLoaded = true;
   } catch (error) {
     fileNotice = { kind: "error", message: error instanceof Error ? error.message : "Unable to load that board." };
@@ -224,6 +211,7 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-// Boot: validate the starting puzzle, paint it, and rate it automatically.
-validatePuzzleShape(puzzle);
+// Boot: prefer the last locally saved game, then validate, paint, and rate it.
+restoreBoardFromDevice();
+validatePuzzleShape(gameState.puzzle);
 calculateDifficulty();

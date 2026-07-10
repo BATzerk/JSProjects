@@ -15,6 +15,7 @@ const {
   validatePuzzleShape,
 } = engine;
 
+/* Previous 11x11 startup board:
 const initialGame = {
   puzzle: {
     id: "codex-default-11x11",
@@ -49,6 +50,38 @@ const initialGame = {
     { row: 10, col: 4 }, { row: 10, col: 6 },
   ],
 };
+*/
+
+const initialGame = {
+  puzzle: {
+    id: "codex-default-9x9",
+    title: "Default Constellation",
+    size: 9,
+    starsPerUnit: 2,
+    houses: [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [1, 1, 2, 2, 2, 2, 2, 3, 3],
+      [1, 4, 2, 5, 5, 5, 2, 3, 3],
+      [1, 4, 2, 2, 2, 5, 2, 3, 3],
+      [1, 4, 4, 2, 5, 5, 2, 3, 3],
+      [1, 4, 2, 2, 2, 5, 2, 6, 6],
+      [4, 4, 2, 5, 5, 5, 7, 6, 6],
+      [4, 4, 7, 7, 7, 7, 7, 6, 6],
+      [8, 8, 8, 8, 8, 8, 8, 8, 8],
+    ],
+  },
+  solution: [
+    { row: 0, col: 1 }, { row: 0, col: 3 },
+    { row: 1, col: 5 }, { row: 1, col: 7 },
+    { row: 2, col: 0 }, { row: 2, col: 3 },
+    { row: 3, col: 5 }, { row: 3, col: 7 },
+    { row: 4, col: 0 }, { row: 4, col: 2 },
+    { row: 5, col: 4 }, { row: 5, col: 8 },
+    { row: 6, col: 1 }, { row: 6, col: 6 },
+    { row: 7, col: 4 }, { row: 7, col: 8 },
+    { row: 8, col: 2 }, { row: 8, col: 6 },
+  ],
+};
 
 const housePalette = [
   "#fff3eb",
@@ -66,11 +99,12 @@ const housePalette = [
   "#fff0fb",
 ];
 const useHouseColors = false;
-
-let puzzle = initialGame.puzzle;
-let solution = initialGame.solution;
-let selectedBoardSize = puzzle.size;
-let board = createEmptyBoard(puzzle.size);
+let gameState = globalThis.StarsRemixState.createGameState({
+  puzzle: initialGame.puzzle,
+  solution: initialGame.solution,
+  board: createEmptyBoard(initialGame.puzzle.size),
+});
+let selectedBoardSize = gameState.puzzle.size;
 let undoStack = [];
 let redoStack = [];
 let isDraggingMarks = false;
@@ -81,12 +115,12 @@ let softHintRemovalTimer = null;
 let currentCheck = null;
 let generationProgress = null;
 let difficultyProgress = null;
-let difficultyReport = null;
 let difficultyAnalysisId = 0;
 let fileMenuOpen = false;
 let fileNotice = null;
 let solutionRevealVisible = false;
 let enteringTokenKeys = new Set();
+let poofingTokenDelays = new Map();
 
 const root = document.querySelector("#root");
 

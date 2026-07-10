@@ -5,7 +5,7 @@
 // order is fixed in index.html; app-actions.js runs the boot call last.
 
 function render() {
-  const validation = validateBoard(puzzle, board);
+  const validation = validateBoard(gameState.puzzle, gameState.progress.board);
   const conflictKeys = new Set();
   const softHintStage = currentSoftHint && !currentSoftHint.isSatisfied
     ? currentSoftHint.hint.stages[currentSoftHint.stage]
@@ -32,7 +32,7 @@ function render() {
       <section class="top-bar" aria-label="Puzzle controls">
         <div>
           <p class="brand">StarsRemix</p>
-          <p class="board-title">${puzzle.size}×${puzzle.size} · ${difficultyProgress ? "Evaluating…" : difficultyReport ? escapeHtml(difficultyReport.label) : "Unrated"}</p>
+          <p class="board-title">${gameState.puzzle.size}×${gameState.puzzle.size} · ${difficultyProgress ? "Evaluating…" : gameState.analysis.difficultyReport ? escapeHtml(gameState.analysis.difficultyReport.label) : "Unrated"}</p>
         </div>
         <div class="history-controls" aria-label="Move history and puzzle help">
           <div class="history-control-group">
@@ -59,7 +59,7 @@ function render() {
               <button type="button" role="menuitem" data-action="load-board">Load board file…</button>
             </div>
           ` : ""}
-          <input class="board-file-input" type="file" accept=".stars.json,.json,application/json" data-board-file hidden>
+          <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
         </div>
       </section>
 
@@ -68,8 +68,8 @@ function render() {
           <div
             class="board${solutionRevealVisible ? " is-debug-revealed" : ""}"
             role="grid"
-            aria-label="${puzzle.size} by ${puzzle.size} star puzzle"
-            style="--board-border-width: ${5 / puzzle.size}cqw; --house-border-width: ${4 / puzzle.size}cqw; --cell-border-width: ${1.67 / puzzle.size}cqw"
+            aria-label="${gameState.puzzle.size} by ${gameState.puzzle.size} star puzzle"
+            style="--board-border-width: ${5 / gameState.puzzle.size}cqw; --house-border-width: ${4 / gameState.puzzle.size}cqw; --cell-border-width: ${1.67 / gameState.puzzle.size}cqw"
           >
             ${renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption)}
           </div>
@@ -106,10 +106,10 @@ function render() {
               <div class="check-card ${currentCheck.hasError ? "has-error" : "is-clear"}" role="status" aria-live="polite">
                 <h2>Check</h2>
                 <p>${formatHintMessage(currentCheck.message)}</p>
-                ${currentCheck.hasError && !currentCheck.revealLocation ? '<p class="hint-apply-prompt">Press Check again to reveal it.</p>' : ""}
+                ${currentCheck.hasError ? `<p class="hint-apply-prompt">${currentCheck.revealLocation ? "Press Check again to undo to the last solvable board." : "Press Check again to reveal it."}</p>` : ""}
               </div>
             ` : ""}
-            ${difficultyProgress ? renderDifficultyProgress() : difficultyReport ? renderDifficultyReport() : ""}
+            ${difficultyProgress ? renderDifficultyProgress() : gameState.analysis.difficultyReport ? renderDifficultyReport() : ""}
             ${fileNotice ? `<div class="file-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</div>` : ""}
           </aside>
           <div class="new-board-controls" aria-label="New board controls">
@@ -133,7 +133,7 @@ function render() {
 
   const boardElement = root.querySelector(".board");
   if (boardElement) {
-    boardElement.style.gridTemplateColumns = `repeat(${puzzle.size}, minmax(0, 1fr))`;
+    boardElement.style.gridTemplateColumns = `repeat(${gameState.puzzle.size}, minmax(0, 1fr))`;
   }
 
   root.querySelectorAll("[data-row][data-col]").forEach((cell) => {
@@ -151,26 +151,26 @@ function render() {
       const col = Number(cell.dataset.col);
 
       if (event.button === 2) {
-        applyBoard(setCell(board, row, col, "empty"));
+        applyBoard(setCell(gameState.progress.board, row, col, "empty"));
         return;
       }
 
       if (event.button === 1) {
-        applyBoard(setCell(board, row, col, board[row][col] === "star" ? "empty" : "star"));
+        applyBoard(setCell(gameState.progress.board, row, col, gameState.progress.board[row][col] === "star" ? "empty" : "star"));
         return;
       }
 
-      const nextState = cycleCellState(board[row][col]);
+      const nextState = cycleCellState(gameState.progress.board[row][col]);
       isDraggingMarks = nextState === "mark";
-      applyBoard(setCell(board, row, col, nextState));
+      applyBoard(setCell(gameState.progress.board, row, col, nextState));
     });
 
     cell.addEventListener("pointerenter", () => {
       if (!isDraggingMarks) return;
       const row = Number(cell.dataset.row);
       const col = Number(cell.dataset.col);
-      if (board[row][col] === "empty") {
-        replaceBoard(setCell(board, row, col, "mark"));
+      if (gameState.progress.board[row][col] === "empty") {
+        replaceBoard(setCell(gameState.progress.board, row, col, "mark"));
       }
     });
   });
@@ -200,19 +200,19 @@ function render() {
 
   root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
     if (currentHint?.moves?.length) {
-      applyBoard(globalThis.StarsRemixHints.applyHint(board, currentHint));
+      applyBoard(globalThis.StarsRemixHints.applyHint(gameState.progress.board, currentHint));
       return;
     }
     currentSoftHint = null;
     currentCheck = null;
-    const mistake = globalThis.StarsRemixHints.findBoardMistake(puzzle, board, solution);
+    const mistake = globalThis.StarsRemixHints.findBoardMistake(gameState.puzzle, gameState.progress.board, gameState.solution);
     if (mistake) {
       const locationStage = mistake.stages.at(-1);
       currentHint = { ...mistake, ...locationStage };
     } else {
       currentHint = validation.solved
         ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
-        : globalThis.StarsRemixHints.findHint(puzzle, board);
+        : globalThis.StarsRemixHints.findHint(gameState.puzzle, gameState.progress.board);
     }
     render();
   });
@@ -221,7 +221,7 @@ function render() {
     currentHint = null;
     currentCheck = null;
     if (!currentSoftHint) {
-      const hint = globalThis.StarsRemixHints.findSoftHint(puzzle, board, solution);
+      const hint = globalThis.StarsRemixHints.findSoftHint(gameState.puzzle, gameState.progress.board, gameState.solution);
       currentSoftHint = { hint, stage: 0 };
     } else {
       currentSoftHint.stage = Math.min(
@@ -235,7 +235,11 @@ function render() {
   root.querySelector("[data-action='check']")?.addEventListener("click", () => {
     currentHint = null;
     currentSoftHint = null;
-    const mistake = globalThis.StarsRemixHints.findBoardMistake(puzzle, board, solution);
+    if (currentCheck?.hasError && currentCheck.revealLocation) {
+      restoreLastSolvableBoard();
+      return;
+    }
+    const mistake = globalThis.StarsRemixHints.findBoardMistake(gameState.puzzle, gameState.progress.board, gameState.solution);
     const revealLocation = Boolean(currentCheck?.hasError && mistake);
     const locationStage = mistake?.stages.at(-1);
     currentCheck = {
@@ -320,7 +324,7 @@ function updateDifficultyPanel() {
 }
 
 function renderDifficultyReport() {
-  const report = difficultyReport;
+  const report = gameState.analysis.difficultyReport;
   const summary = report.techniqueCounts.map((technique) => `
     <li>
       <span>${escapeHtml(technique.title)}</span>

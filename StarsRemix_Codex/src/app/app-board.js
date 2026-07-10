@@ -5,17 +5,18 @@
 // order is fixed in index.html; app-actions.js runs the boot call last.
 
 function applyBoard(nextBoard) {
-  if (boardsMatch(board, nextBoard)) return;
-  const previousBoard = board;
+  if (boardsMatch(gameState.progress.board, nextBoard)) return;
+  const previousBoard = gameState.progress.board;
   enteringTokenKeys = getEnteringTokenKeys(previousBoard, nextBoard);
   const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
   if (!wasShowingSuccess) clearSoftHintSuccessTimers();
-  undoStack = [...undoStack, board];
+  undoStack = [...undoStack, gameState.progress.board];
   redoStack = [];
-  board = nextBoard;
+  gameState = globalThis.StarsRemixState.updateBoard(gameState, nextBoard);
   currentHint = null;
   currentCheck = null;
-  currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, board);
+  currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, gameState.progress.board);
+  saveBoardToDevice();
   render();
   if (currentSoftHint?.isSatisfied && !wasShowingSuccess) scheduleSoftHintSuccessExit();
 }
@@ -25,17 +26,17 @@ function updateSoftHintAfterMove(activeSoftHint, previousBoard, nextBoard) {
   if (activeSoftHint.isSatisfied) return activeSoftHint;
 
   const matchingHint = globalThis.StarsRemixHints.findSoftHintByKind(
-    puzzle,
+    gameState.puzzle,
     nextBoard,
     activeSoftHint.hint.kind,
-    solution,
+    gameState.solution,
   );
 
   const moveSatisfied = globalThis.StarsRemixHints.isSoftHintTechniqueSatisfied(
-    puzzle,
+    gameState.puzzle,
     previousBoard,
     nextBoard,
-    solution,
+    gameState.solution,
     activeSoftHint.hint.kind,
   );
   if (moveSatisfied) {
@@ -72,15 +73,16 @@ function scheduleSoftHintSuccessExit() {
 }
 
 function replaceBoard(nextBoard) {
-  if (boardsMatch(board, nextBoard)) return;
-  const previousBoard = board;
+  if (boardsMatch(gameState.progress.board, nextBoard)) return;
+  const previousBoard = gameState.progress.board;
   enteringTokenKeys = getEnteringTokenKeys(previousBoard, nextBoard);
   const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
   if (!wasShowingSuccess) clearSoftHintSuccessTimers();
-  board = nextBoard;
+  gameState = globalThis.StarsRemixState.updateBoard(gameState, nextBoard);
   currentHint = null;
-  currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, board);
+  currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, gameState.progress.board);
   currentCheck = null;
+  saveBoardToDevice();
   render();
   if (currentSoftHint?.isSatisfied && !wasShowingSuccess) scheduleSoftHintSuccessExit();
 }
@@ -89,11 +91,12 @@ function undo() {
   const previous = undoStack[undoStack.length - 1];
   if (!previous) return;
   undoStack = undoStack.slice(0, -1);
-  redoStack = [...redoStack, board];
-  board = previous;
+  redoStack = [...redoStack, gameState.progress.board];
+  gameState = globalThis.StarsRemixState.updateBoard(gameState, previous);
   currentHint = null;
   currentSoftHint = null;
   currentCheck = null;
+  saveBoardToDevice();
   render();
 }
 
@@ -101,12 +104,34 @@ function redo() {
   const next = redoStack[redoStack.length - 1];
   if (!next) return;
   redoStack = redoStack.slice(0, -1);
-  undoStack = [...undoStack, board];
-  board = next;
+  undoStack = [...undoStack, gameState.progress.board];
+  gameState = globalThis.StarsRemixState.updateBoard(gameState, next);
   currentHint = null;
   currentSoftHint = null;
   currentCheck = null;
+  saveBoardToDevice();
   render();
+}
+
+function restoreLastSolvableBoard() {
+  const checkpointIndex = undoStack.findLastIndex((candidate) =>
+    !globalThis.StarsRemixHints.findBoardMistake(gameState.puzzle, candidate, gameState.solution),
+  );
+  if (checkpointIndex < 0) return false;
+
+  const previousBoard = gameState.progress.board;
+  const checkpoint = undoStack[checkpointIndex];
+  poofingTokenDelays = getRemovedTokenDelays(previousBoard, checkpoint, checkpointIndex);
+  undoStack = undoStack.slice(0, checkpointIndex);
+  redoStack = [...redoStack, previousBoard];
+  gameState = globalThis.StarsRemixState.updateBoard(gameState, checkpoint);
+  currentHint = null;
+  currentSoftHint = null;
+  currentCheck = null;
+  saveBoardToDevice();
+  render();
+  poofingTokenDelays = new Map();
+  return true;
 }
 
 function boardsMatch(left, right) {
@@ -125,6 +150,42 @@ function getEnteringTokenKeys(previousBoard, nextBoard) {
     });
   });
   return keys;
+}
+
+
+function getRemovedTokenDelays(previousBoard, checkpoint, checkpointIndex) {
+  const removedKeys = new Set();
+  previousBoard.forEach((row, rowIndex) => {
+    row.forEach((cell, colIndex) => {
+      if (cell !== "empty" && cell !== checkpoint[rowIndex][colIndex]) {
+        removedKeys.add(getStarKey({ row: rowIndex, col: colIndex }));
+      }
+    });
+  });
+
+  const timeline = [checkpoint, ...undoStack.slice(checkpointIndex + 1), previousBoard];
+  const delays = new Map();
+  let burstGroup = 0;
+  for (let index = timeline.length - 1; index > 0; index -= 1) {
+    const newerBoard = timeline[index];
+    const olderBoard = timeline[index - 1];
+    let foundInGroup = false;
+    newerBoard.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const key = getStarKey({ row: rowIndex, col: colIndex });
+        if (
+          removedKeys.has(key)
+          && !delays.has(key)
+          && cell !== olderBoard[rowIndex][colIndex]
+        ) {
+          delays.set(key, burstGroup * 50);
+          foundInGroup = true;
+        }
+      });
+    });
+    if (foundInGroup) burstGroup += 1;
+  }
+  return delays;
 }
 
 // Progressive generation shell: keeps the UI responsive and the attempt

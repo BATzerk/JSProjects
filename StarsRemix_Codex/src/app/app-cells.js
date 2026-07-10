@@ -5,15 +5,16 @@
 // order is fixed in index.html; app-actions.js runs the boot call last.
 
 function renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption) {
-  return board
+  return gameState.progress.board
     .map((row, rowIndex) =>
       row
         .map((cell, colIndex) => {
-          const houseId = puzzle.houses[rowIndex][colIndex];
+          const houseId = gameState.puzzle.houses[rowIndex][colIndex];
           const hasConflict = conflictKeys.has(getStarKey({ row: rowIndex, col: colIndex }));
           const position = { row: rowIndex, col: colIndex };
           const positionKey = getStarKey(position);
           const isTokenEntering = enteringTokenKeys.has(positionKey);
+          const tokenPoofDelay = poofingTokenDelays.get(positionKey);
           const hintColor = hintColors.get(positionKey);
           const hintPreviewState = hintPreviewStates.get(positionKey);
           const assumptionState = hintAssumption && getStarKey(hintAssumption) === positionKey
@@ -30,9 +31,9 @@ function renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hin
           ]
             .filter(Boolean)
             .join(" ");
-          const borders = getBorderStyle(puzzle.houses, rowIndex, colIndex);
-          const content = renderCellContent(cell, hintColor, hintPreviewState, assumptionState);
-          const debugSolution = solution.some((position) =>
+          const borders = getBorderStyle(gameState.puzzle.houses, rowIndex, colIndex);
+          const content = `${renderCellContent(cell, hintColor, hintPreviewState, assumptionState)}${tokenPoofDelay !== undefined ? renderPoofBurst(tokenPoofDelay) : ""}`;
+          const debugSolution = gameState.solution.some((position) =>
             position.row === rowIndex && position.col === colIndex,
           ) ? '<span class="debug-solution-star" aria-hidden="true">✦</span>' : "";
 
@@ -51,6 +52,19 @@ function renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hin
         .join(""),
     )
     .join("");
+}
+
+function renderPoofBurst(burstDelay) {
+  return `
+    <span class="poof-burst" aria-hidden="true">
+      ${[
+        [-18, -22], [4, -27], [23, -13], [25, 11],
+        [8, 26], [-15, 24], [-27, 4], [-25, -15],
+      ].map(([x, y], index) =>
+        `<span class="poof-particle" style="--poof-x: ${x}px; --poof-y: ${y}px; --poof-delay: ${burstDelay + (index * 12)}ms"></span>`,
+      ).join("")}
+    </span>
+  `;
 }
 
 function renderCellContent(cell, hintColor, hintPreviewState, assumptionState) {
@@ -107,7 +121,7 @@ function formatHintMessage(message) {
 
 function getMentionedHintUnits(message) {
   const labels = new Set(message.match(/\b(?:Row|Column|House) \d+\b/g) ?? []);
-  return getUnits(puzzle)
+  return getUnits(gameState.puzzle)
     .filter((unit) => labels.has(unit.label))
     .map((unit) => ({ ...unit, cellKeys: new Set(unit.cells.map(getStarKey)) }));
 }
