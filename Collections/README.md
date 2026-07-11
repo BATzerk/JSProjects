@@ -1,7 +1,7 @@
-# Connections
+# Collections
 
-A faithful recreation of the NYT puzzle *Connections*, plus a creator page for
-building and sharing custom puzzles.
+A fanmade spinoff of the NYT's game Connections, plus a creator page for
+building and sharing Brett's custom boards.
 
 ## Pages
 
@@ -20,10 +20,10 @@ creation, drag-arranging, autosaved drafts, and preview links.
 Any static file server also works:
 
 ```sh
-npx serve Connections
+npx serve Collections
 ```
 
-Or use the `Connections` entry in `.claude/launch.json`.
+Or use the `Collections` entry in `.claude/launch.json`.
 
 ## Supabase setup (~2 minutes)
 
@@ -46,7 +46,7 @@ hosting is not required for inserts or reads.
 The publishable key only allows reading and inserting puzzles; row-level security in
 the schema blocks updates and deletes.
 
-## Game rules (faithful to the original)
+## Current game rules
 
 - 16 cards, four hidden groups of four, colored by difficulty:
   yellow (easiest), green, blue, purple (trickiest).

@@ -116,7 +116,7 @@ function normalizePuzzle(data) {
   return { title: title || 'Untitled Puzzle', author, groups, boardIds };
 }
 
-window.ConnectionsUtil = {
+window.CollectionsUtil = {
   shuffleArray,
   clamp,
   sleep,

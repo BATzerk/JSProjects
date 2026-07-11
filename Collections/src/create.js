@@ -1,7 +1,7 @@
 (() => {
-const { isConfigured, publishPuzzle } = window.ConnectionsDb;
-const { flip } = window.ConnectionsFlip;
-const { toast } = window.ConnectionsToast;
+const { isConfigured, publishPuzzle } = window.CollectionsDb;
+const { flip } = window.CollectionsFlip;
+const { toast } = window.CollectionsToast;
 const {
   clamp,
   encodePayload,
@@ -9,11 +9,11 @@ const {
   generateId,
   setButtonDisabled,
   shuffleArray,
-} = window.ConnectionsUtil;
+} = window.CollectionsUtil;
 
 const GROUP_COLORS = ['Yellow', 'Green', 'Blue', 'Purple'];
 
-const DRAFT_KEY = 'connections-creator-draft';
+const DRAFT_KEY = 'collections-creator-draft';
 
 const els = {
   configBanner: document.getElementById('config-banner'),
@@ -87,7 +87,7 @@ function init() {
     location.reload();
   });
 
-  window.__connectionsBooted = true;
+  window.__collectionsBooted = true;
 }
 
 // The editors and tiles live in static HTML; wire them to state.

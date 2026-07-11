@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create a Puzzle — Connections</title>
+  <title>Create a Puzzle — Collections</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='10' cy='10' r='6' fill='%23f9df6d'/%3E%3Ccircle cx='22' cy='10' r='6' fill='%23a0c35a'/%3E%3Ccircle cx='10' cy='22' r='6' fill='%23b0c4ef'/%3E%3Ccircle cx='22' cy='22' r='6' fill='%23ba81c5'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/create.css" />
@@ -13,7 +13,7 @@
     <header class="site-header">
       <a class="brand" href="index.html">
         <span class="brand-logo" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <span class="brand-name">Connections</span>
+        <span class="brand-name">Collections</span>
       </a>
       <nav>
         <a class="header-link" href="index.html">Play</a>
@@ -26,7 +26,7 @@
 
     <div class="boot-warning" id="boot-warning" hidden>
       This page didn’t finish starting. Try refreshing, or run it from the repo folder:
-      <code>npx serve Connections</code>
+      <code>npx serve Collections</code>
     </div>
 
     <div class="config-banner" id="config-banner" hidden>
@@ -148,6 +148,10 @@
     </section>
   </main>
 
+  <footer class="site-footer">
+    A fanmade spinoff of the NYT's game <a href="https://www.nytimes.com/games/connections" rel="noopener">Connections</a>. Brett made this so his friend Chris can play Brett's custom boards.
+  </footer>
+
   <script src="src/config.js"></script>
   <script src="src/util.js"></script>
   <script src="src/db.js"></script>
@@ -156,7 +160,7 @@
   <script src="src/create.js"></script>
   <script>
     setTimeout(function () {
-      if (!window.__connectionsBooted) {
+      if (!window.__collectionsBooted) {
         document.getElementById('boot-warning').hidden = false;
       }
     }, 800);

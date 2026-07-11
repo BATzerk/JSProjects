@@ -1,8 +1,8 @@
 (() => {
-const { BUILTIN_PUZZLE } = window.ConnectionsBuiltin;
-const { fetchPuzzle, isConfigured } = window.ConnectionsDb;
-const { flip } = window.ConnectionsFlip;
-const { toast } = window.ConnectionsToast;
+const { BUILTIN_PUZZLE } = window.CollectionsBuiltin;
+const { fetchPuzzle, isConfigured } = window.CollectionsDb;
+const { flip } = window.CollectionsFlip;
+const { toast } = window.CollectionsToast;
 const {
   decodePayload,
   fitLabel,
@@ -10,13 +10,14 @@ const {
   normalizePuzzle,
   setButtonDisabled,
   sleep,
-} = window.ConnectionsUtil;
+} = window.CollectionsUtil;
 
 const WIN_MESSAGES = ['Perfect!', 'Great!', 'Solid!', 'Phew!'];
 const LOSS_MESSAGE = 'Next Time!';
 const GROUP_EMOJI = ['🟨', '🟩', '🟦', '🟪'];
 const MAX_MISTAKES = 4;
-const PROGRESS_KEY = 'connections-puzzle-progress';
+const PROGRESS_KEY = 'collections-puzzle-progress';
+const GAME_STATE_KEY = 'collections-game-state';
 
 const els = {
   status: document.getElementById('status'),
@@ -58,11 +59,12 @@ const state = {
 };
 
 const cardEls = new Map(); // card id -> button element
+let modalLocked = false;
 
 // ---------- Loading ----------
 
 async function init() {
-  window.__connectionsBooted = true;
+  window.__collectionsBooted = true;
   bindControls();
   try {
     const { puzzle, source, shareUrl } = await resolvePuzzle();
@@ -161,7 +163,7 @@ async function loadPuzzleRows() {
     </div>`;
 
   try {
-    const rows = await window.ConnectionsDb.fetchPuzzleList();
+    const rows = await window.CollectionsDb.fetchPuzzleList();
     return sample.concat(rows.map((row) => ({
       ...row,
       href: `index.html?p=${encodeURIComponent(row.id)}`,
@@ -241,6 +243,82 @@ function progressId() {
   return new URLSearchParams(location.search).get('p') || '';
 }
 
+function gameStateMap() {
+  try {
+    return JSON.parse(localStorage.getItem(GAME_STATE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function puzzleSignature() {
+  if (!state.puzzle) return '';
+  return JSON.stringify({
+    title: state.puzzle.title,
+    groups: state.puzzle.groups,
+    boardIds: state.puzzle.boardIds,
+  });
+}
+
+function savedGameState() {
+  const id = progressId();
+  if (!id) return null;
+  const saved = gameStateMap()[id];
+  if (!saved || saved.signature !== puzzleSignature()) return null;
+  return saved;
+}
+
+function saveGameState() {
+  const id = progressId();
+  if (!id) return;
+  const games = gameStateMap();
+  games[id] = {
+    signature: puzzleSignature(),
+    order: state.order,
+    solved: state.solved,
+    guesses: state.guesses,
+    guessedKeys: [...state.guessedKeys],
+    mistakes: state.mistakes,
+    finished: state.finished,
+    won: state.won,
+    updatedAt: Date.now(),
+  };
+  try {
+    localStorage.setItem(GAME_STATE_KEY, JSON.stringify(games));
+  } catch {
+    // Saved games are helpful, but blocked storage should not interrupt play.
+  }
+}
+
+function restoreGameState(saved) {
+  const allIds = new Set(state.cards.map((card) => card.id));
+  const solved = Array.isArray(saved.solved)
+    ? saved.solved.filter((g, i, arr) => Number.isInteger(g) && g >= 0 && g < 4 && arr.indexOf(g) === i)
+    : [];
+  const solvedIds = new Set(
+    state.cards.filter((card) => solved.includes(card.group)).map((card) => card.id)
+  );
+  const order = Array.isArray(saved.order)
+    ? saved.order.filter((id, i, arr) => allIds.has(id) && !solvedIds.has(id) && arr.indexOf(id) === i)
+    : [];
+  const expectedRemaining = state.cards
+    .map((card) => card.id)
+    .filter((id) => !solvedIds.has(id));
+
+  state.solved = solved;
+  state.order = order.length === expectedRemaining.length ? order : expectedRemaining;
+  state.selection.clear();
+  state.guesses = Array.isArray(saved.guesses)
+    ? saved.guesses.filter((guess) => Array.isArray(guess) && guess.length === 4)
+    : [];
+  state.guessedKeys = new Set(Array.isArray(saved.guessedKeys) ? saved.guessedKeys : []);
+  state.mistakes = Number.isInteger(saved.mistakes)
+    ? Math.max(0, Math.min(MAX_MISTAKES, saved.mistakes))
+    : MAX_MISTAKES;
+  state.finished = Boolean(saved.finished);
+  state.won = Boolean(saved.won);
+}
+
 // ---------- Setup ----------
 
 function startGame() {
@@ -249,9 +327,20 @@ function startGame() {
     g.words.map((w, wi) => ({ id: gi * 4 + wi, group: gi, word: w }))
   );
   state.order = puzzle.boardIds.slice();
+  state.solved = [];
+  state.selection.clear();
+  state.guesses = [];
+  state.guessedKeys.clear();
+  state.mistakes = MAX_MISTAKES;
+  state.finished = false;
+  state.won = false;
 
   els.status.hidden = true;
   els.game.hidden = false;
+  els.solved.innerHTML = '';
+  els.mistakesWrap.hidden = false;
+  els.controls.hidden = false;
+  els.postGame.hidden = true;
 
   els.title.textContent = puzzle.title;
   if (source === 'builtin') {
@@ -266,10 +355,21 @@ function startGame() {
     els.notice.hidden = false;
     els.notice.textContent = 'Preview mode — this puzzle hasn’t been published yet.';
   }
-  setProgress('in progress');
 
+  const saved = savedGameState();
+  if (saved) {
+    restoreGameState(saved);
+  }
+  setProgress(state.finished ? 'completed' : 'in progress');
+
+  renderSolvedGroups();
   renderGrid();
   renderDots();
+  if (state.finished) {
+    els.mistakesWrap.hidden = true;
+    els.controls.hidden = true;
+    els.postGame.hidden = false;
+  }
   updateControls();
 }
 
@@ -280,7 +380,7 @@ function bindControls() {
   els.viewResults.addEventListener('click', () => openResults());
   els.modalClose.addEventListener('click', closeResults);
   els.modalOverlay.addEventListener('click', (e) => {
-    if (e.target === els.modalOverlay) closeResults();
+    if (e.target === els.modalOverlay && !modalLocked) closeResults();
   });
   window.addEventListener('resize', () => {
     for (const el of cardEls.values()) fitCard(el);
@@ -310,6 +410,13 @@ function renderGrid() {
   });
 }
 
+function renderSolvedGroups() {
+  els.solved.innerHTML = '';
+  for (const groupIndex of state.solved) {
+    els.solved.appendChild(createGroupBanner(groupIndex));
+  }
+}
+
 function fitCard(btn) {
   const label = btn.querySelector('.card-label');
   const max = window.innerWidth <= 560 ? 14 : 16;
@@ -321,6 +428,7 @@ function renderDots() {
   for (let i = 0; i < MAX_MISTAKES; i++) {
     const dot = document.createElement('span');
     dot.className = 'dot';
+    if (i >= state.mistakes) dot.classList.add('lost');
     els.dots.appendChild(dot);
   }
 }
@@ -371,6 +479,7 @@ async function shuffleBoard() {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   await applyOrder(shuffled);
+  saveGameState();
   state.busy = false;
   updateControls();
 }
@@ -451,11 +560,22 @@ async function submitGuess() {
     await sleep(350);
 
     if (state.mistakes === 0) {
+      deselectAllQuiet();
+      const keepGoing = await openSecondChance();
+      if (keepGoing) {
+        state.mistakes = MAX_MISTAKES;
+        renderDots();
+        saveGameState();
+        state.busy = false;
+        updateControls();
+        return;
+      }
       await finishGame(false);
       return;
     }
   }
 
+  saveGameState();
   state.busy = false;
   updateControls();
 }
@@ -481,16 +601,7 @@ async function solveGroup(groupIndex) {
   await sleep(80);
 
   // Replace the top row with the group banner.
-  const group = state.puzzle.groups[groupIndex];
-  const banner = document.createElement('div');
-  banner.className = `banner g${groupIndex}`;
-  const name = document.createElement('div');
-  name.className = 'banner-name';
-  name.textContent = group.name;
-  const words = document.createElement('div');
-  words.className = 'banner-words';
-  words.textContent = group.words.join(', ');
-  banner.append(name, words);
+  const banner = createGroupBanner(groupIndex);
 
   const survivors = [...cardEls.values()].filter((el) => !memberSet.has(Number(el.dataset.id)));
   await flip(survivors, () => {
@@ -504,7 +615,22 @@ async function solveGroup(groupIndex) {
 
   state.order = state.order.filter((id) => !memberSet.has(id));
   state.solved.push(groupIndex);
+  saveGameState();
   await sleep(300);
+}
+
+function createGroupBanner(groupIndex) {
+  const group = state.puzzle.groups[groupIndex];
+  const banner = document.createElement('div');
+  banner.className = `banner g${groupIndex}`;
+  const name = document.createElement('div');
+  name.className = 'banner-name';
+  name.textContent = group.name;
+  const words = document.createElement('div');
+  words.className = 'banner-words';
+  words.textContent = group.words.join(', ');
+  banner.append(name, words);
+  return banner;
 }
 
 // ---------- End of game ----------
@@ -530,6 +656,7 @@ async function finishGame(won) {
   els.mistakesWrap.hidden = true;
   els.controls.hidden = true;
   els.postGame.hidden = false;
+  saveGameState();
   await sleep(600);
   openResults();
 }
@@ -550,7 +677,7 @@ function resultsHeading() {
 }
 
 function shareText() {
-  const lines = [`Connections`, state.puzzle.title];
+  const lines = [`Collections`, state.puzzle.title];
   for (const guess of state.guesses) {
     lines.push(guess.map((g) => GROUP_EMOJI[g]).join(''));
   }
@@ -559,6 +686,8 @@ function shareText() {
 }
 
 function openResults() {
+  modalLocked = false;
+  els.modalClose.hidden = false;
   const wrap = els.modalContent;
   wrap.innerHTML = '';
 
@@ -568,7 +697,7 @@ function openResults() {
 
   const subtitle = document.createElement('p');
   subtitle.className = 'results-subtitle';
-  subtitle.textContent = `Connections — ${state.puzzle.title}`;
+  subtitle.textContent = `Collections — ${state.puzzle.title}`;
 
   const grid = document.createElement('div');
   grid.className = 'results-grid';
@@ -613,6 +742,56 @@ function openResults() {
 
   els.modalOverlay.hidden = false;
   requestAnimationFrame(() => els.modalOverlay.classList.add('show'));
+}
+
+function openSecondChance() {
+  modalLocked = true;
+  els.modalClose.hidden = true;
+  const wrap = els.modalContent;
+  wrap.innerHTML = '';
+
+  const heading = document.createElement('h2');
+  heading.className = 'results-heading';
+  heading.textContent = 'Out of mistakes';
+
+  const message = document.createElement('p');
+  message.className = 'results-subtitle';
+  message.textContent = 'Take four more mistakes for free, or reveal the board.';
+
+  const actions = document.createElement('div');
+  actions.className = 'results-actions';
+
+  const keepBtn = document.createElement('button');
+  keepBtn.className = 'btn btn-primary';
+  keepBtn.type = 'button';
+  keepBtn.textContent = 'Keep guessing!';
+
+  const giveUpBtn = document.createElement('button');
+  giveUpBtn.className = 'btn';
+  giveUpBtn.type = 'button';
+  giveUpBtn.textContent = 'Give up';
+
+  actions.append(keepBtn, giveUpBtn);
+  wrap.append(heading, message, actions);
+
+  els.modalOverlay.hidden = false;
+  requestAnimationFrame(() => els.modalOverlay.classList.add('show'));
+
+  return new Promise((resolve) => {
+    keepBtn.addEventListener('click', () => {
+      modalLocked = false;
+      els.modalClose.hidden = false;
+      closeResults();
+      resolve(true);
+    }, { once: true });
+
+    giveUpBtn.addEventListener('click', () => {
+      modalLocked = false;
+      els.modalClose.hidden = false;
+      closeResults();
+      resolve(false);
+    }, { once: true });
+  });
 }
 
 function closeResults() {

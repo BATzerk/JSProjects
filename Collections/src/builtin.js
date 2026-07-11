@@ -19,7 +19,7 @@ const BUILTIN_PUZZLE = {
   ],
 };
 
-window.ConnectionsBuiltin = {
+window.CollectionsBuiltin = {
   BUILTIN_PUZZLE,
 };
 })();

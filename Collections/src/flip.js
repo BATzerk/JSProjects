@@ -42,7 +42,7 @@ function flip(elements, mutate, { duration = 450, easing = 'cubic-bezier(0.25, 0
   return Promise.race([done, backstop]);
 }
 
-window.ConnectionsFlip = {
+window.CollectionsFlip = {
   flip,
 };
 })();

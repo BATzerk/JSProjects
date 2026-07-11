@@ -24,7 +24,7 @@ function toast(message, duration = 2200) {
   }, duration);
 }
 
-window.ConnectionsToast = {
+window.CollectionsToast = {
   toast,
 };
 })();

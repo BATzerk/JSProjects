@@ -1,4 +1,4 @@
--- Connections: custom puzzle storage.
+-- Collections: custom puzzle storage.
 -- Run this once in your Supabase project's SQL Editor.
 
 create table if not exists public.puzzles (

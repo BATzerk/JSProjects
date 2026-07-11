@@ -1,5 +1,5 @@
 (() => {
-const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ConnectionsConfig;
+const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.CollectionsConfig;
 
 function isConfigured() {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
@@ -56,7 +56,7 @@ async function publishPuzzle(puzzle) {
   return rows[0];
 }
 
-window.ConnectionsDb = {
+window.CollectionsDb = {
   isConfigured,
   fetchPuzzle,
   fetchPuzzleList,

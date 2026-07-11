@@ -11,7 +11,7 @@
 const SUPABASE_URL = 'https://pzzsokvuimiobltloxvq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_sfhIcoqWffiFxemznhP-Pw_uWQF8cCr';
 
-window.ConnectionsConfig = {
+window.CollectionsConfig = {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
 };

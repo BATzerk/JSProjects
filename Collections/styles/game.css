@@ -9,7 +9,7 @@
 
 .puzzle-meta {
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 24px;
 }
 
 .puzzle-meta h1 {
@@ -23,11 +23,6 @@
   margin: 0;
   font-size: 14px;
   color: var(--ink-soft);
-}
-
-.instructions {
-  font-size: 16px;
-  margin: 14px 0 18px;
 }
 
 .notice-strip {

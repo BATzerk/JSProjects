@@ -26,9 +26,9 @@
       "port": 8123
     },
     {
-      "name": "Connections",
+      "name": "Collections",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["--yes", "serve", "-p", "3402", "Connections"],
+      "runtimeArgs": ["--yes", "serve", "-p", "3402", "Collections"],
       "port": 3402
     }
   ]
