@@ -7,6 +7,7 @@ import { DIRV, posOnEdge } from './parse.js';
 
 export const EPS = 1e-6;
 export const SNAP = 0.06;      // corner assist: this close to a node counts as on it
+export const TURN_APPROACH = 0.55; // steer toward a nearby junction for a perpendicular turn
 export const BLOCK_GAP = 0.16; // how far short of a blocked node a body stops
 
 export function travelerPos(m) {
@@ -55,6 +56,11 @@ export function moverStep(m, dirs, dist, rules) {
         const exit = pickExit(n, e, [d], rules);
         if (exit) { m.t = nearA ? 0 : e.len; takeExit(m, exit); sign = null; break; }
       }
+      const assisted = findTurnApproach(m, e, d, rules);
+      if (assisted) {
+        sign = assisted.sign;
+        break;
+      }
     }
     if (sign === null) continue; // switched edges via perpendicular branch
     if (sign === 0) break; // no propulsion
@@ -82,6 +88,24 @@ export function moverStep(m, dirs, dist, rules) {
     moved += step;
   }
   return moved;
+}
+
+function findTurnApproach(m, e, d, rules) {
+  let best = null;
+  const probes = [
+    { n: e.a, sign: -1, dist: m.t },
+    { n: e.b, sign: 1, dist: e.len - m.t },
+  ];
+  const probeRules = { ...rules, onPass: null };
+
+  for (const probe of probes) {
+    if (probe.dist <= SNAP || probe.dist > TURN_APPROACH) continue;
+    if (e.ow && probe.sign !== e.ow) continue;
+    if (rules.blocked(probe.n)) continue;
+    if (!pickExit(probe.n, e, [d], probeRules)) continue;
+    if (!best || probe.dist < best.dist) best = probe;
+  }
+  return best;
 }
 
 function takeExit(m, exit) {
