@@ -342,6 +342,32 @@
   width: 100%;
 }
 
+.second-chance-modal {
+  max-width: 500px;
+  padding: 54px 42px 40px;
+}
+
+.second-chance-modal .results-heading {
+  font-size: 38px;
+  margin-bottom: 12px;
+}
+
+.second-chance-modal .results-subtitle {
+  font-size: 20px;
+  line-height: 1.35;
+  margin-bottom: 26px;
+  white-space: pre-line;
+}
+
+.second-chance-modal .results-actions {
+  gap: 12px;
+}
+
+.second-chance-modal .btn {
+  font-size: 17px;
+  padding: 14px 22px;
+}
+
 .results-create-link {
   font-size: 14px;
   color: var(--ink);

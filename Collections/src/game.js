@@ -38,6 +38,7 @@ const els = {
   postGame: document.getElementById('post-game'),
   viewResults: document.getElementById('view-results-btn'),
   modalOverlay: document.getElementById('results-overlay'),
+  modal: document.querySelector('#results-overlay .modal'),
   modalContent: document.getElementById('results-content'),
   modalClose: document.getElementById('results-close'),
 };
@@ -688,6 +689,7 @@ function shareText() {
 function openResults() {
   modalLocked = false;
   els.modalClose.hidden = false;
+  els.modal.classList.remove('second-chance-modal');
   const wrap = els.modalContent;
   wrap.innerHTML = '';
 
@@ -747,6 +749,7 @@ function openResults() {
 function openSecondChance() {
   modalLocked = true;
   els.modalClose.hidden = true;
+  els.modal.classList.add('second-chance-modal');
   const wrap = els.modalContent;
   wrap.innerHTML = '';
 
@@ -756,7 +759,7 @@ function openSecondChance() {
 
   const message = document.createElement('p');
   message.className = 'results-subtitle';
-  message.textContent = 'Take four more mistakes for free, or reveal the board.';
+  message.textContent = secondChanceMessage();
 
   const actions = document.createElement('div');
   actions.className = 'results-actions';
@@ -769,7 +772,7 @@ function openSecondChance() {
   const giveUpBtn = document.createElement('button');
   giveUpBtn.className = 'btn';
   giveUpBtn.type = 'button';
-  giveUpBtn.textContent = 'Give up';
+  giveUpBtn.textContent = 'Give Up (Reveal Solution)';
 
   actions.append(keepBtn, giveUpBtn);
   wrap.append(heading, message, actions);
@@ -792,6 +795,26 @@ function openSecondChance() {
       resolve(false);
     }, { once: true });
   });
+}
+
+function secondChanceMessage() {
+  const author = state.puzzle.author?.trim() || 'Brett';
+  const options = [
+    'You wanna keep going, though, cupcake?',
+    `It's definitely ${author}'s fault.`,
+    `Clearly ${author} doesn't understand your sensibilities.`,
+    `It's probably not you. ${author} is clearly a maniac.`,
+    `This is ${author}'s fault. Not yours.`,
+    'I mean, you can keep going, though.',
+    'Umm, but, like, you can keep going. Like.',
+    'You have committed too many happy accidents.',
+    'Welcome to Rock Bottom.',
+    "It was a pretty good try.\nProbably. I can't see the board right now because this popup is blocking it.",
+    "But I bet you're still full of insight.",
+    '...Yet filled with determination.',
+    "This isn't awkward. Don't make it awkward. It's only awkward if you make it awkward.",
+  ];
+  return options[Math.floor(Math.random() * options.length)];
 }
 
 function closeResults() {
