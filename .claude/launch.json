@@ -24,6 +24,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--yes", "serve", "-p", "8123", "LinelightII"],
       "port": 8123
+    },
+    {
+      "name": "Connections",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "-p", "3402", "Connections"],
+      "port": 3402
     }
   ]
 }

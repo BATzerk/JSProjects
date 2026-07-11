@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connections</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='10' cy='10' r='6' fill='%23f9df6d'/%3E%3Ccircle cx='22' cy='10' r='6' fill='%23a0c35a'/%3E%3Ccircle cx='10' cy='22' r='6' fill='%23b0c4ef'/%3E%3Ccircle cx='22' cy='22' r='6' fill='%23ba81c5'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/game.css" />
+</head>
+<body>
+  <div class="site-header-rule">
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <span class="brand-logo" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-name">Connections</span>
+      </a>
+      <nav>
+        <a class="header-link" href="create.html">Create a Puzzle</a>
+      </nav>
+    </header>
+  </div>
+
+  <div class="boot-warning" id="boot-warning" hidden>
+    This page didn’t finish starting. Try refreshing, or run it from the repo folder:
+    <code>npx serve Connections</code>
+  </div>
+
+  <div id="status" hidden></div>
+
+  <main class="browse-main" id="browse" hidden>
+    <div class="browse-heading">
+      <h1>Choose a puzzle</h1>
+      <p>Published puzzles live here.</p>
+    </div>
+    <div class="puzzle-list" id="puzzle-list"></div>
+  </main>
+
+  <main class="game-main" id="game" hidden>
+    <div class="puzzle-meta">
+      <h1 id="puzzle-title"></h1>
+      <p class="puzzle-byline" id="puzzle-byline"></p>
+    </div>
+    <p class="instructions">Create four groups of four!</p>
+
+    <div class="notice-strip" id="notice" hidden></div>
+
+    <div class="board">
+      <div class="solved-groups" id="solved-groups"></div>
+      <div class="card-grid" id="card-grid"></div>
+    </div>
+
+    <div class="mistakes" id="mistakes">
+      <span>Mistakes Remaining:</span>
+      <div class="mistake-dots" id="mistake-dots"></div>
+    </div>
+
+    <div class="controls" id="controls">
+      <button class="btn" id="shuffle-btn" type="button">Shuffle</button>
+      <button class="btn" id="deselect-btn" type="button" disabled title="Select at least one card first.">Deselect All</button>
+      <button class="btn" id="submit-btn" type="button" disabled title="Select four cards first.">Submit</button>
+    </div>
+
+    <div class="controls" id="post-game" hidden>
+      <button class="btn btn-primary" id="view-results-btn" type="button">View Results</button>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="results-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Results">
+      <button class="modal-close" id="results-close" type="button" aria-label="Close">✕</button>
+      <div id="results-content"></div>
+    </div>
+  </div>
+
+  <script src="src/config.js"></script>
+  <script src="src/util.js"></script>
+  <script src="src/builtin.js"></script>
+  <script src="src/db.js"></script>
+  <script src="src/flip.js"></script>
+  <script src="src/toast.js"></script>
+  <script src="src/game.js"></script>
+  <script>
+    setTimeout(function () {
+      if (!window.__connectionsBooted) {
+        document.getElementById('boot-warning').hidden = false;
+      }
+    }, 800);
+  </script>
+</body>
+</html>

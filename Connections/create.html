@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create a Puzzle — Connections</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='10' cy='10' r='6' fill='%23f9df6d'/%3E%3Ccircle cx='22' cy='10' r='6' fill='%23a0c35a'/%3E%3Ccircle cx='10' cy='22' r='6' fill='%23b0c4ef'/%3E%3Ccircle cx='22' cy='22' r='6' fill='%23ba81c5'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/create.css" />
+</head>
+<body>
+  <div class="site-header-rule">
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <span class="brand-logo" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-name">Connections</span>
+      </a>
+      <nav>
+        <a class="header-link" href="index.html">Play</a>
+      </nav>
+    </header>
+  </div>
+
+  <main class="create-main">
+    <h1>Create a Puzzle</h1>
+
+    <div class="boot-warning" id="boot-warning" hidden>
+      This page didn’t finish starting. Try refreshing, or run it from the repo folder:
+      <code>npx serve Connections</code>
+    </div>
+
+    <div class="config-banner" id="config-banner" hidden>
+      Publishing is off until Supabase is connected — paste your project URL and anon key
+      into <code>src/config.js</code>. Preview still works.
+    </div>
+
+    <div class="details-grid">
+      <div>
+        <label class="field-label" for="puzzle-title-input">Title</label>
+        <input class="text-input" id="puzzle-title-input" maxlength="60" placeholder="e.g. Movie Night Trivia" />
+      </div>
+      <div>
+        <label class="field-label" for="puzzle-author-input">Your name <span class="field-label-soft">(optional)</span></label>
+        <input class="text-input" id="puzzle-author-input" maxlength="30" placeholder="e.g. Brett" />
+      </div>
+    </div>
+
+    <div id="groups-wrap">
+      <section class="group-editor g0">
+        <div class="group-editor-head">
+          <span class="swatch"></span>
+          <span class="group-color-name">Yellow</span>
+          <span class="group-hint">Straightforward</span>
+        </div>
+        <input class="text-input group-name-input" maxlength="48" placeholder="Group name" aria-label="Yellow group name" />
+        <div class="word-row">
+          <input class="text-input" maxlength="24" placeholder="Card 1" aria-label="Yellow group, card 1" />
+          <input class="text-input" maxlength="24" placeholder="Card 2" aria-label="Yellow group, card 2" />
+          <input class="text-input" maxlength="24" placeholder="Card 3" aria-label="Yellow group, card 3" />
+          <input class="text-input" maxlength="24" placeholder="Card 4" aria-label="Yellow group, card 4" />
+        </div>
+      </section>
+
+      <section class="group-editor g1">
+        <div class="group-editor-head">
+          <span class="swatch"></span>
+          <span class="group-color-name">Green</span>
+          <span class="group-hint">Moderate</span>
+        </div>
+        <input class="text-input group-name-input" maxlength="48" placeholder="Group name" aria-label="Green group name" />
+        <div class="word-row">
+          <input class="text-input" maxlength="24" placeholder="Card 1" aria-label="Green group, card 1" />
+          <input class="text-input" maxlength="24" placeholder="Card 2" aria-label="Green group, card 2" />
+          <input class="text-input" maxlength="24" placeholder="Card 3" aria-label="Green group, card 3" />
+          <input class="text-input" maxlength="24" placeholder="Card 4" aria-label="Green group, card 4" />
+        </div>
+      </section>
+
+      <section class="group-editor g2">
+        <div class="group-editor-head">
+          <span class="swatch"></span>
+          <span class="group-color-name">Blue</span>
+          <span class="group-hint">Challenging</span>
+        </div>
+        <input class="text-input group-name-input" maxlength="48" placeholder="Group name" aria-label="Blue group name" />
+        <div class="word-row">
+          <input class="text-input" maxlength="24" placeholder="Card 1" aria-label="Blue group, card 1" />
+          <input class="text-input" maxlength="24" placeholder="Card 2" aria-label="Blue group, card 2" />
+          <input class="text-input" maxlength="24" placeholder="Card 3" aria-label="Blue group, card 3" />
+          <input class="text-input" maxlength="24" placeholder="Card 4" aria-label="Blue group, card 4" />
+        </div>
+      </section>
+
+      <section class="group-editor g3">
+        <div class="group-editor-head">
+          <span class="swatch"></span>
+          <span class="group-color-name">Purple</span>
+          <span class="group-hint">Tricky</span>
+        </div>
+        <input class="text-input group-name-input" maxlength="48" placeholder="Group name" aria-label="Purple group name" />
+        <div class="word-row">
+          <input class="text-input" maxlength="24" placeholder="Card 1" aria-label="Purple group, card 1" />
+          <input class="text-input" maxlength="24" placeholder="Card 2" aria-label="Purple group, card 2" />
+          <input class="text-input" maxlength="24" placeholder="Card 3" aria-label="Purple group, card 3" />
+          <input class="text-input" maxlength="24" placeholder="Card 4" aria-label="Purple group, card 4" />
+        </div>
+      </section>
+    </div>
+
+    <section class="create-section">
+      <h2>Board</h2>
+      <p class="section-hint">Drag cards to set the starting layout.</p>
+      <div class="arrange-grid" id="arrange-grid">
+        <div class="tile empty" data-card="0"><span class="tile-dot g0"></span><span class="tile-label">Card 1</span></div>
+        <div class="tile empty" data-card="1"><span class="tile-dot g0"></span><span class="tile-label">Card 2</span></div>
+        <div class="tile empty" data-card="2"><span class="tile-dot g0"></span><span class="tile-label">Card 3</span></div>
+        <div class="tile empty" data-card="3"><span class="tile-dot g0"></span><span class="tile-label">Card 4</span></div>
+        <div class="tile empty" data-card="4"><span class="tile-dot g1"></span><span class="tile-label">Card 1</span></div>
+        <div class="tile empty" data-card="5"><span class="tile-dot g1"></span><span class="tile-label">Card 2</span></div>
+        <div class="tile empty" data-card="6"><span class="tile-dot g1"></span><span class="tile-label">Card 3</span></div>
+        <div class="tile empty" data-card="7"><span class="tile-dot g1"></span><span class="tile-label">Card 4</span></div>
+        <div class="tile empty" data-card="8"><span class="tile-dot g2"></span><span class="tile-label">Card 1</span></div>
+        <div class="tile empty" data-card="9"><span class="tile-dot g2"></span><span class="tile-label">Card 2</span></div>
+        <div class="tile empty" data-card="10"><span class="tile-dot g2"></span><span class="tile-label">Card 3</span></div>
+        <div class="tile empty" data-card="11"><span class="tile-dot g2"></span><span class="tile-label">Card 4</span></div>
+        <div class="tile empty" data-card="12"><span class="tile-dot g3"></span><span class="tile-label">Card 1</span></div>
+        <div class="tile empty" data-card="13"><span class="tile-dot g3"></span><span class="tile-label">Card 2</span></div>
+        <div class="tile empty" data-card="14"><span class="tile-dot g3"></span><span class="tile-label">Card 3</span></div>
+        <div class="tile empty" data-card="15"><span class="tile-dot g3"></span><span class="tile-label">Card 4</span></div>
+      </div>
+      <div class="arrange-actions">
+        <button class="btn" id="shuffle-board-btn" type="button">Shuffle</button>
+        <button class="btn" id="reset-board-btn" type="button">Reset to Group Order</button>
+      </div>
+    </section>
+
+    <section class="create-section">
+      <ul class="form-errors" id="form-errors"></ul>
+      <div class="publish-actions" id="publish-actions">
+        <button class="btn" id="preview-btn" type="button" disabled title="The creator is still loading.">Preview</button>
+        <button class="btn btn-primary" id="publish-btn" type="button" disabled title="Checking Supabase configuration.">Publish</button>
+      </div>
+      <div class="success-panel" id="success-panel" hidden></div>
+      <p class="draft-note">
+        <span id="draft-status">Saved automatically in this browser.</span>
+        <button id="clear-draft-btn" type="button">Start over</button>
+      </p>
+    </section>
+  </main>
+
+  <script src="src/config.js"></script>
+  <script src="src/util.js"></script>
+  <script src="src/db.js"></script>
+  <script src="src/flip.js"></script>
+  <script src="src/toast.js"></script>
+  <script src="src/create.js"></script>
+  <script>
+    setTimeout(function () {
+      if (!window.__connectionsBooted) {
+        document.getElementById('boot-warning').hidden = false;
+      }
+    }, 800);
+  </script>
+</body>
+</html>
