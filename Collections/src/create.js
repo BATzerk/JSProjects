@@ -13,16 +13,20 @@ const {
 
 const GROUP_COLORS = ['Yellow', 'Green', 'Blue', 'Purple'];
 const EXAMPLE_TITLES = [
-  'THE GREAT SOCK MYSTERY',
-  'SNACK ATTACK',
-  'TOO MANY PIGEONS',
-  'MIDNIGHT AT THE MUSEUM',
-  'CATS WITH JOBS',
-  'A VERY SUSPICIOUS PICNIC',
-  'THE LAST SLICE',
-  'WIZARDS ON VACATION',
-  'TINY HATS, BIG QUESTIONS',
-  'ESCAPE FROM TACO TUESDAY',
+  'Title Goes Here',
+  'Best Puzzle Ever',
+  'Okayest Puzzle Ever',
+  'Most Puzzle Ever',
+  '16 Random Words GLHF',
+  "Baby's First Puzzle",
+  "Baby's Second Puzzle",
+  'Putting Baby in a Corner',
+  'Cool puzzle bro',
+  'Masterpiece vs Mr. Peace',
+  'Tiny Hats, Big Questions',
+  'Daggy Babbit and the Forty Felons',
+  'Unnecessary Polish',
+  'Snack Attack',
 ];
 const EXAMPLE_AUTHORS = [
   'Okay Thatsnotarealname',
@@ -94,6 +98,13 @@ function uppercaseInput(input) {
   return uppercased;
 }
 
+function setUppercaseValue(input, value) {
+  const limit = input.maxLength > 0 ? input.maxLength : Infinity;
+  input.value = String(value).trim().toUpperCase().slice(0, limit);
+  input.classList.remove('invalid');
+  return input.value;
+}
+
 function randomExample(examples) {
   return examples[Math.floor(Math.random() * examples.length)];
 }
@@ -101,7 +112,7 @@ function randomExample(examples) {
 // ---------- Setup ----------
 
 function init() {
-  els.title.placeholder = `E.G. ${randomExample(EXAMPLE_TITLES)}`;
+  els.title.placeholder = `E.G. ${randomExample(EXAMPLE_TITLES).toUpperCase()}`;
   els.author.placeholder = `E.G. ${randomExample(EXAMPLE_AUTHORS).toUpperCase()}`;
 
   setButtonDisabled(els.preview, false);
@@ -158,6 +169,7 @@ function bindGroupEditors() {
       nameInput.classList.remove('invalid');
       saveDraft();
     });
+    nameInput.addEventListener('paste', (event) => pasteWholeGroup(event, gi));
     inputs.groupNames.push(nameInput);
 
     inputs.words.push([]);
@@ -169,8 +181,42 @@ function bindGroupEditors() {
         updateTile(gi * 4 + wi);
         saveDraft();
       });
+      wordInput.addEventListener('paste', (event) => pasteCards(event, gi, wi));
       inputs.words[gi].push(wordInput);
     });
+  });
+}
+
+function pasteWholeGroup(event, groupIndex) {
+  const pasted = event.clipboardData?.getData('text/plain') ?? '';
+  const colonIndex = pasted.indexOf(':');
+  if (colonIndex < 1) return;
+
+  const groupName = pasted.slice(0, colonIndex).trim();
+  const cards = pasted.slice(colonIndex + 1).split(',').map((card) => card.trim());
+  if (!groupName || cards.length < 2) return;
+
+  event.preventDefault();
+  state.groups[groupIndex].name = setUppercaseValue(inputs.groupNames[groupIndex], groupName);
+  fillCardsFrom(groupIndex, 0, cards);
+  saveDraft();
+}
+
+function pasteCards(event, groupIndex, startIndex) {
+  const pasted = event.clipboardData?.getData('text/plain') ?? '';
+  if (!pasted.includes(',')) return;
+
+  event.preventDefault();
+  fillCardsFrom(groupIndex, startIndex, pasted.split(','));
+  saveDraft();
+}
+
+function fillCardsFrom(groupIndex, startIndex, cards) {
+  cards.slice(0, 4 - startIndex).forEach((card, offset) => {
+    const wordIndex = startIndex + offset;
+    const input = inputs.words[groupIndex][wordIndex];
+    state.groups[groupIndex].words[wordIndex] = setUppercaseValue(input, card);
+    updateTile(groupIndex * 4 + wordIndex);
   });
 }
 

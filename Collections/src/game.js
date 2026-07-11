@@ -153,15 +153,7 @@ async function showBrowser() {
 }
 
 async function loadPuzzleRows() {
-  const sample = [{
-    id: 'sample',
-    title: BUILTIN_PUZZLE.title,
-    author: 'Built in',
-    href: 'index.html?sample=1',
-    created_at: '',
-  }];
-
-  if (!isConfigured()) return sample;
+  if (!isConfigured()) return [];
 
   els.puzzleList.innerHTML = `
     <div class="status-card">
@@ -171,19 +163,19 @@ async function loadPuzzleRows() {
 
   try {
     const rows = await window.CollectionsDb.fetchPuzzleList();
-    return sample.concat(rows.map((row) => ({
+    return rows.map((row) => ({
       ...row,
       href: `index.html?p=${encodeURIComponent(row.id)}`,
-    })));
+    }));
   } catch (err) {
     toast(err.message || 'Could not load puzzles.');
-    return sample;
+    return [];
   }
 }
 
 function renderPuzzleList(rows) {
   els.puzzleList.innerHTML = '';
-  if (rows.length === 1) {
+  if (rows.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty-list';
     empty.textContent = 'No published puzzles yet.';

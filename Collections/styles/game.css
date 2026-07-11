@@ -88,6 +88,7 @@
   background: linear-gradient(145deg, rgba(255, 253, 247, 0.92), rgba(247, 239, 226, 0.9));
   color: var(--ink);
   text-decoration: none;
+  text-transform: uppercase;
   box-shadow: 0 7px 20px rgba(67, 57, 41, 0.06), inset 0 1px 0 #fff;
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
