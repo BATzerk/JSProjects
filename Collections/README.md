@@ -50,9 +50,11 @@ the schema blocks updates and deletes.
 
 - 16 cards, four hidden groups of four, colored by difficulty:
   yellow (easiest), green, blue, purple (trickiest).
-- Select four cards and submit. Correct groups collapse into a colored banner;
-  wrong guesses cost one of four mistakes, with a "One away…" hint when three
-  of four were right.
+- Select four or more cards and submit. The first four selected are guessed;
+  after a correct guess, any extras stay selected as the start of the next guess.
+  Correct groups collapse into a colored banner. Wrong guesses deselect every
+  card and cost one of four mistakes, with a "One away…" hint when three of four
+  were right.
 - Repeating a guess shows "Already guessed!" and costs nothing.
 - Run out of mistakes and the remaining groups reveal themselves.
 - Results modal shows the emoji grid of your guesses with one-tap copy to share.

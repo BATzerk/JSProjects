@@ -15,6 +15,12 @@ const {
 const WIN_MESSAGES = ['Perfect!', 'Great!', 'Solid!', 'Phew!'];
 const LOSS_MESSAGE = 'Next Time!';
 const GROUP_EMOJI = ['🟨', '🟩', '🟦', '🟪'];
+const GROUP_EFFECTS = [
+  { main: '#f4c95d', light: '#fff1b8', haze: 'rgba(244, 201, 93, 0.28)' },
+  { main: '#85b98f', light: '#d8efd5', haze: 'rgba(133, 185, 143, 0.28)' },
+  { main: '#7fa9c7', light: '#d6edf7', haze: 'rgba(127, 169, 199, 0.28)' },
+  { main: '#aa88bd', light: '#ead8f1', haze: 'rgba(170, 136, 189, 0.28)' },
+];
 const MAX_MISTAKES = 4;
 const PROGRESS_KEY = 'collections-puzzle-progress';
 const GAME_STATE_KEY = 'collections-game-state';
@@ -198,14 +204,33 @@ function renderPuzzleList(rows) {
     const meta = document.createElement('span');
     meta.textContent = row.author ? `by ${row.author}` : 'Custom puzzle';
 
+    const published = publicationDateElement(row.created_at);
+
     const badge = document.createElement('span');
     badge.className = `progress-badge ${progressFor(row.id).replaceAll(' ', '-')}`;
     badge.textContent = progressLabel(row.id);
 
     text.append(title, meta);
+    if (published) text.appendChild(published);
     link.append(text, badge);
     els.puzzleList.appendChild(link);
   }
+}
+
+function publicationDateElement(timestamp) {
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const published = document.createElement('time');
+  published.className = 'puzzle-published';
+  published.dateTime = date.toISOString();
+  published.textContent = `Published ${new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)}`;
+  return published;
 }
 
 function progressMap() {
@@ -420,7 +445,7 @@ function renderSolvedGroups() {
 
 function fitCard(btn) {
   const label = btn.querySelector('.card-label');
-  const max = window.innerWidth <= 560 ? 14 : 16;
+  const max = window.innerWidth <= 560 ? 17.5 : 21.5;
   fitLabel(label, { max, min: 9 });
 }
 
@@ -441,15 +466,48 @@ function onCardClick(id) {
   const btn = cardEls.get(id);
   if (state.selection.has(id)) {
     state.selection.delete(id);
-    btn.classList.remove('selected');
-    btn.setAttribute('aria-pressed', 'false');
+    lowerCard(btn);
   } else {
-    if (state.selection.size >= 4) return;
     state.selection.add(id);
     btn.classList.add('selected');
     btn.setAttribute('aria-pressed', 'true');
+    selectionTwinkle(btn);
   }
+  refreshSelectionTiers();
   updateControls();
+}
+
+function refreshSelectionTiers() {
+  for (const el of cardEls.values()) delete el.dataset.selectionTier;
+  [...state.selection].forEach((id, index) => {
+    const el = cardEls.get(id);
+    if (el) el.dataset.selectionTier = String(Math.floor(index / 4));
+  });
+}
+
+function lowerCard(btn) {
+  const wasSelected = btn.classList.contains('selected');
+  btn.classList.remove('selected');
+  btn.classList.remove('deselecting');
+  delete btn.dataset.selectionTier;
+  btn.setAttribute('aria-pressed', 'false');
+  if (!wasSelected) return;
+  // The transient class guarantees a visible return trip even when the pointer
+  // is still hovering over the card and would otherwise alter its resting transform.
+  requestAnimationFrame(() => {
+    if (btn.classList.contains('selected')) return;
+    btn.classList.add('deselecting');
+    btn.addEventListener('animationend', () => btn.classList.remove('deselecting'), { once: true });
+  });
+}
+
+function selectionTwinkle(btn) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const twinkle = document.createElement('span');
+  twinkle.className = 'selection-twinkle';
+  for (let i = 0; i < 3; i++) twinkle.appendChild(document.createElement('i'));
+  btn.appendChild(twinkle);
+  setTimeout(() => twinkle.remove(), 700);
 }
 
 function updateControls() {
@@ -464,10 +522,10 @@ function updateControls() {
   );
   setButtonDisabled(
     els.submit,
-    busy || finished || selection.size !== 4,
+    busy || finished || selection.size < 4,
     waitReason || finishedReason || `Select ${4 - selection.size} more card${selection.size === 3 ? '' : 's'}.`
   );
-  els.submit.classList.toggle('btn-primary', selection.size === 4 && !busy && !finished);
+  els.submit.classList.toggle('btn-primary', selection.size >= 4 && !busy && !finished);
 }
 
 async function shuffleBoard() {
@@ -489,8 +547,7 @@ function deselectAll() {
   if (state.busy || state.finished) return;
   state.selection.clear();
   for (const el of cardEls.values()) {
-    el.classList.remove('selected');
-    el.setAttribute('aria-pressed', 'false');
+    lowerCard(el);
   }
   updateControls();
 }
@@ -506,9 +563,11 @@ function applyOrder(newOrder) {
 // ---------- Guessing ----------
 
 async function submitGuess() {
-  if (state.busy || state.finished || state.selection.size !== 4) return;
+  if (state.busy || state.finished || state.selection.size < 4) return;
 
-  const selected = [...state.selection];
+  // Selection order matters: submit the oldest four choices and leave any
+  // later choices queued for the next guess when this group is correct.
+  const selected = [...state.selection].slice(0, 4);
   const key = selected.slice().sort((a, b) => a - b).join(',');
   if (state.guessedKeys.has(key)) {
     toast('Already guessed!');
@@ -520,7 +579,8 @@ async function submitGuess() {
   state.guessedKeys.add(key);
 
   // Bounce the selected cards in board order, like the original.
-  const inBoardOrder = state.order.filter((id) => state.selection.has(id));
+  const selectedSet = new Set(selected);
+  const inBoardOrder = state.order.filter((id) => selectedSet.has(id));
   for (const [i, id] of inBoardOrder.entries()) {
     setTimeout(() => {
       const el = cardEls.get(id);
@@ -540,6 +600,7 @@ async function submitGuess() {
   const solvedGroup = [...counts.entries()].find(([, n]) => n === 4)?.[0];
 
   if (solvedGroup !== undefined) {
+    await celebrateMatch(solvedGroup, inBoardOrder);
     await solveGroup(solvedGroup);
     if (state.solved.length === 4) {
       await finishGame(true);
@@ -555,6 +616,9 @@ async function submitGuess() {
       el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
     }
     await sleep(420);
+
+    // A wrong guess clears both the submitted four and any queued choices.
+    deselectAllQuiet();
 
     state.mistakes -= 1;
     els.dots.children[state.mistakes]?.classList.add('lost');
@@ -579,6 +643,64 @@ async function submitGuess() {
   saveGameState();
   state.busy = false;
   updateControls();
+}
+
+async function celebrateMatch(groupIndex, memberIds) {
+  const effect = GROUP_EFFECTS[groupIndex];
+  const members = memberIds.map((id) => cardEls.get(id)).filter(Boolean);
+  const boardRect = els.grid.getBoundingClientRect();
+  const memberRects = members.map((el) => el.getBoundingClientRect());
+  const centerX = memberRects.length
+    ? memberRects.reduce((sum, rect) => sum + rect.left + rect.width / 2, 0) / memberRects.length
+    : boardRect.left + boardRect.width / 2;
+  const centerY = memberRects.length
+    ? memberRects.reduce((sum, rect) => sum + rect.top + rect.height / 2, 0) / memberRects.length
+    : boardRect.top + boardRect.height / 2;
+
+  document.documentElement.style.setProperty('--celebration-haze', effect.haze);
+  document.body.classList.add('is-celebrating');
+
+  members.forEach((el, index) => {
+    el.style.setProperty('--stagger', `${index * 70}ms`);
+    el.style.setProperty('--tilt', `${index % 2 ? 1.2 : -1.2}deg`);
+    el.classList.add('match-found');
+  });
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const layer = document.createElement('div');
+    layer.className = 'celebration-layer';
+    layer.style.setProperty('--burst-x', `${centerX}px`);
+    layer.style.setProperty('--burst-y', `${centerY}px`);
+    layer.style.setProperty('--particle-color', effect.main);
+
+    const ring = document.createElement('span');
+    ring.className = 'celebration-ring';
+    const secondRing = document.createElement('span');
+    secondRing.className = 'celebration-ring ring-two';
+    layer.append(ring, secondRing);
+
+    for (let i = 0; i < 34; i++) {
+      const angle = (Math.PI * 2 * i) / 34 + (i % 3) * 0.07;
+      const distance = 85 + (i % 7) * 18;
+      const spark = document.createElement('i');
+      spark.className = 'celebration-spark';
+      spark.style.setProperty('--dx', `${Math.cos(angle) * distance}px`);
+      spark.style.setProperty('--dy', `${Math.sin(angle) * distance - 18}px`);
+      spark.style.setProperty('--spin', `${160 + (i % 5) * 75}deg`);
+      spark.style.setProperty('--size', `${4 + (i % 4) * 2}px`);
+      spark.style.setProperty('--duration', `${760 + (i % 6) * 75}ms`);
+      spark.style.setProperty('--delay', `${(i % 5) * 22}ms`);
+      spark.style.setProperty('--particle-color', i % 4 === 0 ? effect.light : effect.main);
+      layer.appendChild(spark);
+    }
+
+    document.body.appendChild(layer);
+    setTimeout(() => layer.remove(), 1500);
+  }
+
+  await sleep(760);
+  members.forEach((el) => el.classList.remove('match-found'));
+  setTimeout(() => document.body.classList.remove('is-celebrating'), 420);
 }
 
 // Moves a group's cards to the top row, then collapses them into a banner.
@@ -616,6 +738,7 @@ async function solveGroup(groupIndex) {
 
   state.order = state.order.filter((id) => !memberSet.has(id));
   state.solved.push(groupIndex);
+  refreshSelectionTiers();
   saveGameState();
   await sleep(300);
 }
@@ -665,8 +788,7 @@ async function finishGame(won) {
 function deselectAllQuiet() {
   state.selection.clear();
   for (const el of cardEls.values()) {
-    el.classList.remove('selected');
-    el.setAttribute('aria-pressed', 'false');
+    lowerCard(el);
   }
 }
 

@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/game.css" />
 </head>
-<body>
+<body class="game-page">
+  <div class="ambient-layer" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
   <div class="site-header-rule">
     <header class="site-header">
       <a class="brand" href="index.html">
@@ -43,15 +46,18 @@
     </div>
     <div class="notice-strip" id="notice" hidden></div>
 
-    <div class="board">
-      <div class="solved-groups" id="solved-groups"></div>
-      <div class="card-grid" id="card-grid"></div>
-    </div>
+    <section class="play-surface" aria-label="Puzzle board">
+      <div class="surface-glint" aria-hidden="true"></div>
+      <div class="board">
+        <div class="solved-groups" id="solved-groups"></div>
+        <div class="card-grid" id="card-grid"></div>
+      </div>
 
-    <div class="mistakes" id="mistakes">
-      <span>Mistakes Remaining:</span>
-      <div class="mistake-dots" id="mistake-dots"></div>
-    </div>
+      <div class="mistakes" id="mistakes">
+        <span>Mistakes remaining</span>
+        <div class="mistake-dots" id="mistake-dots"></div>
+      </div>
+    </section>
 
     <div class="controls" id="controls">
       <button class="btn" id="shuffle-btn" type="button">Shuffle</button>

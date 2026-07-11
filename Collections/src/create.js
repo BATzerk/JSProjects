@@ -12,6 +12,43 @@ const {
 } = window.CollectionsUtil;
 
 const GROUP_COLORS = ['Yellow', 'Green', 'Blue', 'Purple'];
+const EXAMPLE_TITLES = [
+  'THE GREAT SOCK MYSTERY',
+  'SNACK ATTACK',
+  'TOO MANY PIGEONS',
+  'MIDNIGHT AT THE MUSEUM',
+  'CATS WITH JOBS',
+  'A VERY SUSPICIOUS PICNIC',
+  'THE LAST SLICE',
+  'WIZARDS ON VACATION',
+  'TINY HATS, BIG QUESTIONS',
+  'ESCAPE FROM TACO TUESDAY',
+];
+const EXAMPLE_AUTHORS = [
+  'Okay Thatsnotarealname',
+  'Romeo McGnomeo',
+  'Bucky Thrucket',
+  'Appsy Doysie',
+  'Raverta Hempstein',
+  'Picky Cump',
+  'Fances Devista',
+  'Hermphry Hermlernd',
+  'Rickety Bidness',
+  'Amolia Fackjot',
+  'Hooboy Atsameatball',
+  'Perjinal Reckjoy',
+  'Feengermee Timbers',
+  'Arabetta Flapjap',
+  'Laughlong Arabetic',
+  'Oozer Mouthfeel',
+  'Any Murphy',
+  'Egregious Philbin',
+  'Rob Boss',
+  'Soyboy',
+  'Jennigeg Albacoss',
+  'Saltino Cabrero',
+  'Car Michael Carmichael',
+];
 
 const DRAFT_KEY = 'collections-creator-draft';
 
@@ -46,9 +83,27 @@ const inputs = {
 
 const tileEls = new Map(); // card index -> tile element
 
+function uppercaseInput(input) {
+  const uppercased = input.value.toUpperCase();
+  if (input.value !== uppercased) {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    input.value = uppercased;
+    if (start != null && end != null) input.setSelectionRange(start, end);
+  }
+  return uppercased;
+}
+
+function randomExample(examples) {
+  return examples[Math.floor(Math.random() * examples.length)];
+}
+
 // ---------- Setup ----------
 
 function init() {
+  els.title.placeholder = `E.G. ${randomExample(EXAMPLE_TITLES)}`;
+  els.author.placeholder = `E.G. ${randomExample(EXAMPLE_AUTHORS).toUpperCase()}`;
+
   setButtonDisabled(els.preview, false);
   if (isConfigured()) {
     setButtonDisabled(els.publish, false);
@@ -68,12 +123,12 @@ function init() {
   els.title.value = state.title;
   els.author.value = state.author;
   els.title.addEventListener('input', () => {
-    state.title = els.title.value;
+    state.title = uppercaseInput(els.title);
     els.title.classList.remove('invalid');
     saveDraft();
   });
   els.author.addEventListener('input', () => {
-    state.author = els.author.value;
+    state.author = uppercaseInput(els.author);
     saveDraft();
   });
 
@@ -87,6 +142,9 @@ function init() {
     location.reload();
   });
 
+  updateDraftStatus();
+  setInterval(updateDraftStatus, 15000);
+
   window.__collectionsBooted = true;
 }
 
@@ -96,7 +154,7 @@ function bindGroupEditors() {
     const nameInput = section.querySelector('.group-name-input');
     nameInput.value = state.groups[gi].name;
     nameInput.addEventListener('input', () => {
-      state.groups[gi].name = nameInput.value;
+      state.groups[gi].name = uppercaseInput(nameInput);
       nameInput.classList.remove('invalid');
       saveDraft();
     });
@@ -106,7 +164,7 @@ function bindGroupEditors() {
     section.querySelectorAll('.word-row .text-input').forEach((wordInput, wi) => {
       wordInput.value = state.groups[gi].words[wi];
       wordInput.addEventListener('input', () => {
-        state.groups[gi].words[wi] = wordInput.value;
+        state.groups[gi].words[wi] = uppercaseInput(wordInput);
         wordInput.classList.remove('invalid');
         updateTile(gi * 4 + wi);
         saveDraft();
@@ -421,12 +479,22 @@ function updateDraftStatus() {
     return;
   }
   if (savedAt == null) {
-    els.draftStatus.textContent = 'Saved automatically in this browser.';
+    els.draftStatus.textContent = 'No draft saved yet.';
     return;
   }
-  const mins = Math.floor((Date.now() - savedAt) / 60000);
-  const rel = mins < 1 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
-  els.draftStatus.textContent = `Saved ${rel}.`;
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - savedAt) / 1000));
+  let relativeTime = 'just now';
+  if (elapsedSeconds >= 86400) {
+    const days = Math.floor(elapsedSeconds / 86400);
+    relativeTime = `${days} day${days === 1 ? '' : 's'} ago`;
+  } else if (elapsedSeconds >= 3600) {
+    const hours = Math.floor(elapsedSeconds / 3600);
+    relativeTime = `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  } else if (elapsedSeconds >= 60) {
+    const minutes = Math.floor(elapsedSeconds / 60);
+    relativeTime = `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  }
+  els.draftStatus.textContent = `Last saved ${relativeTime}.`;
 }
 
 function restoreDraft() {
@@ -434,16 +502,17 @@ function restoreDraft() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return;
     const draft = JSON.parse(raw);
-    if (typeof draft.title === 'string') state.title = draft.title;
-    if (typeof draft.author === 'string') state.author = draft.author;
+    if (Number.isFinite(draft.savedAt)) savedAt = draft.savedAt;
+    if (typeof draft.title === 'string') state.title = draft.title.toUpperCase();
+    if (typeof draft.author === 'string') state.author = draft.author.toUpperCase();
     if (
       Array.isArray(draft.groups) &&
       draft.groups.length === 4 &&
       draft.groups.every((g) => typeof g?.name === 'string' && Array.isArray(g.words) && g.words.length === 4)
     ) {
       state.groups = draft.groups.map((g) => ({
-        name: g.name,
-        words: g.words.map((w) => String(w ?? '')),
+        name: g.name.toUpperCase(),
+        words: g.words.map((w) => String(w ?? '').toUpperCase()),
       }));
     }
     if (

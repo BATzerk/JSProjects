@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/create.css" />
 </head>
-<body>
+<body class="create-page">
+  <div class="ambient-layer" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
   <div class="site-header-rule">
     <header class="site-header">
       <a class="brand" href="index.html">
@@ -37,11 +40,11 @@
     <div class="details-grid">
       <div>
         <label class="field-label" for="puzzle-title-input">Title</label>
-        <input class="text-input" id="puzzle-title-input" maxlength="60" placeholder="e.g. Movie Night Trivia" />
+        <input class="text-input" id="puzzle-title-input" maxlength="60" placeholder="E.G. THE GREAT SOCK MYSTERY" />
       </div>
       <div>
         <label class="field-label" for="puzzle-author-input">Your name <span class="field-label-soft">(optional)</span></label>
-        <input class="text-input" id="puzzle-author-input" maxlength="30" placeholder="e.g. Brett" />
+        <input class="text-input" id="puzzle-author-input" maxlength="30" placeholder="E.G. OKAY THATSNOTAREALNAME" />
       </div>
     </div>
 
@@ -108,7 +111,6 @@
     </div>
 
     <section class="create-section">
-      <h2>Board</h2>
       <p class="section-hint">Drag cards to set the starting layout.</p>
       <div class="arrange-grid" id="arrange-grid">
         <div class="tile empty" data-card="0"><span class="tile-dot g0"></span><span class="tile-label">Card 1</span></div>
