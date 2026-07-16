@@ -89,10 +89,20 @@ describe("browser loading contract", () => {
   it("loads the local editor after its classic engine dependency", async () => {
     const editor = await readFile(new URL("../../editor.html", import.meta.url), "utf8");
     const enginePosition = editor.indexOf('src="./src/game/engine.js"');
+    const hintFiles = ["core", "strategies-basic", "strategies-advanced", "difficulty", "registry"];
+    const hintPositions = hintFiles.map((name) =>
+      editor.indexOf(`src="./src/game/hints/${name}.js"`),
+    );
     const editorPosition = editor.indexOf('src="./src/editor/editor.js"');
 
     assert.ok(enginePosition >= 0, "editor.html must load the engine runtime");
-    assert.ok(editorPosition > enginePosition, "the editor must load after the engine");
+    hintPositions.forEach((position, slot) => {
+      assert.ok(position > enginePosition, `editor.html must load hints/${hintFiles[slot]}.js after the engine`);
+      if (slot > 0) {
+        assert.ok(position > hintPositions[slot - 1], `editor hints/${hintFiles[slot]}.js must preserve runtime order`);
+      }
+    });
+    assert.ok(editorPosition > hintPositions.at(-1), "the editor must load after its compatibility runtime");
     assert.match(editor, /href="\.\/src\/editor\/editor\.css"/);
     assert.doesNotMatch(editor, /<script[^>]+type=["']module["']/i);
   });

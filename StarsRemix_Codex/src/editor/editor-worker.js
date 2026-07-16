@@ -1,11 +1,20 @@
-importScripts(
-  "../game/engine.js",
-  "../game/hints/core.js",
-  "../game/hints/strategies-basic.js",
-  "../game/hints/strategies-advanced.js",
-  "../game/hints/difficulty.js",
-  "../game/hints/registry.js",
-);
+try {
+  importScripts(
+    "../game/engine.js",
+    "../game/hints/core.js",
+    "../game/hints/strategies-basic.js",
+    "../game/hints/strategies-advanced.js",
+    "../game/hints/difficulty.js",
+    "../game/hints/registry.js",
+  );
+} catch (error) {
+  self.postMessage({
+    type: "startup-error",
+    message: error instanceof Error
+      ? `The completion tools could not start: ${error.message}`
+      : "The completion tools could not start.",
+  });
+}
 
 self.addEventListener("message", async (event) => {
   if (event.data?.type !== "complete") return;
@@ -34,7 +43,12 @@ self.addEventListener("message", async (event) => {
         onProgress(progress) {
           self.postMessage({ type: "difficulty-progress", progress: { ...progress, candidate, candidateMaximum } });
         },
-        yieldControl: () => Promise.resolve(),
+        // Promise.resolve() only yields to the microtask queue. On difficult
+        // boards that still leaves this worker continuously occupied long
+        // enough for some browsers to terminate it. A timer yields to the
+        // worker event loop so progress delivery and browser housekeeping can
+        // run between expensive hint passes.
+        yieldControl: () => new Promise((resolve) => setTimeout(resolve, 0)),
       });
       lastResult = { generated, report };
       if (report.solved && report.label !== "Incalculable") break;
