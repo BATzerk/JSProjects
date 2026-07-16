@@ -5,6 +5,8 @@
 // order is fixed in index.html; app-actions.js runs the boot call last.
 
 const engine = globalThis.StarsRemixEngine;
+const boardLibrary = globalThis.StarsRemixBoardLibrary ?? { version: 1, boards: [] };
+const libraryDifficulties = ["Easy", "Moderate", "Hard", "Very Hard", "Expert"];
 // Domain helpers shared with the engine; used by bare name throughout the UI.
 const {
   createEmptyBoard,
@@ -99,6 +101,15 @@ const housePalette = [
   "#fff0fb",
 ];
 const useHouseColors = false;
+const themeStorageKey = "stars-remix:theme";
+let nightMode = (() => {
+  try {
+    return window.localStorage.getItem(themeStorageKey) === "night";
+  } catch {
+    return false;
+  }
+})();
+document.documentElement.dataset.theme = nightMode ? "night" : "day";
 let gameState = globalThis.StarsRemixState.createGameState({
   puzzle: initialGame.puzzle,
   solution: initialGame.solution,
@@ -117,6 +128,8 @@ let generationProgress = null;
 let difficultyProgress = null;
 let difficultyAnalysisId = 0;
 let fileMenuOpen = false;
+let boardLibraryOpen = false;
+let selectedLibraryDifficulty = "Easy";
 let fileNotice = null;
 let solutionRevealVisible = false;
 let enteringTokenKeys = new Set();

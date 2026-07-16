@@ -65,6 +65,15 @@ const state = {
   won: false,
 };
 
+const bannerResizeObserver = typeof ResizeObserver === 'undefined'
+  ? null
+  : new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const name = entry.target.querySelector('.banner-name');
+        if (name) fitBannerName(name);
+      }
+    });
+
 const cardEls = new Map(); // card id -> button element
 let modalLocked = false;
 
@@ -746,7 +755,19 @@ function createGroupBanner(groupIndex) {
   words.className = 'banner-words';
   words.textContent = group.words.join(', ');
   banner.append(name, words);
+  bannerResizeObserver?.observe(banner);
+  requestAnimationFrame(() => fitBannerName(name));
   return banner;
+}
+
+function fitBannerName(name) {
+  name.style.removeProperty('font-size');
+  let size = Number.parseFloat(getComputedStyle(name).fontSize) || 27;
+  name.style.fontSize = `${size}px`;
+  while (size > 7 && name.scrollWidth > name.clientWidth) {
+    size -= 0.5;
+    name.style.fontSize = `${size}px`;
+  }
 }
 
 // ---------- End of game ----------

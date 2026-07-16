@@ -27,6 +27,14 @@
     );
   }
 
+  function getPaintHouseId(houses, row, col) {
+    const existingHouse = houses[row]?.[col];
+    if (Number.isInteger(existingHouse) && existingHouse >= 0) return existingHouse;
+    const used = new Set(houses.flat().filter((house) => Number.isInteger(house) && house >= 0));
+    return Array.from({ length: houses.length }, (_, house) => house)
+      .find((house) => !used.has(house)) ?? -1;
+  }
+
   // ---------------------------------------------------------------------------
   // Geometry + puzzle shape
   // ---------------------------------------------------------------------------
@@ -438,6 +446,224 @@
     return null;
   }
 
+  function inspectPartialHouses(houses) {
+    const size = houses.length;
+    const issues = [];
+    if (!Number.isInteger(size) || size < 1 || houses.some((row) => !Array.isArray(row) || row.length !== size)) {
+      return {
+        valid: false,
+        issues: [{ code: "invalid-grid", message: "The painted board must be a square grid." }],
+        lockedHouseIds: [],
+        missingHouseIds: [],
+      };
+    }
+    for (const row of houses) {
+      if (row.some((house) => !Number.isInteger(house) || house < -1 || house >= size)) {
+        return {
+          valid: false,
+          issues: [{
+            code: "invalid-house-id",
+            message: `House IDs must be unassigned or between 1 and ${size}.`,
+          }],
+          lockedHouseIds: [],
+          missingHouseIds: [],
+        };
+      }
+    }
+
+    const lockedHouseIds = [...new Set(houses.flat().filter((house) => house >= 0))].sort((a, b) => a - b);
+    const lockedSet = new Set(lockedHouseIds);
+    const missingHouseIds = Array.from({ length: size }, (_, house) => house)
+      .filter((house) => !lockedSet.has(house));
+    const partialPuzzle = { size, starsPerUnit: 2, houses };
+    for (const house of lockedHouseIds) {
+      const cells = [];
+      for (let row = 0; row < size; row += 1) {
+        for (let col = 0; col < size; col += 1) {
+          if (houses[row][col] === house) cells.push({ row, col });
+        }
+      }
+      if (!isHouseConnected(partialPuzzle, house)) {
+        issues.push({
+          code: "disconnected-house",
+          house,
+          message: `House ${house + 1} is split into separate pieces. Join all of its tiles into one connected shape.`,
+        });
+        continue;
+      }
+      if (!hasNonTouchingCellPair(cells)) {
+        issues.push({
+          code: "house-cannot-fit-stars",
+          house,
+          message: `House ${house + 1} fits entirely within a 2×2 area, so any two stars in it would touch. Stretch it across at least three rows or columns.`,
+        });
+      }
+      const forcedByRows = Array.from({ length: size }, (_, row) => {
+        const outsideColumns = Array.from({ length: size }, (_, col) => col)
+          .filter((col) => houses[row][col] !== house);
+        return Math.max(0, 2 - maxTwoNonAdjacent(outsideColumns));
+      }).reduce((total, count) => total + count, 0);
+      const forcedByColumns = Array.from({ length: size }, (_, col) => {
+        const outsideRows = Array.from({ length: size }, (_, row) => row)
+          .filter((row) => houses[row][col] !== house);
+        return Math.max(0, 2 - maxTwoNonAdjacent(outsideRows));
+      }).reduce((total, count) => total + count, 0);
+      const forcedStars = Math.max(forcedByRows, forcedByColumns);
+      if (forcedStars > 2) {
+        issues.push({
+          code: "house-forces-too-many-stars",
+          house,
+          message: `House ${house + 1} covers so much of the board that it would be forced to contain at least ${forcedStars} stars, but every house must contain exactly 2.`,
+        });
+      }
+    }
+
+    const blankComponents = findCellComponents(houses, -1);
+    const blankCount = blankComponents.reduce((total, component) => total + component.length, 0);
+    if (blankCount > 0 && missingHouseIds.length === 0) {
+      issues.push({
+        code: "no-unused-houses",
+        message: `${blankCount} ${blankCount === 1 ? "tile is" : "tiles are"} still blank, but all ${size} houses have already been used. Erase part of a house or fill the gaps by extending an existing house.`,
+      });
+    } else if (blankCount === 0 && missingHouseIds.length > 0) {
+      issues.push({
+        code: "no-room-for-houses",
+        message: `No blank tiles remain for ${missingHouseIds.length} missing ${missingHouseIds.length === 1 ? "house" : "houses"}.`,
+      });
+    } else if (blankCount > 0) {
+      for (const component of blankComponents) {
+        if (!hasNonTouchingCellPair(component)) {
+          issues.push({
+            code: "blank-pocket-cannot-fit-stars",
+            cells: component,
+            message: `The blank pocket at ${describeCellArea(component)} fits entirely within a 2×2 area, so it cannot hold two non-touching stars.`,
+          });
+        }
+      }
+      if (blankComponents.length > missingHouseIds.length) {
+        issues.push({
+          code: "too-many-blank-pockets",
+          message: `The painted houses divide the blank space into ${blankComponents.length} separate pockets, but only ${missingHouseIds.length} ${missingHouseIds.length === 1 ? "house remains" : "houses remain"}. At least one pocket cannot be filled.`,
+        });
+      }
+      const remainingCapacity = blankComponents.reduce((total, component) => total + Math.floor(component.length / 3), 0);
+      if (blankCount < missingHouseIds.length * 3) {
+        issues.push({
+          code: "not-enough-blank-tiles",
+          message: `${missingHouseIds.length} ${missingHouseIds.length === 1 ? "house still needs" : "houses still need"} at least ${missingHouseIds.length * 3} blank tiles, but only ${blankCount} remain.`,
+        });
+      } else if (remainingCapacity < missingHouseIds.length) {
+        issues.push({
+          code: "blank-pockets-lack-capacity",
+          message: `The separate blank pockets can fit at most ${remainingCapacity} more ${remainingCapacity === 1 ? "house" : "houses"}, but ${missingHouseIds.length} are still missing.`,
+        });
+      }
+    }
+
+    return { valid: issues.length === 0, issues, lockedHouseIds, missingHouseIds, blankComponents };
+  }
+
+  function findCellComponents(houses, target) {
+    const size = houses.length;
+    const seen = new Set();
+    const components = [];
+    for (let row = 0; row < size; row += 1) {
+      for (let col = 0; col < size; col += 1) {
+        if (houses[row][col] !== target || seen.has(`${row}:${col}`)) continue;
+        const component = [];
+        const queue = [{ row, col }];
+        seen.add(`${row}:${col}`);
+        for (let index = 0; index < queue.length; index += 1) {
+          const cell = queue[index];
+          component.push(cell);
+          for (const next of orthogonalNeighbors(cell, size)) {
+            const key = `${next.row}:${next.col}`;
+            if (houses[next.row][next.col] === target && !seen.has(key)) {
+              seen.add(key);
+              queue.push(next);
+            }
+          }
+        }
+        components.push(component);
+      }
+    }
+    return components;
+  }
+
+  function maxTwoNonAdjacent(indices) {
+    if (indices.length === 0) return 0;
+    return indices.some((value, index) => indices.slice(index + 1).some((other) =>
+      Math.abs(value - other) > 1,
+    )) ? 2 : 1;
+  }
+
+  function hasNonTouchingCellPair(cells) {
+    return cells.some((cell, index) => cells.slice(index + 1).some((other) =>
+      Math.abs(cell.row - other.row) > 1 || Math.abs(cell.col - other.col) > 1,
+    ));
+  }
+
+  function describeCellArea(cells) {
+    const rows = cells.map(({ row }) => row);
+    const cols = cells.map(({ col }) => col);
+    const minRow = Math.min(...rows) + 1;
+    const maxRow = Math.max(...rows) + 1;
+    const minCol = Math.min(...cols) + 1;
+    const maxCol = Math.max(...cols) + 1;
+    const rowLabel = minRow === maxRow ? `row ${minRow}` : `rows ${minRow}–${maxRow}`;
+    const colLabel = minCol === maxCol ? `column ${minCol}` : `columns ${minCol}–${maxCol}`;
+    return `${rowLabel}, ${colLabel}`;
+  }
+
+  function validatePartialHouses(houses) {
+    const inspection = inspectPartialHouses(houses);
+    if (!inspection.valid) throw new Error(inspection.issues[0].message);
+    return inspection.lockedHouseIds;
+  }
+
+  function generateConstrainedHouses(partialHouses, solution, random = systemRandom, maxAttempts = 100) {
+    const size = partialHouses.length;
+    const lockedHouseIds = validatePartialHouses(partialHouses);
+    const lockedSet = new Set(lockedHouseIds);
+    const missingHouseIds = Array.from({ length: size }, (_, house) => house)
+      .filter((house) => !lockedSet.has(house));
+    const starKeys = new Set(solution.map(getStarKey));
+
+    for (const house of lockedHouseIds) {
+      const starCount = solution.filter(({ row, col }) => partialHouses[row][col] === house).length;
+      if (starCount !== 2) return null;
+    }
+
+    const remainingStars = solution.filter(({ row, col }) => partialHouses[row][col] === -1);
+    if (remainingStars.length !== missingHouseIds.length * 2) return null;
+    if (missingHouseIds.length === 0) {
+      return partialHouses.some((row) => row.includes(-1)) ? null : partialHouses.map((row) => [...row]);
+    }
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const houses = partialHouses.map((row) => [...row]);
+      const pairedStars = shuffle(remainingStars, random);
+      const shuffledHouseIds = shuffle(missingHouseIds, random);
+      let failed = false;
+
+      for (let index = 0; index < shuffledHouseIds.length; index += 1) {
+        const house = shuffledHouseIds[index];
+        const start = pairedStars[index * 2];
+        const target = pairedStars[index * 2 + 1];
+        const path = findRandomPath(start, target, size, houses, starKeys, random);
+        if (!path) {
+          failed = true;
+          break;
+        }
+        path.forEach(({ row, col }) => houses[row][col] = house);
+      }
+      if (failed) continue;
+      if (!fillUnassignedCells(houses, random, new Set(missingHouseIds))) continue;
+      return houses;
+    }
+    return null;
+  }
+
   function findRandomPath(start, target, size, houses, starKeys, random) {
     const targetKey = getStarKey(target);
     const queue = [start];
@@ -466,7 +692,7 @@
     return path;
   }
 
-  function fillUnassignedCells(houses, random) {
+  function fillUnassignedCells(houses, random, allowedHouses = null) {
     const size = houses.length;
     let remaining = houses.flat().filter((house) => house === -1).length;
     while (remaining > 0) {
@@ -479,19 +705,36 @@
           }
         }
       }
-      if (frontier.length === 0) throw new Error("House growth reached an impossible state.");
+      if (frontier.length === 0) return false;
       const cell = pick(frontier, random);
       const neighboringHouses = orthogonalNeighbors(cell, size)
         .map(({ row, col }) => houses[row][col])
-        .filter((house) => house !== -1);
+        .filter((house) => house !== -1 && (!allowedHouses || allowedHouses.has(house)));
+      if (neighboringHouses.length === 0) {
+        const usableFrontier = frontier.filter((candidate) => orthogonalNeighbors(candidate, size)
+          .some(({ row, col }) => {
+            const house = houses[row][col];
+            return house !== -1 && (!allowedHouses || allowedHouses.has(house));
+          }));
+        if (usableFrontier.length === 0) return false;
+        const usableCell = pick(usableFrontier, random);
+        const usableHouses = orthogonalNeighbors(usableCell, size)
+          .map(({ row, col }) => houses[row][col])
+          .filter((house) => house !== -1 && (!allowedHouses || allowedHouses.has(house)));
+        houses[usableCell.row][usableCell.col] = pick(usableHouses, random);
+        remaining -= 1;
+        continue;
+      }
       houses[cell.row][cell.col] = pick(neighboringHouses, random);
       remaining -= 1;
     }
+    return true;
   }
 
-  function hasThreeCellHouse(houses) {
+  function hasThreeCellHouse(houses, houseIds = null) {
     const houseSizes = new Map();
     for (const house of houses.flat()) {
+      if (houseIds && !houseIds.has(house)) continue;
       houseSizes.set(house, (houseSizes.get(house) ?? 0) + 1);
     }
     return [...houseSizes.values()].some((size) => size === 3);
@@ -528,6 +771,9 @@
 
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       diagnostics.attempts = attempt;
+      if (attempt === 1 || attempt % 25 === 0) {
+        config.onProgress?.({ attempt, maximum: maxAttempts, diagnostics: { ...diagnostics } });
+      }
       const solution = generateSolution(size, starsPerUnit, random);
       if (!solution) {
         diagnostics.rejectedSolutions += 1;
@@ -570,6 +816,93 @@
     );
   }
 
+  function completePuzzleFromHouses(partialHouses, config = {}) {
+    const size = partialHouses.length;
+    const starsPerUnit = 2;
+    const maxAttempts = config.maxAttempts ?? 4_000;
+    const houseAttemptsPerSolution = config.houseAttemptsPerSolution ?? 80;
+    const seed = String(config.seed ?? `${Date.now()}-${Math.random()}`);
+    const random = createSeededRandom(seed);
+    const lockedHouseIds = validatePartialHouses(partialHouses);
+    const lockedSet = new Set(lockedHouseIds);
+    const missingHouseIds = Array.from({ length: size }, (_, house) => house)
+      .filter((house) => !lockedSet.has(house));
+    const diagnostics = {
+      seed,
+      attempts: 0,
+      rejectedSolutions: 0,
+      rejectedHouseLayouts: 0,
+      rejectedNonUnique: 0,
+    };
+
+    if (size < 9) {
+      throw new Error("Board completion requires at least 9 rows and columns.");
+    }
+    if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
+      throw new Error("Maximum attempts must be a positive integer.");
+    }
+
+    const isComplete = !partialHouses.some((row) => row.includes(-1));
+    if (isComplete) {
+      const puzzle = {
+        id: config.id ?? `handmade-${slug(config.title ?? seed)}`,
+        title: config.title ?? "Handmade Constellation",
+        size,
+        starsPerUnit,
+        houses: partialHouses.map((row) => [...row]),
+      };
+      validatePuzzleShape(puzzle);
+      const solved = solvePuzzle(puzzle, { limit: 2 });
+      if (solved.count !== 1) {
+        throw new Error(solved.count === 0 ? "This board has no solution." : "This board has multiple solutions.");
+      }
+      return { puzzle, solution: solved.solutions[0], diagnostics };
+    }
+
+    if (lockedHouseIds.length === size) {
+      throw new Error("Every house ID is already painted, but some tiles are still unassigned.");
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      diagnostics.attempts = attempt;
+      if (attempt === 1 || attempt % 25 === 0) {
+        config.onProgress?.({ attempt, maximum: maxAttempts, diagnostics: { ...diagnostics } });
+      }
+      const solution = generateSolution(size, starsPerUnit, random);
+      if (!solution) {
+        diagnostics.rejectedSolutions += 1;
+        continue;
+      }
+      const houses = generateConstrainedHouses(
+        partialHouses,
+        solution,
+        random,
+        houseAttemptsPerSolution,
+      );
+      if (!houses || hasThreeCellHouse(houses, new Set(missingHouseIds))) {
+        diagnostics.rejectedHouseLayouts += 1;
+        continue;
+      }
+      const puzzle = {
+        id: config.id ?? `handmade-${slug(config.title ?? seed)}`,
+        title: config.title ?? "Handmade Constellation",
+        size,
+        starsPerUnit,
+        houses,
+      };
+      validatePuzzleShape(puzzle);
+      if (countSolutions(puzzle, 2) !== 1) {
+        diagnostics.rejectedNonUnique += 1;
+        continue;
+      }
+      return { puzzle, solution, diagnostics: { ...diagnostics } };
+    }
+
+    throw new Error(
+      `The painted shapes pass the local checks, but no unique solution could be built after ${maxAttempts} attempts. Their row or column placement may prevent two non-touching stars per house; try widening, moving, or removing one painted house.`,
+    );
+  }
+
   function slug(value) {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "seed";
   }
@@ -579,6 +912,7 @@
     createEmptyBoard,
     cycleCellState,
     setCell,
+    getPaintHouseId,
     // Geometry + shape
     getStarKey,
     orthogonalNeighbors,
@@ -599,7 +933,11 @@
     // Generation
     generateSolution,
     generateHouses,
+    inspectPartialHouses,
+    validatePartialHouses,
+    generateConstrainedHouses,
     hasThreeCellHouse,
     generatePuzzle,
+    completePuzzleFromHouses,
   };
 })(globalThis);

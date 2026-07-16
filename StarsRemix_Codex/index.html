@@ -4,12 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f8f5ee" />
+    <script>
+      try {
+        if (localStorage.getItem("stars-remix:theme") === "night") {
+          document.documentElement.dataset.theme = "night";
+          document.querySelector('meta[name="theme-color"]').content = "#181817";
+        }
+      } catch {}
+    </script>
     <title>StarsRemix</title>
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body>
     <div id="root"></div>
     <script defer src="./src/game/engine.js"></script>
+    <script defer src="./src/game/board-library.js"></script>
     <script defer src="./src/game/state.js"></script>
     <script defer src="./src/game/snapshot.js"></script>
     <script defer src="./src/game/serialization-sr2.js"></script>

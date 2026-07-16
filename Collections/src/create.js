@@ -169,7 +169,10 @@ function bindGroupEditors() {
       nameInput.classList.remove('invalid');
       saveDraft();
     });
-    nameInput.addEventListener('paste', (event) => pasteWholeGroup(event, gi));
+    nameInput.addEventListener('paste', (event) => {
+      if (pasteWholeGroups(event, gi)) return;
+      if (!pasteLinesAcrossFields(event, gi, 0)) pasteWholeGroup(event, gi);
+    });
     inputs.groupNames.push(nameInput);
 
     inputs.words.push([]);
@@ -181,24 +184,96 @@ function bindGroupEditors() {
         updateTile(gi * 4 + wi);
         saveDraft();
       });
-      wordInput.addEventListener('paste', (event) => pasteCards(event, gi, wi));
+      wordInput.addEventListener('paste', (event) => {
+        if (!pasteLinesAcrossFields(event, gi, wi + 1)) pasteCards(event, gi, wi);
+      });
       inputs.words[gi].push(wordInput);
     });
   });
 }
 
-function pasteWholeGroup(event, groupIndex) {
-  const pasted = event.clipboardData?.getData('text/plain') ?? '';
-  const colonIndex = pasted.indexOf(':');
-  if (colonIndex < 1) return;
+function parseWholeGroup(text) {
+  const colonIndex = text.indexOf(':');
+  if (colonIndex < 1) return null;
 
-  const groupName = pasted.slice(0, colonIndex).trim();
-  const cards = pasted.slice(colonIndex + 1).split(',').map((card) => card.trim());
-  if (!groupName || cards.length < 2) return;
+  const groupName = text.slice(0, colonIndex).trim();
+  const cards = text.slice(colonIndex + 1).split(',').map((card) => card.trim());
+  if (!groupName || cards.length < 2) return null;
+  return { groupName, cards };
+}
+
+function pasteWholeGroups(event, startGroupIndex) {
+  const pasted = event.clipboardData?.getData('text/plain') ?? '';
+  const lines = pasted.split(/\r\n?|\n/).filter((line) => line.trim());
+  if (lines.length < 2) return false;
+
+  const groups = lines.map(parseWholeGroup);
+  if (groups.some((group) => !group)) return false;
 
   event.preventDefault();
-  state.groups[groupIndex].name = setUppercaseValue(inputs.groupNames[groupIndex], groupName);
-  fillCardsFrom(groupIndex, 0, cards);
+  groups.slice(0, state.groups.length - startGroupIndex).forEach((group, offset) => {
+    const groupIndex = startGroupIndex + offset;
+    state.groups[groupIndex].name = setUppercaseValue(
+      inputs.groupNames[groupIndex],
+      group.groupName
+    );
+    fillCardsFrom(groupIndex, 0, group.cards);
+  });
+  saveDraft();
+  return true;
+}
+
+function pasteLinesAcrossFields(event, startGroupIndex, startFieldIndex) {
+  const pasted = event.clipboardData?.getData('text/plain') ?? '';
+  const lines = pasted.split(/\r\n?|\n/);
+
+  // A trailing newline is common when copying a list and should not erase the
+  // field after the last real line.
+  while (lines.length > 1 && !lines[lines.length - 1].trim()) {
+    lines.pop();
+  }
+  if (lines.length < 2) return false;
+
+  event.preventDefault();
+  let groupIndex = startGroupIndex;
+  let fieldIndex = startFieldIndex;
+
+  for (const line of lines) {
+    if (groupIndex >= state.groups.length) break;
+
+    if (fieldIndex === 0) {
+      state.groups[groupIndex].name = setUppercaseValue(inputs.groupNames[groupIndex], line);
+    } else {
+      const wordIndex = fieldIndex - 1;
+      state.groups[groupIndex].words[wordIndex] = setUppercaseValue(
+        inputs.words[groupIndex][wordIndex],
+        line
+      );
+      updateTile(groupIndex * 4 + wordIndex);
+    }
+
+    fieldIndex += 1;
+    if (fieldIndex > 4) {
+      groupIndex += 1;
+      fieldIndex = 0;
+    }
+  }
+
+  saveDraft();
+  return true;
+}
+
+function pasteWholeGroup(event, groupIndex) {
+  const pasted = event.clipboardData?.getData('text/plain') ?? '';
+  const group = parseWholeGroup(pasted);
+  if (!group) return;
+
+  event.preventDefault();
+  state.groups[groupIndex].name = setUppercaseValue(
+    inputs.groupNames[groupIndex],
+    group.groupName
+  );
+  fillCardsFrom(groupIndex, 0, group.cards);
   saveDraft();
 }
 

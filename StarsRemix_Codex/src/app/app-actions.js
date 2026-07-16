@@ -36,6 +36,21 @@ async function loadGeneratedPuzzle(size) {
   if (boardWasLoaded) await calculateDifficulty();
 }
 
+function setNightMode(enabled) {
+  nightMode = enabled;
+  document.documentElement.dataset.theme = nightMode ? "night" : "day";
+  document.querySelector('meta[name="theme-color"]')?.setAttribute(
+    "content",
+    nightMode ? "#181817" : "#f8f5ee",
+  );
+  try {
+    window.localStorage.setItem(themeStorageKey, nightMode ? "night" : "day");
+  } catch {
+    // Theme changes still work when storage is unavailable.
+  }
+  render();
+}
+
 async function calculateDifficulty() {
   if (generationProgress) return;
   const analysisId = ++difficultyAnalysisId;
@@ -159,7 +174,9 @@ window.addEventListener("blur", () => {
 });
 
 function dismissActiveUi() {
-  if (fileMenuOpen) {
+  if (boardLibraryOpen) {
+    boardLibraryOpen = false;
+  } else if (fileMenuOpen) {
     fileMenuOpen = false;
   } else if (currentHint) {
     currentHint = null;
@@ -214,4 +231,13 @@ window.addEventListener("keydown", (event) => {
 // Boot: prefer the last locally saved game, then validate, paint, and rate it.
 restoreBoardFromDevice();
 validatePuzzleShape(gameState.puzzle);
-calculateDifficulty();
+const restoredLibraryBoard = getLibraryBoard(gameState.puzzle.id);
+if (restoredLibraryBoard) {
+  gameState = globalThis.StarsRemixState.setDifficultyReport(
+    gameState,
+    makeLibraryDifficultyReport(restoredLibraryBoard),
+  );
+  render();
+} else {
+  calculateDifficulty();
+}

@@ -32,7 +32,7 @@ function render() {
       <section class="top-bar" aria-label="Puzzle controls">
         <div>
           <p class="brand">StarsRemix</p>
-          <p class="board-title">${gameState.puzzle.size}×${gameState.puzzle.size} · ${difficultyProgress ? "Evaluating…" : gameState.analysis.difficultyReport ? escapeHtml(gameState.analysis.difficultyReport.label) : "Unrated"}</p>
+          <p class="board-title">${escapeHtml(gameState.puzzle.title)} · ${gameState.puzzle.size}×${gameState.puzzle.size} · ${difficultyProgress ? "Evaluating…" : gameState.analysis.difficultyReport ? escapeHtml(gameState.analysis.difficultyReport.label) : "Unrated"}</p>
         </div>
         <div class="history-controls" aria-label="Move history and puzzle help">
           <div class="history-control-group">
@@ -51,15 +51,24 @@ function render() {
             <button class="action-button check-button" type="button" data-action="check" title="Check (C)">Check<span class="shortcut-key" aria-hidden="true">C</span></button>
           </div>
         </div>
-        <div class="file-menu">
-          <button class="action-button file-menu-button" type="button" data-action="file-menu" aria-expanded="${fileMenuOpen}">Boards</button>
-          ${fileMenuOpen ? `
-            <div class="file-menu-popover" role="menu" aria-label="Saved boards">
-              <button type="button" role="menuitem" data-action="save-board">Save current board…</button>
-              <button type="button" role="menuitem" data-action="load-board">Load board file…</button>
-            </div>
-          ` : ""}
-          <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
+        <div class="top-actions">
+          <button class="icon-button theme-toggle" type="button" data-action="toggle-theme" aria-label="Switch to ${nightMode ? "day" : "night"} mode" title="Switch to ${nightMode ? "day" : "night"} mode" aria-pressed="${nightMode}">
+            ${nightMode
+              ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>'
+              : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z" /></svg>'}
+          </button>
+          <div class="file-menu">
+            <button class="action-button file-menu-button" type="button" data-action="file-menu" aria-expanded="${fileMenuOpen}">Boards</button>
+            ${fileMenuOpen ? `
+              <div class="file-menu-popover" role="menu" aria-label="Saved boards">
+                <button type="button" role="menuitem" data-action="browse-library">Choose from board library…</button>
+                <button type="button" role="menuitem" data-action="board-editor">Open board workshop…</button>
+                <button type="button" role="menuitem" data-action="save-board">Save current board…</button>
+                <button type="button" role="menuitem" data-action="load-board">Load board file…</button>
+              </div>
+            ` : ""}
+            <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
+          </div>
         </div>
       </section>
 
@@ -126,6 +135,7 @@ function render() {
       <footer class="site-footer">
         Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.
       </footer>
+      ${boardLibraryOpen ? renderBoardLibrary() : ""}
       ${generationProgress ? renderGenerationOverlay() : ""}
     </main>
   `;
@@ -190,6 +200,37 @@ function render() {
   root.querySelector("[data-action='file-menu']")?.addEventListener("click", () => {
     fileMenuOpen = !fileMenuOpen;
     render();
+  });
+
+  root.querySelector("[data-action='toggle-theme']")?.addEventListener("click", () => {
+    setNightMode(!nightMode);
+  });
+
+  root.querySelector("[data-action='browse-library']")?.addEventListener("click", () => {
+    const currentEntry = getLibraryBoard(gameState.puzzle.id);
+    selectedLibraryDifficulty = currentEntry?.difficulty.label ?? selectedLibraryDifficulty;
+    fileMenuOpen = false;
+    boardLibraryOpen = true;
+    render();
+  });
+  root.querySelector("[data-action='board-editor']")?.addEventListener("click", () => {
+    window.location.href = "./editor.html";
+  });
+
+  root.querySelector("[data-action='close-library']")?.addEventListener("click", () => {
+    boardLibraryOpen = false;
+    render();
+  });
+
+  root.querySelectorAll("[data-library-difficulty]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedLibraryDifficulty = button.dataset.libraryDifficulty;
+      render();
+    });
+  });
+
+  root.querySelectorAll("[data-library-board]").forEach((button) => {
+    button.addEventListener("click", () => loadLibraryBoard(button.dataset.libraryBoard));
   });
 
   root.querySelector("[data-action='save-board']")?.addEventListener("click", saveBoardFile);
@@ -262,6 +303,63 @@ function render() {
   root.querySelector("[data-action='reveal']")?.addEventListener("click", () => {
     setSolutionReveal(!solutionRevealVisible);
   });
+}
+
+function renderBoardLibrary() {
+  const progress = readLibraryProgress();
+  const selectedBoards = boardLibrary.boards.filter(
+    ({ difficulty }) => difficulty.label === selectedLibraryDifficulty,
+  );
+  const completedTotal = boardLibrary.boards.filter(
+    (entry) => getLibraryBoardStatus(entry, progress).kind === "completed",
+  ).length;
+  const inProgressTotal = boardLibrary.boards.filter(
+    (entry) => getLibraryBoardStatus(entry, progress).kind === "progress",
+  ).length;
+
+  return `
+    <div class="library-overlay" role="dialog" aria-modal="true" aria-labelledby="library-title">
+      <section class="library-dialog">
+        <header class="library-header">
+          <div>
+            <p class="hint-kicker">Board library</p>
+            <h2 id="library-title">Choose your next constellation</h2>
+            <p>${completedTotal} completed · ${inProgressTotal} in progress · ${boardLibrary.boards.length} total</p>
+          </div>
+          <button class="library-close" type="button" data-action="close-library" aria-label="Close board library">×</button>
+        </header>
+        <nav class="difficulty-tabs" aria-label="Choose a difficulty">
+          ${libraryDifficulties.map((difficulty) => {
+            const entries = boardLibrary.boards.filter((entry) => entry.difficulty.label === difficulty);
+            const completed = entries.filter((entry) => getLibraryBoardStatus(entry, progress).kind === "completed").length;
+            return `
+              <button type="button" data-library-difficulty="${difficulty}" class="difficulty-tab${selectedLibraryDifficulty === difficulty ? " is-active" : ""}" aria-pressed="${selectedLibraryDifficulty === difficulty}">
+                <span>${difficulty}</span>
+                <small>${completed}/${entries.length} complete</small>
+              </button>
+            `;
+          }).join("")}
+        </nav>
+        <div class="library-board-list" aria-label="${selectedLibraryDifficulty} boards">
+          ${selectedBoards.length ? selectedBoards.map((entry) => {
+            const status = getLibraryBoardStatus(entry, progress);
+            const isCurrent = entry.puzzle.id === gameState.puzzle.id;
+            return `
+              <button type="button" class="library-board-card${isCurrent ? " is-current" : ""}" data-library-board="${entry.puzzle.id}">
+                <span class="library-board-number">${entry.puzzle.title.replace(`${entry.difficulty.label} `, "")}</span>
+                <span class="library-board-copy">
+                  <strong>${escapeHtml(entry.puzzle.title)}</strong>
+                  <small>${entry.puzzle.size}×${entry.puzzle.size} · ${entry.difficulty.logicalSteps} logical steps${isCurrent ? " · Current board" : ""}</small>
+                </span>
+                <span class="board-status is-${status.kind}">${status.label}</span>
+                ${status.kind === "progress" ? `<span class="board-progress-note">${status.filled} cells filled</span>` : ""}
+              </button>
+            `;
+          }).join("") : `<div class="library-empty">No ${selectedLibraryDifficulty} boards have been generated yet.</div>`}
+        </div>
+      </section>
+    </div>
+  `;
 }
 
 function renderGenerationOverlay() {
@@ -346,11 +444,13 @@ function renderDifficultyReport() {
       <p>${report.solved
         ? `${report.bigTicketCount} big-ticket deduction${report.bigTicketCount === 1 ? "" : "s"} · weighted score ${report.score}`
         : `The current technique set placed ${report.starsPlaced} of ${report.totalStars} stars, so this board cannot be rated completely yet.`}</p>
-      <ul class="technique-summary">${summary}</ul>
-      <details class="difficulty-details">
-        <summary>Every logical move (${report.steps.length})</summary>
-        <ol>${steps}</ol>
-      </details>
+      ${report.catalogRating
+        ? `<p class="catalog-rating-note">Pre-rated for the board library · ${report.logicalSteps} logical steps</p>`
+        : `<ul class="technique-summary">${summary}</ul>
+          <details class="difficulty-details">
+            <summary>Every logical move (${report.steps.length})</summary>
+            <ol>${steps}</ol>
+          </details>`}
     </section>
   `;
 }
@@ -371,8 +471,8 @@ function setSolutionReveal(visible) {
 function getBorderStyle(houses, row, col) {
   const house = houses[row][col];
   const size = houses.length;
-  const border = "var(--house-border-width) solid #1d1d1b";
-  const thin = "var(--cell-border-width) solid rgba(29, 29, 27, 0.28)";
+  const border = "var(--house-border-width) solid var(--board-line)";
+  const thin = "var(--cell-border-width) solid var(--board-line-soft)";
 
   return [
     `border-top: ${row === 0 || houses[row - 1][col] !== house ? border : thin}`,

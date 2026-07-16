@@ -85,6 +85,17 @@ describe("browser loading contract", () => {
     assert.match(appBoard, /saveBoardToDevice\(\)/);
     assert.match(appActions, /restoreBoardFromDevice\(\);[\s\S]*validatePuzzleShape\(gameState\.puzzle\)/);
   });
+
+  it("loads the local editor after its classic engine dependency", async () => {
+    const editor = await readFile(new URL("../../editor.html", import.meta.url), "utf8");
+    const enginePosition = editor.indexOf('src="./src/game/engine.js"');
+    const editorPosition = editor.indexOf('src="./src/editor/editor.js"');
+
+    assert.ok(enginePosition >= 0, "editor.html must load the engine runtime");
+    assert.ok(editorPosition > enginePosition, "the editor must load after the engine");
+    assert.match(editor, /href="\.\/src\/editor\/editor\.css"/);
+    assert.doesNotMatch(editor, /<script[^>]+type=["']module["']/i);
+  });
 });
 
 declare global {

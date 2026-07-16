@@ -17,6 +17,23 @@ Then open <http://localhost:5173>. The game can also be opened directly from
 `index.html`; its browser runtime intentionally uses classic scripts and has no
 build step.
 
+### Board editor
+
+With the local server running, open <http://localhost:5173/editor.html> to use
+the Board Workshop. Paint any finished house shapes with left-click and drag;
+right-click and drag erases tiles. **Complete board** preserves every painted
+house exactly, generates the remaining houses, verifies a unique solution, and
+calculates difficulty.
+
+**Add to board library** saves the validated board as an individual JSON source
+file under `boards/handmade/` and immediately rebuilds the in-game catalog. The
+workshop is intentionally a local development tool and should be opened through
+the local server.
+
+On this Mac, the **Board Workshop** app on the Desktop starts the local webpage
+and opens it in the default browser automatically, so no Terminal command is
+required.
+
 ## Controls
 
 - Left click cycles a cell through X, star, and empty.
@@ -33,6 +50,27 @@ npm run check
 
 The tests cover puzzle rules and generation, hints and difficulty analysis, and
 the classic-script browser loading contract.
+
+## Board library
+
+The built-in board catalog lives in `src/game/board-library-data.json`; its
+classic-script browser copy is `src/game/board-library.js`. To retain the
+existing catalog and fill each calculable difficulty to a larger total, run:
+
+```sh
+npm run generate:library -- --count=40
+```
+
+To rebuild the two catalog files from the existing generated catalog plus all
+individual handmade board sources, run:
+
+```sh
+npm run build:library
+```
+
+Generation is resumable and writes after every accepted board. Incalculable
+boards are discarded. Player progress is stored separately in local storage by
+stable board ID, so adding catalog boards does not reset existing games.
 
 ## Structure
 

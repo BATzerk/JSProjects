@@ -45,7 +45,7 @@ function renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hin
               aria-label="Row ${rowIndex + 1}, column ${colIndex + 1}, house ${houseId + 1}"
               data-row="${rowIndex}"
               data-col="${colIndex}"
-              style="background-color: ${useHouseColors ? housePalette[houseId % housePalette.length] : "#ffffff"}; ${borders}"
+              style="background-color: ${useHouseColors ? housePalette[houseId % housePalette.length] : "var(--cell-background)"}; ${borders}"
             >${debugSolution}${content}</button>
           `;
         })
