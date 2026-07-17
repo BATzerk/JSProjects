@@ -19,16 +19,24 @@ build step.
 
 ### Board editor
 
-With the local server running, open <http://localhost:5173/editor.html> to use
-the Board Workshop. Paint any finished house shapes with left-click and drag;
-right-click and drag erases tiles. **Complete board** preserves every painted
+Open `editor.html` directly to use the Board Workshop; its export flow does not
+require the local development server. Paint any finished house shapes with left-click and drag;
+number keys 1–9 (and 0 for house 10) choose a house color. Right-click or
+Command/Ctrl-click and drag erases tiles. **Complete board** preserves every painted
 house exactly, generates the remaining houses, verifies a unique solution, and
 calculates difficulty.
 
-**Add to board library** saves the validated board as an individual JSON source
-file under `boards/handmade/` and immediately rebuilds the in-game catalog. The
-workshop is intentionally a local development tool and should be opened through
-the local server.
+**Export board** downloads the uniquely solvable, difficulty-rated board as a
+JSON file. Import that download into the project and rebuild the in-game catalog
+in one step:
+
+```sh
+npm run import:board -- ~/Downloads/handmade-your-board-....json
+```
+
+The import revalidates the board, saves its permanent source under
+`boards/handmade/`, and rebuilds both gameplay catalog files. Reload `index.html`,
+open **Boards**, and select the board under its calculated difficulty.
 
 On this Mac, the **Board Workshop** app on the Desktop starts the local webpage
 and opens it in the default browser automatically, so no Terminal command is

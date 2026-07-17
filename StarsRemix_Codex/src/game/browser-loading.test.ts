@@ -88,6 +88,7 @@ describe("browser loading contract", () => {
 
   it("loads the local editor after its classic engine dependency", async () => {
     const editor = await readFile(new URL("../../editor.html", import.meta.url), "utf8");
+    const editorRuntime = await readFile(new URL("../editor/editor.js", import.meta.url), "utf8");
     const enginePosition = editor.indexOf('src="./src/game/engine.js"');
     const hintFiles = ["core", "strategies-basic", "strategies-advanced", "difficulty", "registry"];
     const hintPositions = hintFiles.map((name) =>
@@ -105,6 +106,9 @@ describe("browser loading contract", () => {
     assert.ok(editorPosition > hintPositions.at(-1), "the editor must load after its compatibility runtime");
     assert.match(editor, /href="\.\/src\/editor\/editor\.css"/);
     assert.doesNotMatch(editor, /<script[^>]+type=["']module["']/i);
+    assert.match(editorRuntime, /URL\.createObjectURL\(blob\)/);
+    assert.match(editorRuntime, /link\.download = filename/);
+    assert.doesNotMatch(editorRuntime, /api\/handmade-boards/);
   });
 });
 
