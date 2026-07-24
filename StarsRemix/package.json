@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build:community && node scripts/dev-server.ts",
-    "build": "npm run build:community",
+    "build": "npm run build:community && node scripts/build-static-deploy.js",
     "build:community": "node scripts/build-community-client.js",
     "db:migrate": "node scripts/migrate-database.js",
     "build:library": "node scripts/build-board-library.js",
@@ -16,13 +16,10 @@
     "test": "node --test src/game/*.test.ts",
     "check": "npm test"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@neondatabase/auth": "0.4.2-beta",
     "@neondatabase/serverless": "^1.1.0",
-    "drizzle-orm": "^0.45.2",
-    "jose": "^6.2.4"
-  },
-  "devDependencies": {
     "esbuild": "^0.28.1"
   },
   "overrides": {

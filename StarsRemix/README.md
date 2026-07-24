@@ -41,24 +41,51 @@ open **Boards**, and select the board under its calculated difficulty.
 The workshop can also publish directly to a Neon-backed community library.
 Players build anonymously, then choose **Sign in to publish** only after their
 board has been completed. Neon Auth handles Google sign-in; StarsRemix never
-receives or stores a Google password. Published boards are solved and rated
-again on the server before they are accepted.
+receives or stores a Google password. The static browser client talks directly
+to the Neon Data API with a short-lived Neon Auth token; no application server
+is required.
 
 To connect a deployment:
 
 1. Create or link a Neon project and enable Neon Auth.
 2. Under **Auth → Configuration → OAuth providers**, enable Google. Neon's
    shared Google credentials are the simplest starting option.
-3. Allow `http://localhost:5173` and the production site origin as trusted Auth
-   domains.
-4. Run `neon env pull --file .env.local` (or copy `.env.example`) so the app
-   has `DATABASE_URL`, `NEON_AUTH_BASE_URL`, and `NEON_AUTH_JWKS_URL`.
-5. Run `npm run db:migrate` once for each Neon database branch.
-6. Start the app with `npm run dev`.
+3. Allow `http://localhost:5173`, `http://127.0.0.1:5173`, and the production
+   site origin as trusted Auth domains.
+4. Enable the Data API for the `starsremix` database with Neon Auth as its
+   authentication provider. Restrict CORS to the production origin,
+   `http://localhost:5173`, and `http://127.0.0.1:5173`; do not enable broad
+   default table grants.
+5. Run `neon env pull --file .env.local` so the local build has
+   `DATABASE_URL`, `NEON_DATA_API_URL`, and `NEON_AUTH_BASE_URL`.
+6. Run `npm run db:migrate` once. The migration enables row-level security:
+   boards are publicly readable, publishing requires a signed-in Neon user,
+   and only the owner can delete a board. Updates are not granted.
+7. Start the app with `npm run dev`.
 
 Without these environment variables, the workshop remains fully usable and
 offers JSON download while clearly marking community publishing as unconnected.
-The database connection string and Auth key set URL remain server-only.
+Only the public Data API and Auth service URLs are compiled into the browser
+bundle. `DATABASE_URL` remains local and must never be uploaded.
+
+Before a board is published, the browser solves and rates it again. Postgres
+also checks its dimensions, complete solution, payload sizes, ownership,
+duplicate layout fingerprint, and the 25-board-per-user limit. These database
+checks protect access and reject ordinary malformed submissions; uniqueness
+and difficulty analysis remain browser-side because there is intentionally no
+custom application server.
+
+## DreamHost deployment
+
+Build the upload folder locally:
+
+```sh
+npm run build
+```
+
+Upload the **contents of `dist/`** to the site's web directory. The output is a
+small static site and intentionally excludes `node_modules`, environment files,
+tests, migrations, and developer scripts.
 
 On this Mac, the **Board Workshop** app on the Desktop starts the local webpage
 and opens it in the default browser automatically, so no Terminal command is

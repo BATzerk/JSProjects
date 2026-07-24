@@ -3,39 +3,44 @@ import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 
 describe("community publishing contract", () => {
-  it("keeps database credentials server-side and uses signed Neon Auth tokens", async () => {
+  it("uses signed Neon Auth tokens directly with the Data API", async () => {
     const client = await readFile(new URL("../community/client-entry.js", import.meta.url), "utf8");
     const server = await readFile(new URL("../../scripts/dev-server.ts", import.meta.url), "utf8");
-    const database = await readFile(new URL("../server/community-boards.ts", import.meta.url), "utf8");
 
     assert.doesNotMatch(client, /DATABASE_URL/);
     assert.match(client, /createInternalNeonAuth/);
+    assert.match(client, /allowAnonymous:\s*true/);
     assert.match(client, /neonAuth\.getJWTToken/);
-    assert.match(client, /await getJWTToken\?\.\(\)/);
+    assert.match(client, /await getJWTToken\(\)/);
     assert.match(client, /provider:\s*["']google["']/);
     assert.match(client, /Community publishing has not been set up for this site/);
     assert.doesNotMatch(client, /Connect Neon/);
-    assert.match(server, /solvePuzzle\(puzzle,\s*\{\s*limit:\s*2\s*\}\)/);
-    assert.match(server, /analyzeDifficulty\(puzzle\)/);
-    assert.match(server, /DATABASE_NOT_MIGRATED/);
-    assert.match(server, /NEON_ENDPOINT_NOT_FOUND/);
-    assert.match(server, /RESOURCE_NOT_FOUND/);
-    assert.match(server, /requestId/);
-    assert.match(client, /fallbackResponseMessage/);
+    assert.match(client, /solvePuzzle\(candidate,\s*\{\s*limit:\s*2\s*\}\)/);
+    assert.match(client, /analyzeDifficulty\(candidate\)/);
+    assert.match(client, /\/community_boards/);
+    assert.match(client, /crypto\.subtle\.digest\(["']SHA-256/);
     assert.match(client, /Sign out, sign in again, and retry/);
-    assert.match(database, /jwtVerify/);
-    assert.match(database, /eq\(communityBoards\.ownerId,\s*ownerId\)/);
+    assert.doesNotMatch(server, /\/api\/community/);
   });
 
-  it("ships a migration with ownership, deduplication, and lookup indexes", async () => {
-    const migration = await readFile(
-      new URL("../../drizzle/0000_flat_scalphunter.sql", import.meta.url),
-      "utf8",
-    );
+  it("ships Data API RLS, ownership, validation, limits, and deduplication", async () => {
+    const initialMigration = await readFile(
+      new URL("../../drizzle/0000_flat_scalphunter.sql", import.meta.url), "utf8");
+    const dataApiMigration = await readFile(
+      new URL("../../drizzle/0001_static_data_api.sql", import.meta.url), "utf8");
 
-    assert.match(migration, /"owner_id" text NOT NULL/);
-    assert.match(migration, /community_boards_fingerprint_unique/);
-    assert.match(migration, /community_boards_owner_created_idx/);
+    assert.match(initialMigration, /"owner_id" text NOT NULL/);
+    assert.match(initialMigration, /community_boards_fingerprint_unique/);
+    assert.match(initialMigration, /community_boards_owner_created_idx/);
+    assert.match(dataApiMigration, /ENABLE ROW LEVEL SECURITY/);
+    assert.match(dataApiMigration, /TO anonymous, authenticated\s+USING \(true\)/);
+    assert.match(dataApiMigration, /TO authenticated\s+WITH CHECK \(owner_id = auth\.user_id\(\)\)/);
+    assert.match(dataApiMigration, /FOR DELETE[\s\S]+owner_id = auth\.user_id\(\)/);
+    assert.match(dataApiMigration, /REVOKE ALL ON TABLE community_boards FROM PUBLIC/);
+    assert.match(dataApiMigration, /GRANT INSERT \(id, author_name, title, puzzle, solution, difficulty, fingerprint\)/);
+    assert.match(dataApiMigration, /Each player may publish up to 25 boards/);
+    assert.match(dataApiMigration, /starsremix_valid_solution/);
+    assert.match(dataApiMigration, /digest\(convert_to\(canonical_layout/);
   });
 
   it("shows actionable publishing status and keeps the editor's full technique report", async () => {
