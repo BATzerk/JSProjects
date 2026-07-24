@@ -1,0 +1,74 @@
+[
+  {
+    "id": "dd9cevg9zy",
+    "title": "ENGLISH, PLEASE",
+    "author": "BRETT",
+    "groups": [{"name":"FRENCH WORDS","words":["DÉJÀ VU","AVANT-GARDE","FAUX PAS","ENCORE"]},{"name":"YIDDISH WORDS","words":["TCHOTCHKE","KLUTZ","SCHMOOZE","SPIEL"]},{"name":"SPELLED DIFFERENTLY BRITISH VS. AMERICAN","words":["COLOR","FLAVOR","FAVORITE","THEATER"]},{"name":"FRENCH ____","words":["HORN","TOAST","KISS","BULLDOG"]}],
+    "board": [[3,2],[1,2],[3,1],[0,3],[2,1],[0,2],[3,0],[2,0],[0,1],[1,3],[2,3],[1,0],[2,2],[1,1],[3,3],[0,0]],
+    "created_at": "2026-07-11T15:36:15.52262+00:00"
+  },
+  {
+    "id": "v8pdn2e98c",
+    "title": "FOR CHRIS #1",
+    "author": "BRETT",
+    "groups": [{"name":"FILM CREW JOBS","words":["GRIP","GAFFER","BEST BOY","DP"]},{"name":"SUPPORT WEIGHT","words":["HOLD","CARRY","BEAR","SUPPORT"]},{"name":"THINGS ENGINES DO","words":["IDLE","REV","STALL","SPUTTER"]},{"name":"___ MOON","words":["HONEY","BLUE","HARVEST","FULL"]}],
+    "board": [[3,0],[1,2],[2,2],[2,1],[1,0],[0,2],[2,0],[3,1],[0,0],[2,3],[3,3],[0,1],[1,1],[0,3],[3,2],[1,3]],
+    "created_at": "2026-07-11T15:49:47.445373+00:00"
+  },
+  {
+    "id": "hd4z6mufv9",
+    "title": "FAME AND ATTENTION",
+    "author": "BRETT",
+    "groups": [{"name":"CAMERA SHOTS","words":["WIDE","CLOSE-UP","DUTCH ANGLE","OVER THE SHOULDER"]},{"name":"TAYLOR SWIFT ALBUMS","words":["RED","MIDNIGHTS","1989","LOVER"]},{"name":"IOS FULL-SCREEN TEXT EFFECTS","words":["ECHO","SPOTLIGHT","BALLOONS","CONFETTI"]},{"name":"“GOOD ____” MOVIES","words":["BOY","OMENS","WILL HUNTING","BURGER"]}],
+    "board": [[1,0],[3,3],[3,0],[0,3],[0,2],[1,3],[1,2],[2,2],[2,1],[0,1],[3,1],[2,0],[3,2],[2,3],[0,0],[1,1]],
+    "created_at": "2026-07-11T15:56:45.447385+00:00"
+  },
+  {
+    "id": "6ee6eczbcu",
+    "title": "OBJECTIVELY CORRECT",
+    "author": "CHRIS HALLBERG",
+    "groups": [{"name":"BEST MIKE AND IKE FLAVORS","words":["GREEN","YELLOW","BLUE","PINK"]},{"name":"PARALLEL TO THE GROUND","words":["HEAD","SHOULDERS","KNEES","TOES"]},{"name":"SADDEST YARD SALE ITEMS","words":["POKÉMON CARDS","HOT WHEELS","BEANIE BABIES","EXERCISE EQUIPMENT"]},{"name":"OBSCURE DATA STRUCTURES","words":["BAG","HEAP","STACK","NET"]}],
+    "board": [[2,2],[1,1],[0,2],[3,2],[3,0],[1,2],[3,1],[0,3],[2,1],[2,0],[1,3],[2,3],[0,0],[1,0],[0,1],[3,3]],
+    "created_at": "2026-07-11T16:11:34.380464+00:00"
+  },
+  {
+    "id": "auh8drrnxa",
+    "title": "MANDATORY FUN",
+    "author": "BRETT",
+    "groups": [{"name":"TO MANDATE","words":["ORDER","DIRECT","COMMAND","INSTRUCT"]},{"name":"3D PLATFORMING CHARACTERS","words":["MARIO","CRASH","SPYRO","BANJO"]},{"name":"THINGS YOU SHAKE","words":["HANDS","POLAROID PICTURE","SPRAY PAINT CAN","BOOTY"]},{"name":"PARTY _____","words":["BUS","ANIMAL","POOPER","FOUL"]}],
+    "board": [[2,0],[3,2],[2,3],[3,3],[0,2],[1,0],[0,3],[2,1],[1,1],[0,0],[2,2],[1,3],[3,1],[1,2],[0,1],[3,0]],
+    "created_at": "2026-07-11T16:36:06.743714+00:00"
+  },
+  {
+    "id": "yx3cyfg3rh",
+    "title": "LETTER RIP",
+    "author": "BRETT",
+    "groups": [{"name":"TYPES OF WOOD","words":["BEECH","HICKORY","FIR","POPLAR"]},{"name":"IDIOMATIC PAIRS (FOSSIL WORDS)","words":["FRO","ABET","TRIBULATIONS","SPICK"]},{"name":"HOMOPHONES FOR THE 5 W'S","words":["HOO","WEAR","WEN","Y"]},{"name":"___ COM","words":["DOT","SIT","INTER","ROM"]}],
+    "board": [[0,2],[1,0],[2,1],[2,3],[3,2],[3,3],[0,3],[1,1],[0,0],[1,3],[3,1],[2,2],[1,2],[0,1],[2,0],[3,0]],
+    "created_at": "2026-07-11T16:54:47.334214+00:00"
+  },
+  {
+    "id": "zt6hxjc32k",
+    "title": "ALPHABETICAL ORDER PLEASE",
+    "author": "CHRIS HALLBERG",
+    "groups": [{"name":"YEP! YOU'VE GOT THIS!","words":["APPLE","BANANA","CARROT","DOLLAR"]},{"name":"GOOD FOCUS","words":["EMAIL","EMANUEL","ENAMEL","L!TTLE"]},{"name":"HAD TO BE TRICKY! ALMOST THERE!","words":["LITTLE","MANGO","NETTLE","SCARF"]},{"name":"OH COME ON! YOU WERE SO CLOSE! WHY??","words":["TUBA","XYLOPHONE","YOGURT","ZEBRA"]}],
+    "board": [[0,0],[1,1],[2,1],[3,2],[0,2],[3,0],[0,1],[1,2],[1,3],[1,0],[3,1],[2,3],[3,3],[0,3],[2,0],[2,2]],
+    "created_at": "2026-07-11T16:46:02.39333+00:00"
+  },
+  {
+    "id": "n3rhujs895",
+    "title": "CHATGPT #1",
+    "author": "CHATGPT",
+    "groups": [{"name":"AQUATIC MAMMALS","words":["SEAL","DOLPHIN","OTTER","WHALE"]},{"name":"PEANUTS CHARACTERS","words":["WOODSTOCK","SALLY","PATTY","LINUS"]},{"name":"___ MAIL","words":["VOICE","CHAIN","AIR","FAN"]},{"name":"REMOVE FIRST LETTER TO MAKE A BODY PART","words":["BEAR","SLIP","CHAIR","SNAIL"]}],
+    "board": [[3,2],[2,2],[3,0],[1,1],[2,3],[0,3],[3,1],[2,1],[1,0],[1,3],[3,3],[0,1],[0,2],[1,2],[0,0],[2,0]],
+    "created_at": "2026-07-15T19:56:42.062609+00:00"
+  },
+  {
+    "id": "fkfggaddgv",
+    "title": "CHATGPT #2",
+    "author": "CHATGPT",
+    "groups": [{"name":"CAST ___","words":["ACTOR","SHADOW","SPELL","VOTE"]},{"name":"FOOD PRESERVATION METHODS","words":["CAN","CURE","FREEZE","PICKLE"]},{"name":"PARTS OF A ZIPPER","words":["PULL","SLIDER","TAPE","TEETH"]},{"name":"ELEMENTS CONTROLLED BY A CONDUCTOR","words":["BALANCE","DYNAMICS","ENTRANCES","TEMPO"]}],
+    "board": [[1,2],[2,3],[0,2],[3,2],[0,3],[3,1],[3,0],[0,0],[2,0],[0,1],[1,1],[2,2],[3,3],[2,1],[1,0],[1,3]],
+    "created_at": "2026-07-15T20:49:26.937233+00:00"
+  }
+]

@@ -13,6 +13,7 @@ async function buildLibrary() {
   const requestedCount = readCountArgument();
   const existing = await readLibraryWithHandmade();
   const boards = [...existing.boards];
+  const puzzleKeys = new Set(boards.map(({ puzzle }) => getPuzzleKey(puzzle)));
   const counts = countByDifficulty(boards);
   const outstanding = () => difficultyOrder.some((label) => counts[label] < requestedCount);
 
@@ -42,12 +43,15 @@ async function buildLibrary() {
       const { candidate } = message;
       const label = candidate.difficulty.label;
       if (!difficultyOrder.includes(label) || counts[label] >= requestedCount) return;
+      const puzzleKey = getPuzzleKey(candidate.puzzle);
+      if (puzzleKeys.has(puzzleKey)) return;
 
       const ordinal = counts[label] + 1;
       candidate.puzzle.id = makeLibraryId(label, ordinal, candidate.seed);
       candidate.puzzle.title = `${label} ${String(ordinal).padStart(2, "0")}`;
       delete candidate.seed;
       boards.push(candidate);
+      puzzleKeys.add(puzzleKey);
       counts[label] += 1;
       await writeLibrary({ version: 1, boards });
       console.log(`Saved ${candidate.puzzle.title} (${boards.length} total boards).`);
@@ -110,6 +114,7 @@ async function generateCandidates() {
             label: report.label,
             score: report.score,
             bigTicketCount: report.bigTicketCount,
+            highestTier: report.highestTier,
             logicalSteps: report.steps.length,
           },
         },
@@ -142,6 +147,10 @@ function countByDifficulty(boards) {
 
 function makeLibraryId(label, ordinal, seed) {
   return `library-${label.toLowerCase().replaceAll(" ", "-")}-${String(ordinal).padStart(3, "0")}-${seed.replace("library-9-", "")}`;
+}
+
+function getPuzzleKey(puzzle) {
+  return JSON.stringify([puzzle.size, puzzle.starsPerUnit, puzzle.houses]);
 }
 
 function printCounts(counts, target) {

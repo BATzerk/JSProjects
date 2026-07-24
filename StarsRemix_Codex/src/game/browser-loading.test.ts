@@ -38,6 +38,7 @@ describe("browser loading contract", () => {
     );
     const hintsFirstPosition = hintPositions[0];
     const hintsRegistryPosition = hintPositions[hintPositions.length - 1];
+    const communityPosition = index.indexOf('src="./src/community/community-client.js"');
 
     assert.ok(enginePosition >= 0, "index.html must load the engine runtime");
     assert.ok(statePosition > enginePosition, "game state must load after the engine");
@@ -58,7 +59,8 @@ describe("browser loading contract", () => {
       }
     });
     assert.ok(hintsFirstPosition > serializationPosition, "serialization must load before the hint runtime");
-    assert.ok(appFirstPosition > hintsRegistryPosition, "hint runtime must load before the app");
+    assert.ok(communityPosition > hintsRegistryPosition, "community client must load after the hint runtime");
+    assert.ok(appFirstPosition > communityPosition, "community client must load before the app");
     assert.ok(appFirstPosition > enginePosition, "engine runtime must load before the app");
     assert.ok(appLastPosition > appFirstPosition, "app boot script must load last");
     assert.doesNotMatch(index, /<script[^>]+type=["']module["']/i);
@@ -95,6 +97,7 @@ describe("browser loading contract", () => {
       editor.indexOf(`src="./src/game/hints/${name}.js"`),
     );
     const editorPosition = editor.indexOf('src="./src/editor/editor.js"');
+    const communityPosition = editor.indexOf('src="./src/community/community-client.js"');
 
     assert.ok(enginePosition >= 0, "editor.html must load the engine runtime");
     hintPositions.forEach((position, slot) => {
@@ -103,12 +106,15 @@ describe("browser loading contract", () => {
         assert.ok(position > hintPositions[slot - 1], `editor hints/${hintFiles[slot]}.js must preserve runtime order`);
       }
     });
-    assert.ok(editorPosition > hintPositions.at(-1), "the editor must load after its compatibility runtime");
+    assert.ok(communityPosition > hintPositions.at(-1), "the community client must load after the editor compatibility runtime");
+    assert.ok(editorPosition > communityPosition, "the editor must load after the community client");
     assert.match(editor, /href="\.\/src\/editor\/editor\.css"/);
     assert.doesNotMatch(editor, /<script[^>]+type=["']module["']/i);
     assert.match(editorRuntime, /URL\.createObjectURL\(blob\)/);
     assert.match(editorRuntime, /link\.download = filename/);
     assert.doesNotMatch(editorRuntime, /api\/handmade-boards/);
+    assert.match(editorRuntime, /StarsRemixCommunity\.signInWithGoogle/);
+    assert.match(editorRuntime, /StarsRemixCommunity\.publishBoard/);
   });
 });
 

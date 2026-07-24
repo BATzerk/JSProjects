@@ -43,6 +43,8 @@ function findPlacementPropagationHint({ puzzle, board, units }) {
     touchingMask: cellsToTouchingMask(cells, puzzle.size),
   })));
   if (domains.some((domain) => domain.length === 0)) return null;
+  const initialDomains = domains.map((domain) => [...domain]);
+  const placementFilters = [];
 
   const neighbors = units.map(() => []);
   for (let left = 0; left < units.length; left += 1) {
@@ -61,7 +63,8 @@ function findPlacementPropagationHint({ puzzle, board, units }) {
     queueIndex += 1;
     const intersectionMask = unitMasks[unitIndex] & unitMasks[neighborIndex];
     const enforceTouching = units[unitIndex].kind === "row" && units[neighborIndex].kind === "row";
-    const compatiblePlacements = domains[unitIndex].filter((placement) =>
+    const currentPlacements = domains[unitIndex];
+    const compatiblePlacements = currentPlacements.filter((placement) =>
       domains[neighborIndex].some((neighborPlacement) => placementsAreCompatible(
         placement,
         neighborPlacement,
@@ -69,8 +72,15 @@ function findPlacementPropagationHint({ puzzle, board, units }) {
         enforceTouching,
       )),
     );
-    if (compatiblePlacements.length === domains[unitIndex].length) continue;
+    if (compatiblePlacements.length === currentPlacements.length) continue;
     if (compatiblePlacements.length === 0) return null;
+    const compatibleSet = new Set(compatiblePlacements);
+    placementFilters.push({
+      unitIndex,
+      neighborIndex,
+      removedPlacements: currentPlacements.filter((placement) => !compatibleSet.has(placement)),
+      reason: enforceTouching ? "touching" : "intersection",
+    });
     domains[unitIndex] = compatiblePlacements;
     for (const otherNeighbor of neighbors[unitIndex]) {
       if (otherNeighbor !== neighborIndex) queue.push([otherNeighbor, unitIndex]);
@@ -91,6 +101,7 @@ function findPlacementPropagationHint({ puzzle, board, units }) {
       domains[forcingUnit.index].map((placement) => placement.cells),
       cell,
       "star",
+      createPlacementProof(forcingUnit.index, initialDomains, placementFilters, units),
     );
   }
 
@@ -107,9 +118,23 @@ function findPlacementPropagationHint({ puzzle, board, units }) {
       domains[excludingUnit.index].map((placement) => placement.cells),
       cell,
       "mark",
+      createPlacementProof(excludingUnit.index, initialDomains, placementFilters, units),
     );
   }
   return null;
+}
+
+function createPlacementProof(unitIndex, initialDomains, placementFilters, units) {
+  return {
+    initialPlacements: initialDomains[unitIndex].map((placement) => placement.cells),
+    filters: placementFilters
+      .filter((filter) => filter.unitIndex === unitIndex)
+      .map((filter) => ({
+        neighbor: units[filter.neighborIndex],
+        removedPlacements: filter.removedPlacements.map((placement) => placement.cells),
+        reason: filter.reason,
+      })),
+  };
 }
 
 function unitsConstrainEachOther(leftUnit, rightUnit) {
@@ -141,21 +166,116 @@ function cellsToTouchingMask(cells, size) {
   return cellsToMask(cells.flatMap((cell) => [cell, ...surroundingCells(cell, size)]), size);
 }
 
-function createPlacementPropagationHint(unit, placements, cell, state) {
-  const possibleStars = uniqueCells(placements.flat())
-    .filter((possible) => !sameCell(possible, cell))
-    .sort(compareCells);
+function createPlacementPropagationHint(unit, placements, cell, state, proof = {}) {
   const result = state === "star" ? "must contain a star" : "cannot contain a star";
+  const patternWord = placements.length === 1 ? "pattern" : "patterns";
   return {
     kind: "placement-propagation",
-    message: `After cross-checking the compatible row, column, and house placements, every surviving pattern for ${unit.label} agrees that the blue space ${result}. ${state === "star" ? "Add a star there." : "Mark it with an X."}`,
-    cells: [
-      ...possibleStars.map((possible) => ({ ...possible, color: "gray" })),
-      { ...cell, color: "blue" },
-    ],
+    message: `Cross-unit filtering leaves ${placements.length} complete ${patternWord} for ${unit.label}. Every survivor agrees that the blue space ${result}. ${state === "star" ? "Add a star there." : "Mark it with an X."}`,
+    cells: [{ ...cell, color: "blue" }],
     unitCells: unit.cells,
     moves: [{ ...cell, state }],
+    createSoftHintStages: () =>
+      createPlacementTeachingStages(unit, placements, cell, state, proof),
   };
+}
+
+function createPlacementTeachingStages(unit, placements, cell, state, proof) {
+  const initialPlacements = proof.initialPlacements ?? placements;
+  const filters = proof.filters ?? [];
+  const remainingStars = initialPlacements[0]?.length ?? 0;
+  const initialPatternWord = initialPlacements.length === 1 ? "pattern" : "patterns";
+  const stages = [
+    {
+      message: "Try complete star patterns, not isolated spaces. A pattern that fits one unit may still conflict with a crossing unit.",
+      cells: [],
+    },
+    {
+      message: `${unit.label} needs ${remainingStars} more ${remainingStars === 1 ? "star" : "stars"} and begins with ${initialPlacements.length} locally valid complete ${initialPatternWord}.`,
+      cells: [],
+    },
+  ];
+
+  const rejectedExamples = [];
+  filters.forEach((filter) => {
+    filter.removedPlacements.forEach((placement) => {
+      rejectedExamples.push({ ...filter, placement });
+    });
+  });
+
+  const shownRejectedExamples = rejectedExamples.slice(0, 6);
+  shownRejectedExamples.forEach((example, index) => {
+    const conflictReason = example.reason === "touching"
+      ? `Every currently surviving ${example.neighbor.label} pattern would put stars next to this pattern's stars.`
+      : `${unit.label} and every currently surviving ${example.neighbor.label} pattern disagree about which shared spaces contain stars.`;
+    stages.push({
+      message: `Reject ${unit.label} pattern ${index + 1}: its remaining stars would be at ${formatPlacementCellList(example.placement)}. ${conflictReason}`,
+      cells: example.placement.map((position) => ({
+        ...position,
+        color: "red",
+        previewState: "star",
+      })),
+    });
+  });
+
+  if (rejectedExamples.length > shownRejectedExamples.length) {
+    stages.push({
+      message: `${rejectedExamples.length - shownRejectedExamples.length} more ${unit.label} patterns fail the same cross-unit checks. ${placements.length} survive.`,
+      cells: [],
+    });
+  } else if (rejectedExamples.length > 0) {
+    stages.push({
+      message: `After those cross-unit conflicts are removed, ${placements.length} ${unit.label} ${placements.length === 1 ? "pattern survives" : "patterns survive"}.`,
+      cells: [],
+    });
+  }
+
+  const shownSurvivors = placements.slice(0, 4);
+  shownSurvivors.forEach((placement, index) => {
+    const survivorCells = placement
+      .filter((position) => !sameCell(position, cell))
+      .map((position) => ({
+        ...position,
+        color: "pattern",
+        previewState: "star",
+      }));
+    stages.push({
+      message: `${placements.length > shownSurvivors.length ? "Example of a surviving" : "Surviving"} ${unit.label} pattern ${index + 1} of ${placements.length}: its remaining stars are at ${formatPlacementCellList(placement)}.`,
+      cells: [
+        ...survivorCells,
+        { ...cell, color: "blue" },
+      ],
+    });
+  });
+
+  if (placements.length > shownSurvivors.length) {
+    stages.push({
+      message: `${placements.length - shownSurvivors.length} additional ${unit.label} patterns survive. They are kept separate rather than merged on the board.`,
+      cells: [],
+    });
+  }
+
+  const survivorSubject = placements.length === 1
+    ? `The only surviving ${unit.label} pattern`
+    : `Every one of the ${placements.length} surviving ${unit.label} patterns`;
+  const conclusion = state === "star"
+    ? `${survivorSubject} contains the blue space. It must be a star.`
+    : placements.length === 1
+      ? `${survivorSubject} avoids the blue space. It must be an X.`
+      : `None of the ${placements.length} surviving ${unit.label} patterns contains the blue space. It must be an X.`;
+  stages.push({
+    message: conclusion,
+    cells: [{ ...cell, color: "blue" }],
+  });
+  return stages;
+}
+
+function formatPlacementCellList(placement) {
+  if (placement.length === 0) return "no new spaces";
+  const labels = placement.map(({ row, col }) => `R${row + 1}C${col + 1}`);
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
 }
 
 function createPropagationHint(candidate, failedBranch, assumedState) {

@@ -51,7 +51,7 @@ const els = {
 
 const state = {
   puzzle: null, // normalized puzzle
-  source: 'builtin', // 'builtin' | 'supabase' | 'preview'
+  source: 'builtin', // 'builtin' | 'published' | 'preview'
   shareUrl: '',
   cards: [], // { id, group, word }
   order: [], // unsolved card ids, in grid order
@@ -117,13 +117,13 @@ async function resolvePuzzle() {
     if (!isValidId(id)) throw new Error('That puzzle link doesn’t look right.');
     if (!isConfigured()) {
       throw new Error(
-        'This is a link to a custom puzzle, but Supabase isn’t configured yet. Add your project credentials in src/config.js.'
+        'This is a link to a custom puzzle, but Neon isn’t configured yet. Add the Data API and Auth URLs in src/config.js.'
       );
     }
     showLoading();
     const row = await fetchPuzzle(id);
     if (!row) throw new Error('No puzzle exists at this link. It may have been mistyped.');
-    return { puzzle: normalizePuzzle(row), source: 'supabase', shareUrl: location.href };
+    return { puzzle: normalizePuzzle(row), source: 'published', shareUrl: location.href };
   }
 
   await showBrowser();
@@ -266,7 +266,7 @@ function setProgress(status) {
 
 function progressId() {
   if (state.source === 'builtin') return 'sample';
-  if (state.source !== 'supabase') return '';
+  if (state.source !== 'published') return '';
   return new URLSearchParams(location.search).get('p') || '';
 }
 

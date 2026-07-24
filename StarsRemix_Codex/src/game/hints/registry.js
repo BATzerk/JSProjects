@@ -88,11 +88,11 @@ const techniqueDefinitions = Object.freeze([
   },
   {
     kind: "placement-propagation",
-    title: "Placement Crosscheck",
+    title: "Pattern Elimination",
     tier: "Expert",
     weight: 5,
     bigTicket: true,
-    nudge: "The remaining row, column, and house patterns constrain one another.",
+    nudge: "Complete star patterns that fit one unit may still conflict with a crossing unit.",
     strategy: findPlacementPropagationHint,
   },
   {

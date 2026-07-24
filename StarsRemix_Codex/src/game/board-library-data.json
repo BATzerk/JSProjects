@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-16T02:04:05.275Z",
+  "generatedAt": "2026-07-23T19:13:32.508Z",
   "boards": [
     {
       "puzzle": {
@@ -188,6 +188,7 @@
         "label": "Expert",
         "score": 92,
         "bigTicketCount": 13,
+        "highestTier": "Expert",
         "logicalSteps": 70
       }
     },
@@ -377,13 +378,14 @@
         "label": "Expert",
         "score": 79,
         "bigTicketCount": 10,
+        "highestTier": "Expert",
         "logicalSteps": 69
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-001-9",
-        "title": "Very Hard 01",
+        "title": "Expert 03",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -563,9 +565,10 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 44,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 67
       }
     },
@@ -755,6 +758,7 @@
         "label": "Moderate",
         "score": 9,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 48
       }
     },
@@ -944,13 +948,14 @@
         "label": "Moderate",
         "score": 18,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 54
       }
     },
     {
       "puzzle": {
         "id": "library-expert-003-6",
-        "title": "Expert 03",
+        "title": "Expert 04",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -1133,6 +1138,7 @@
         "label": "Expert",
         "score": 91,
         "bigTicketCount": 16,
+        "highestTier": "Expert",
         "logicalSteps": 65
       }
     },
@@ -1322,6 +1328,7 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
@@ -1511,6 +1518,7 @@
         "label": "Moderate",
         "score": 24,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 59
       }
     },
@@ -1700,13 +1708,14 @@
         "label": "Moderate",
         "score": 6,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 44
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-002-20",
-        "title": "Very Hard 02",
+        "title": "Expert 05",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -1886,16 +1895,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 33,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 58
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-003-28",
-        "title": "Very Hard 03",
+        "title": "Very Hard 01",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -2078,13 +2088,14 @@
         "label": "Very Hard",
         "score": 34,
         "bigTicketCount": 4,
+        "highestTier": "Advanced",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-004-15",
-        "title": "Very Hard 04",
+        "title": "Very Hard 02",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -2267,13 +2278,14 @@
         "label": "Very Hard",
         "score": 32,
         "bigTicketCount": 3,
+        "highestTier": "Advanced",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-expert-004-32",
-        "title": "Expert 04",
+        "title": "Expert 06",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -2456,6 +2468,7 @@
         "label": "Expert",
         "score": 46,
         "bigTicketCount": 6,
+        "highestTier": "Expert",
         "logicalSteps": 56
       }
     },
@@ -2645,6 +2658,7 @@
         "label": "Moderate",
         "score": 13,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 51
       }
     },
@@ -2834,13 +2848,14 @@
         "label": "Moderate",
         "score": 17,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 51
       }
     },
     {
       "puzzle": {
         "id": "library-expert-005-29",
-        "title": "Expert 05",
+        "title": "Expert 07",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -3023,13 +3038,14 @@
         "label": "Expert",
         "score": 66,
         "bigTicketCount": 11,
+        "highestTier": "Expert",
         "logicalSteps": 66
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-005-27",
-        "title": "Very Hard 05",
+        "title": "Very Hard 03",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -3212,6 +3228,7 @@
         "label": "Very Hard",
         "score": 40,
         "bigTicketCount": 4,
+        "highestTier": "Advanced",
         "logicalSteps": 65
       }
     },
@@ -3401,13 +3418,14 @@
         "label": "Moderate",
         "score": 6,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 44
       }
     },
     {
       "puzzle": {
         "id": "library-expert-006-44",
-        "title": "Expert 06",
+        "title": "Expert 08",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -3590,13 +3608,14 @@
         "label": "Expert",
         "score": 56,
         "bigTicketCount": 9,
+        "highestTier": "Expert",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-expert-007-35",
-        "title": "Expert 07",
+        "title": "Expert 09",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -3779,13 +3798,14 @@
         "label": "Expert",
         "score": 55,
         "bigTicketCount": 8,
+        "highestTier": "Expert",
         "logicalSteps": 57
       }
     },
     {
       "puzzle": {
         "id": "library-easy-002-39",
-        "title": "Easy 02",
+        "title": "Moderate 08",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -3965,16 +3985,17 @@
         }
       ],
       "difficulty": {
-        "label": "Easy",
+        "label": "Moderate",
         "score": 2,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 39
       }
     },
     {
       "puzzle": {
         "id": "library-hard-001-37",
-        "title": "Hard 01",
+        "title": "Expert 10",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -4154,16 +4175,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 28,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 59
       }
     },
     {
       "puzzle": {
         "id": "library-hard-002-41",
-        "title": "Hard 02",
+        "title": "Expert 11",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -4343,16 +4365,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 27,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 57
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-008-45",
-        "title": "Moderate 08",
+        "title": "Moderate 09",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -4535,13 +4558,14 @@
         "label": "Moderate",
         "score": 11,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 50
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-009-47",
-        "title": "Moderate 09",
+        "title": "Moderate 10",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -4724,13 +4748,14 @@
         "label": "Moderate",
         "score": 10,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 46
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-010-34",
-        "title": "Moderate 10",
+        "title": "Moderate 11",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -4913,13 +4938,14 @@
         "label": "Moderate",
         "score": 11,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 48
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-011-38",
-        "title": "Moderate 11",
+        "title": "Moderate 12",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -5102,13 +5128,14 @@
         "label": "Moderate",
         "score": 17,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 50
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-012-52",
-        "title": "Moderate 12",
+        "title": "Moderate 13",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -5291,13 +5318,14 @@
         "label": "Moderate",
         "score": 8,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 45
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-013-53",
-        "title": "Moderate 13",
+        "title": "Moderate 14",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -5480,13 +5508,14 @@
         "label": "Moderate",
         "score": 16,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 55
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-014-61",
-        "title": "Moderate 14",
+        "title": "Moderate 15",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -5669,13 +5698,14 @@
         "label": "Moderate",
         "score": 19,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 56
       }
     },
     {
       "puzzle": {
         "id": "library-expert-008-51",
-        "title": "Expert 08",
+        "title": "Expert 12",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -5858,13 +5888,14 @@
         "label": "Expert",
         "score": 86,
         "bigTicketCount": 12,
+        "highestTier": "Expert",
         "logicalSteps": 76
       }
     },
     {
       "puzzle": {
         "id": "library-hard-003-55",
-        "title": "Hard 03",
+        "title": "Expert 13",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -6044,16 +6075,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 22,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 55
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-015-64",
-        "title": "Moderate 15",
+        "title": "Moderate 16",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -6236,13 +6268,14 @@
         "label": "Moderate",
         "score": 13,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 48
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-006-68",
-        "title": "Very Hard 06",
+        "title": "Very Hard 04",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -6425,13 +6458,14 @@
         "label": "Very Hard",
         "score": 29,
         "bigTicketCount": 3,
+        "highestTier": "Advanced",
         "logicalSteps": 59
       }
     },
     {
       "puzzle": {
         "id": "library-expert-009-65",
-        "title": "Expert 09",
+        "title": "Expert 14",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -6614,13 +6648,14 @@
         "label": "Expert",
         "score": 103,
         "bigTicketCount": 15,
+        "highestTier": "Expert",
         "logicalSteps": 77
       }
     },
     {
       "puzzle": {
         "id": "library-expert-010-46",
-        "title": "Expert 10",
+        "title": "Expert 15",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -6803,13 +6838,14 @@
         "label": "Expert",
         "score": 60,
         "bigTicketCount": 12,
+        "highestTier": "Expert",
         "logicalSteps": 57
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-016-50",
-        "title": "Moderate 16",
+        "title": "Moderate 17",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -6992,13 +7028,14 @@
         "label": "Moderate",
         "score": 20,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 57
       }
     },
     {
       "puzzle": {
         "id": "library-expert-011-73",
-        "title": "Expert 11",
+        "title": "Expert 16",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -7181,13 +7218,14 @@
         "label": "Expert",
         "score": 41,
         "bigTicketCount": 6,
+        "highestTier": "Expert",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-expert-012-59",
-        "title": "Expert 12",
+        "title": "Expert 17",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -7370,13 +7408,14 @@
         "label": "Expert",
         "score": 71,
         "bigTicketCount": 10,
+        "highestTier": "Expert",
         "logicalSteps": 69
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-007-76",
-        "title": "Very Hard 07",
+        "title": "Expert 18",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -7556,16 +7595,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 45,
         "bigTicketCount": 4,
+        "highestTier": "Expert",
         "logicalSteps": 62
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-008-80",
-        "title": "Very Hard 08",
+        "title": "Expert 19",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -7745,16 +7785,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 46,
         "bigTicketCount": 4,
+        "highestTier": "Expert",
         "logicalSteps": 67
       }
     },
     {
       "puzzle": {
         "id": "library-easy-003-84",
-        "title": "Easy 03",
+        "title": "Easy 02",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -7937,13 +7978,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-009-81",
-        "title": "Very Hard 09",
+        "title": "Very Hard 05",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -8126,13 +8168,14 @@
         "label": "Very Hard",
         "score": 36,
         "bigTicketCount": 4,
+        "highestTier": "Advanced",
         "logicalSteps": 66
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-017-85",
-        "title": "Moderate 17",
+        "title": "Moderate 18",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -8315,13 +8358,14 @@
         "label": "Moderate",
         "score": 5,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 44
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-010-88",
-        "title": "Very Hard 10",
+        "title": "Expert 20",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -8501,16 +8545,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 35,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 64
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-018-89",
-        "title": "Moderate 18",
+        "title": "Moderate 19",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -8693,13 +8738,14 @@
         "label": "Moderate",
         "score": 9,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 48
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-019-58",
-        "title": "Moderate 19",
+        "title": "Moderate 20",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -8882,13 +8928,14 @@
         "label": "Moderate",
         "score": 7,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 44
       }
     },
     {
       "puzzle": {
         "id": "library-easy-004-62",
-        "title": "Easy 04",
+        "title": "Moderate 21",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -9068,16 +9115,17 @@
         }
       ],
       "difficulty": {
-        "label": "Easy",
+        "label": "Moderate",
         "score": 2,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-hard-004-97",
-        "title": "Hard 04",
+        "title": "Expert 21",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -9257,16 +9305,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 34,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 67
       }
     },
     {
       "puzzle": {
         "id": "library-hard-005-71",
-        "title": "Hard 05",
+        "title": "Expert 22",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -9446,16 +9495,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 30,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 62
       }
     },
     {
       "puzzle": {
         "id": "library-moderate-020-75",
-        "title": "Moderate 20",
+        "title": "Moderate 22",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -9638,13 +9688,14 @@
         "label": "Moderate",
         "score": 21,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-expert-013-66",
-        "title": "Expert 13",
+        "title": "Expert 23",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -9827,13 +9878,14 @@
         "label": "Expert",
         "score": 97,
         "bigTicketCount": 15,
+        "highestTier": "Expert",
         "logicalSteps": 74
       }
     },
     {
       "puzzle": {
         "id": "library-hard-006-70",
-        "title": "Hard 06",
+        "title": "Hard 01",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -10016,13 +10068,14 @@
         "label": "Hard",
         "score": 20,
         "bigTicketCount": 1,
+        "highestTier": "Advanced",
         "logicalSteps": 54
       }
     },
     {
       "puzzle": {
         "id": "library-expert-014-105",
-        "title": "Expert 14",
+        "title": "Expert 24",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -10205,13 +10258,14 @@
         "label": "Expert",
         "score": 52,
         "bigTicketCount": 8,
+        "highestTier": "Expert",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-expert-015-79",
-        "title": "Expert 15",
+        "title": "Expert 25",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -10394,13 +10448,14 @@
         "label": "Expert",
         "score": 82,
         "bigTicketCount": 13,
+        "highestTier": "Expert",
         "logicalSteps": 65
       }
     },
     {
       "puzzle": {
         "id": "library-expert-016-117",
-        "title": "Expert 16",
+        "title": "Expert 26",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -10583,13 +10638,14 @@
         "label": "Expert",
         "score": 54,
         "bigTicketCount": 8,
+        "highestTier": "Expert",
         "logicalSteps": 69
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-011-112",
-        "title": "Very Hard 11",
+        "title": "Expert 27",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -10769,16 +10825,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 56,
         "bigTicketCount": 4,
+        "highestTier": "Expert",
         "logicalSteps": 72
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-012-121",
-        "title": "Very Hard 12",
+        "title": "Expert 28",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -10958,16 +11015,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 57,
         "bigTicketCount": 4,
+        "highestTier": "Expert",
         "logicalSteps": 74
       }
     },
     {
       "puzzle": {
         "id": "library-expert-017-78",
-        "title": "Expert 17",
+        "title": "Expert 29",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -11150,13 +11208,14 @@
         "label": "Expert",
         "score": 62,
         "bigTicketCount": 8,
+        "highestTier": "Expert",
         "logicalSteps": 65
       }
     },
     {
       "puzzle": {
         "id": "library-expert-018-91",
-        "title": "Expert 18",
+        "title": "Expert 30",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -11339,13 +11398,14 @@
         "label": "Expert",
         "score": 53,
         "bigTicketCount": 8,
+        "highestTier": "Expert",
         "logicalSteps": 63
       }
     },
     {
       "puzzle": {
         "id": "library-expert-019-95",
-        "title": "Expert 19",
+        "title": "Expert 31",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -11528,13 +11588,14 @@
         "label": "Expert",
         "score": 50,
         "bigTicketCount": 10,
+        "highestTier": "Expert",
         "logicalSteps": 62
       }
     },
     {
       "puzzle": {
         "id": "library-easy-005-107",
-        "title": "Easy 05",
+        "title": "Easy 03",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -11717,13 +11778,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-hard-007-111",
-        "title": "Hard 07",
+        "title": "Hard 02",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -11906,13 +11968,14 @@
         "label": "Hard",
         "score": 13,
         "bigTicketCount": 1,
+        "highestTier": "Advanced",
         "logicalSteps": 49
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-013-86",
-        "title": "Very Hard 13",
+        "title": "Expert 32",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -12092,16 +12155,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 45,
         "bigTicketCount": 4,
+        "highestTier": "Expert",
         "logicalSteps": 67
       }
     },
     {
       "puzzle": {
         "id": "library-hard-008-115",
-        "title": "Hard 08",
+        "title": "Expert 33",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -12281,16 +12345,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 41,
         "bigTicketCount": 2,
+        "highestTier": "Expert",
         "logicalSteps": 72
       }
     },
     {
       "puzzle": {
         "id": "library-hard-009-90",
-        "title": "Hard 09",
+        "title": "Expert 34",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -12470,16 +12535,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 30,
         "bigTicketCount": 2,
+        "highestTier": "Expert",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-014-98",
-        "title": "Very Hard 14",
+        "title": "Expert 35",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -12659,16 +12725,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 30,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-015-102",
-        "title": "Very Hard 15",
+        "title": "Very Hard 06",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -12851,13 +12918,14 @@
         "label": "Very Hard",
         "score": 29,
         "bigTicketCount": 3,
+        "highestTier": "Advanced",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-hard-010-128",
-        "title": "Hard 10",
+        "title": "Expert 36",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -13037,16 +13105,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 26,
         "bigTicketCount": 2,
+        "highestTier": "Expert",
         "logicalSteps": 57
       }
     },
     {
       "puzzle": {
         "id": "library-expert-020-127",
-        "title": "Expert 20",
+        "title": "Expert 37",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -13229,13 +13298,14 @@
         "label": "Expert",
         "score": 52,
         "bigTicketCount": 5,
+        "highestTier": "Expert",
         "logicalSteps": 71
       }
     },
     {
       "puzzle": {
         "id": "library-hard-011-110",
-        "title": "Hard 11",
+        "title": "Hard 03",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -13418,13 +13488,14 @@
         "label": "Hard",
         "score": 30,
         "bigTicketCount": 1,
+        "highestTier": "Advanced",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-hard-012-122",
-        "title": "Hard 12",
+        "title": "Hard 04",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -13607,13 +13678,14 @@
         "label": "Hard",
         "score": 13,
         "bigTicketCount": 1,
+        "highestTier": "Advanced",
         "logicalSteps": 49
       }
     },
     {
       "puzzle": {
         "id": "library-easy-006-140",
-        "title": "Easy 06",
+        "title": "Moderate 23",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -13793,16 +13865,17 @@
         }
       ],
       "difficulty": {
-        "label": "Easy",
+        "label": "Moderate",
         "score": 2,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 40
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-016-135",
-        "title": "Very Hard 16",
+        "title": "Expert 38",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -13982,16 +14055,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 22,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 52
       }
     },
     {
       "puzzle": {
         "id": "library-hard-013-152",
-        "title": "Hard 13",
+        "title": "Expert 39",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -14171,16 +14245,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 20,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 51
       }
     },
     {
       "puzzle": {
         "id": "library-easy-007-155",
-        "title": "Easy 07",
+        "title": "Moderate 24",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -14360,16 +14435,17 @@
         }
       ],
       "difficulty": {
-        "label": "Easy",
+        "label": "Moderate",
         "score": 1,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 39
       }
     },
     {
       "puzzle": {
         "id": "library-hard-014-171",
-        "title": "Hard 14",
+        "title": "Hard 05",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -14552,13 +14628,14 @@
         "label": "Hard",
         "score": 24,
         "bigTicketCount": 1,
+        "highestTier": "Advanced",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-hard-015-175",
-        "title": "Hard 15",
+        "title": "Hard 06",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -14741,13 +14818,14 @@
         "label": "Hard",
         "score": 25,
         "bigTicketCount": 1,
+        "highestTier": "Advanced",
         "logicalSteps": 58
       }
     },
     {
       "puzzle": {
         "id": "library-hard-016-183",
-        "title": "Hard 16",
+        "title": "Expert 40",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -14927,16 +15005,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 24,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 55
       }
     },
     {
       "puzzle": {
         "id": "library-hard-017-149",
-        "title": "Hard 17",
+        "title": "Hard 07",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -15119,13 +15198,14 @@
         "label": "Hard",
         "score": 26,
         "bigTicketCount": 2,
+        "highestTier": "Advanced",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-017-153",
-        "title": "Very Hard 17",
+        "title": "Expert 41",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -15305,16 +15385,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 36,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-hard-018-191",
-        "title": "Hard 18",
+        "title": "Hard 08",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -15497,13 +15578,14 @@
         "label": "Hard",
         "score": 26,
         "bigTicketCount": 2,
+        "highestTier": "Advanced",
         "logicalSteps": 58
       }
     },
     {
       "puzzle": {
         "id": "library-hard-019-146",
-        "title": "Hard 19",
+        "title": "Expert 42",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -15683,16 +15765,17 @@
         }
       ],
       "difficulty": {
-        "label": "Hard",
+        "label": "Expert",
         "score": 16,
         "bigTicketCount": 1,
+        "highestTier": "Expert",
         "logicalSteps": 49
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-018-203",
-        "title": "Very Hard 18",
+        "title": "Expert 43",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -15872,16 +15955,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 37,
         "bigTicketCount": 4,
+        "highestTier": "Expert",
         "logicalSteps": 62
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-019-227",
-        "title": "Very Hard 19",
+        "title": "Expert 44",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -16061,16 +16145,17 @@
         }
       ],
       "difficulty": {
-        "label": "Very Hard",
+        "label": "Expert",
         "score": 29,
         "bigTicketCount": 3,
+        "highestTier": "Expert",
         "logicalSteps": 61
       }
     },
     {
       "puzzle": {
         "id": "library-hard-020-212",
-        "title": "Hard 20",
+        "title": "Hard 09",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -16253,13 +16338,14 @@
         "label": "Hard",
         "score": 27,
         "bigTicketCount": 2,
+        "highestTier": "Advanced",
         "logicalSteps": 60
       }
     },
     {
       "puzzle": {
         "id": "library-easy-008-214",
-        "title": "Easy 08",
+        "title": "Easy 04",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -16442,13 +16528,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 40
       }
     },
     {
       "puzzle": {
         "id": "library-very-hard-020-230",
-        "title": "Very Hard 20",
+        "title": "Very Hard 07",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -16631,13 +16718,14 @@
         "label": "Very Hard",
         "score": 42,
         "bigTicketCount": 4,
+        "highestTier": "Advanced",
         "logicalSteps": 68
       }
     },
     {
       "puzzle": {
         "id": "library-easy-009-271",
-        "title": "Easy 09",
+        "title": "Easy 05",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -16820,13 +16908,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-easy-010-293",
-        "title": "Easy 10",
+        "title": "Easy 06",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -17009,13 +17098,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-easy-011-316",
-        "title": "Easy 11",
+        "title": "Moderate 25",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -17195,16 +17285,17 @@
         }
       ],
       "difficulty": {
-        "label": "Easy",
+        "label": "Moderate",
         "score": 1,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 41
       }
     },
     {
       "puzzle": {
         "id": "library-easy-012-475",
-        "title": "Easy 12",
+        "title": "Easy 07",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -17387,13 +17478,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 41
       }
     },
     {
       "puzzle": {
         "id": "library-easy-013-507",
-        "title": "Easy 13",
+        "title": "Moderate 26",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -17573,16 +17665,17 @@
         }
       ],
       "difficulty": {
-        "label": "Easy",
+        "label": "Moderate",
         "score": 2,
         "bigTicketCount": 0,
+        "highestTier": "Intermediate",
         "logicalSteps": 39
       }
     },
     {
       "puzzle": {
         "id": "library-easy-014-596",
-        "title": "Easy 14",
+        "title": "Easy 08",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -17765,13 +17858,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-easy-015-649",
-        "title": "Easy 15",
+        "title": "Easy 09",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -17954,13 +18048,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-easy-016-622",
-        "title": "Easy 16",
+        "title": "Easy 10",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -18143,13 +18238,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 41
       }
     },
     {
       "puzzle": {
         "id": "library-easy-017-658",
-        "title": "Easy 17",
+        "title": "Easy 11",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -18332,13 +18428,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-easy-018-836",
-        "title": "Easy 18",
+        "title": "Easy 12",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -18521,13 +18618,14 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 40
       }
     },
     {
       "puzzle": {
         "id": "library-easy-019-931",
-        "title": "Easy 19",
+        "title": "Easy 13",
         "size": 9,
         "starsPerUnit": 2,
         "houses": [
@@ -18710,12 +18808,5713 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
+        "highestTier": "Basic",
         "logicalSteps": 38
       }
     },
     {
       "puzzle": {
         "id": "library-easy-020-920",
+        "title": "Easy 14",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            3,
+            3
+          ],
+          [
+            5,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            5,
+            8,
+            8,
+            8,
+            4,
+            4,
+            4,
+            7,
+            3
+          ],
+          [
+            5,
+            8,
+            4,
+            4,
+            4,
+            2,
+            4,
+            7,
+            7
+          ],
+          [
+            5,
+            5,
+            4,
+            4,
+            2,
+            2,
+            4,
+            7,
+            7
+          ],
+          [
+            5,
+            0,
+            0,
+            2,
+            2,
+            6,
+            4,
+            7,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            2,
+            2,
+            6,
+            4,
+            7,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            2,
+            6,
+            6,
+            4,
+            7,
+            7
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            2,
+            4,
+            4,
+            7,
+            7
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 4
+        },
+        {
+          "row": 0,
+          "col": 8
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 2,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 1
+        },
+        {
+          "row": 3,
+          "col": 5
+        },
+        {
+          "row": 4,
+          "col": 3
+        },
+        {
+          "row": 4,
+          "col": 7
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Easy",
+        "score": 0,
+        "bigTicketCount": 0,
+        "highestTier": "Basic",
+        "logicalSteps": 38
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-010-218",
+        "title": "Hard 10",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            7,
+            7,
+            7,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            3,
+            3,
+            3
+          ],
+          [
+            1,
+            7,
+            5,
+            5,
+            5,
+            5,
+            5,
+            3,
+            3
+          ],
+          [
+            1,
+            8,
+            8,
+            8,
+            5,
+            4,
+            5,
+            6,
+            6
+          ],
+          [
+            1,
+            0,
+            8,
+            8,
+            8,
+            4,
+            5,
+            6,
+            6
+          ],
+          [
+            1,
+            0,
+            0,
+            8,
+            4,
+            4,
+            5,
+            6,
+            2
+          ],
+          [
+            1,
+            0,
+            1,
+            8,
+            4,
+            4,
+            6,
+            6,
+            2
+          ],
+          [
+            1,
+            1,
+            1,
+            8,
+            8,
+            8,
+            6,
+            6,
+            2
+          ],
+          [
+            1,
+            1,
+            1,
+            8,
+            8,
+            8,
+            6,
+            6,
+            2
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 0
+        },
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 1
+        },
+        {
+          "row": 4,
+          "col": 3
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 30,
+        "bigTicketCount": 1,
+        "highestTier": "Advanced",
+        "logicalSteps": 63
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-011-247",
+        "title": "Hard 11",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            2,
+            2,
+            6,
+            6,
+            6,
+            8,
+            8,
+            8,
+            4
+          ],
+          [
+            1,
+            2,
+            6,
+            5,
+            6,
+            3,
+            8,
+            4,
+            4
+          ],
+          [
+            1,
+            2,
+            6,
+            5,
+            6,
+            3,
+            8,
+            8,
+            4
+          ],
+          [
+            1,
+            2,
+            6,
+            5,
+            6,
+            3,
+            3,
+            8,
+            4
+          ],
+          [
+            1,
+            2,
+            5,
+            5,
+            6,
+            3,
+            3,
+            3,
+            4
+          ],
+          [
+            2,
+            2,
+            0,
+            5,
+            5,
+            5,
+            5,
+            3,
+            4
+          ],
+          [
+            2,
+            2,
+            0,
+            0,
+            7,
+            5,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            7,
+            7,
+            7,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            7,
+            7,
+            7,
+            7,
+            3,
+            3
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 19,
+        "bigTicketCount": 1,
+        "highestTier": "Advanced",
+        "logicalSteps": 55
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-012-228",
+        "title": "Hard 12",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            1
+          ],
+          [
+            3,
+            3,
+            6,
+            5,
+            5,
+            6,
+            1,
+            1,
+            1
+          ],
+          [
+            3,
+            3,
+            3,
+            5,
+            5,
+            5,
+            1,
+            7,
+            7
+          ],
+          [
+            3,
+            3,
+            3,
+            0,
+            5,
+            1,
+            1,
+            7,
+            7
+          ],
+          [
+            3,
+            4,
+            4,
+            0,
+            0,
+            1,
+            7,
+            7,
+            7
+          ],
+          [
+            3,
+            4,
+            4,
+            4,
+            0,
+            0,
+            4,
+            4,
+            7
+          ],
+          [
+            8,
+            4,
+            4,
+            4,
+            0,
+            4,
+            4,
+            4,
+            7
+          ],
+          [
+            8,
+            8,
+            4,
+            4,
+            4,
+            4,
+            2,
+            4,
+            7
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            2,
+            2,
+            2,
+            7,
+            7
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 6
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 8
+        },
+        {
+          "row": 2,
+          "col": 1
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 3
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 5,
+          "col": 7
+        },
+        {
+          "row": 6,
+          "col": 0
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 15,
+        "bigTicketCount": 1,
+        "highestTier": "Advanced",
+        "logicalSteps": 51
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-013-226",
+        "title": "Hard 13",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            3,
+            3,
+            8,
+            8,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            3,
+            3,
+            8,
+            8,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            5,
+            3,
+            3,
+            8,
+            0,
+            0,
+            7,
+            0,
+            1
+          ],
+          [
+            5,
+            3,
+            4,
+            8,
+            8,
+            8,
+            7,
+            1,
+            1
+          ],
+          [
+            5,
+            3,
+            4,
+            4,
+            6,
+            8,
+            7,
+            7,
+            1
+          ],
+          [
+            5,
+            3,
+            4,
+            4,
+            6,
+            8,
+            7,
+            7,
+            1
+          ],
+          [
+            5,
+            5,
+            4,
+            4,
+            6,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            5,
+            5,
+            5,
+            6,
+            6,
+            2,
+            2,
+            2,
+            8
+          ],
+          [
+            5,
+            5,
+            5,
+            6,
+            6,
+            6,
+            2,
+            2,
+            8
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 0
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 2
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 4
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 6
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 8
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 8
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 5
+        },
+        {
+          "row": 8,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 7
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 24,
+        "bigTicketCount": 1,
+        "highestTier": "Advanced",
+        "logicalSteps": 54
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-008-244",
+        "title": "Very Hard 08",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            7,
+            7,
+            2,
+            2,
+            2,
+            2,
+            2,
+            4,
+            4
+          ],
+          [
+            7,
+            2,
+            2,
+            7,
+            7,
+            2,
+            1,
+            4,
+            4
+          ],
+          [
+            7,
+            2,
+            7,
+            7,
+            7,
+            6,
+            1,
+            4,
+            4
+          ],
+          [
+            7,
+            7,
+            7,
+            5,
+            5,
+            6,
+            1,
+            1,
+            4
+          ],
+          [
+            3,
+            7,
+            7,
+            5,
+            6,
+            6,
+            1,
+            5,
+            4
+          ],
+          [
+            3,
+            8,
+            8,
+            5,
+            5,
+            6,
+            1,
+            5,
+            4
+          ],
+          [
+            3,
+            3,
+            8,
+            5,
+            1,
+            1,
+            1,
+            5,
+            4
+          ],
+          [
+            3,
+            3,
+            8,
+            5,
+            5,
+            5,
+            5,
+            5,
+            4
+          ],
+          [
+            3,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            5,
+            4
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 6
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 8
+        },
+        {
+          "row": 2,
+          "col": 1
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 3
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 5,
+          "col": 7
+        },
+        {
+          "row": 6,
+          "col": 0
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 2
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 27,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 56
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-014-245",
+        "title": "Hard 14",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            3,
+            3,
+            3
+          ],
+          [
+            5,
+            5,
+            5,
+            5,
+            5,
+            1,
+            3,
+            3,
+            3
+          ],
+          [
+            5,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            0
+          ],
+          [
+            5,
+            5,
+            5,
+            5,
+            7,
+            7,
+            0,
+            0,
+            0
+          ],
+          [
+            8,
+            4,
+            4,
+            5,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            8,
+            4,
+            4,
+            5,
+            6,
+            6,
+            6,
+            6,
+            7
+          ],
+          [
+            8,
+            4,
+            4,
+            5,
+            5,
+            5,
+            5,
+            6,
+            7
+          ],
+          [
+            8,
+            8,
+            4,
+            5,
+            5,
+            5,
+            5,
+            5,
+            7
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 1
+        },
+        {
+          "row": 3,
+          "col": 8
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 6
+        },
+        {
+          "row": 8,
+          "col": 8
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 40,
+        "bigTicketCount": 1,
+        "highestTier": "Advanced",
+        "logicalSteps": 71
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-015-282",
+        "title": "Hard 15",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            5,
+            5,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          [
+            5,
+            5,
+            3,
+            1,
+            3,
+            8,
+            8,
+            1,
+            1
+          ],
+          [
+            5,
+            5,
+            3,
+            3,
+            3,
+            8,
+            8,
+            6,
+            6
+          ],
+          [
+            5,
+            8,
+            3,
+            8,
+            8,
+            8,
+            8,
+            8,
+            6
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            6
+          ],
+          [
+            8,
+            4,
+            4,
+            0,
+            0,
+            7,
+            7,
+            7,
+            6
+          ],
+          [
+            8,
+            4,
+            4,
+            2,
+            0,
+            0,
+            2,
+            2,
+            6
+          ],
+          [
+            8,
+            4,
+            2,
+            2,
+            2,
+            2,
+            2,
+            6,
+            6
+          ],
+          [
+            8,
+            4,
+            4,
+            4,
+            4,
+            6,
+            6,
+            6,
+            6
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 8
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 2,
+          "col": 4
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 4,
+          "col": 7
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 19,
+        "bigTicketCount": 2,
+        "highestTier": "Advanced",
+        "logicalSteps": 50
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-016-302",
+        "title": "Hard 16",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            4,
+            4,
+            4,
+            4,
+            4,
+            6,
+            6,
+            6,
+            6
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            4,
+            4,
+            4,
+            6,
+            4
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            3,
+            1,
+            4,
+            4,
+            4
+          ],
+          [
+            8,
+            3,
+            3,
+            3,
+            3,
+            1,
+            7,
+            7,
+            4
+          ],
+          [
+            2,
+            2,
+            3,
+            3,
+            3,
+            1,
+            7,
+            7,
+            4
+          ],
+          [
+            2,
+            2,
+            0,
+            3,
+            1,
+            1,
+            7,
+            4,
+            4
+          ],
+          [
+            2,
+            2,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            0,
+            0,
+            0,
+            0,
+            5,
+            5,
+            0
+          ],
+          [
+            2,
+            2,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 1
+        },
+        {
+          "row": 8,
+          "col": 3
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 32,
+        "bigTicketCount": 2,
+        "highestTier": "Advanced",
+        "logicalSteps": 62
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-017-277",
+        "title": "Hard 17",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            6,
+            6,
+            6,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            3,
+            8
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            1,
+            8,
+            8,
+            7,
+            8
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            8,
+            8,
+            8,
+            7,
+            7
+          ],
+          [
+            0,
+            7,
+            7,
+            0,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            4,
+            7,
+            7,
+            7,
+            7,
+            5,
+            5,
+            5,
+            5
+          ],
+          [
+            4,
+            4,
+            4,
+            7,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            4,
+            4,
+            4,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 8
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 2,
+          "col": 4
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 4,
+          "col": 7
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 41,
+        "bigTicketCount": 2,
+        "highestTier": "Advanced",
+        "logicalSteps": 70
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-018-297",
+        "title": "Hard 18",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            0,
+            0,
+            7,
+            7,
+            7,
+            7,
+            6,
+            5,
+            5
+          ],
+          [
+            0,
+            0,
+            7,
+            7,
+            6,
+            6,
+            6,
+            5,
+            5
+          ],
+          [
+            0,
+            2,
+            6,
+            6,
+            6,
+            2,
+            6,
+            5,
+            5
+          ],
+          [
+            2,
+            2,
+            6,
+            2,
+            2,
+            2,
+            6,
+            6,
+            5
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            4,
+            4,
+            4,
+            6,
+            5
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            1,
+            4,
+            4,
+            5,
+            5
+          ],
+          [
+            8,
+            8,
+            8,
+            1,
+            1,
+            1,
+            3,
+            5,
+            5
+          ],
+          [
+            8,
+            1,
+            1,
+            1,
+            1,
+            1,
+            3,
+            3,
+            5
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            1,
+            3,
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 6,
+          "col": 8
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 8,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 8
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 23,
+        "bigTicketCount": 1,
+        "highestTier": "Advanced",
+        "logicalSteps": 57
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-019-308",
+        "title": "Hard 19",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            4,
+            5,
+            5,
+            5,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            4,
+            5,
+            5,
+            5,
+            2,
+            7,
+            7,
+            0,
+            0
+          ],
+          [
+            4,
+            3,
+            3,
+            5,
+            2,
+            7,
+            0,
+            0,
+            0
+          ],
+          [
+            4,
+            3,
+            3,
+            5,
+            2,
+            7,
+            0,
+            0,
+            6
+          ],
+          [
+            4,
+            3,
+            3,
+            5,
+            2,
+            2,
+            0,
+            6,
+            6
+          ],
+          [
+            1,
+            3,
+            3,
+            5,
+            2,
+            2,
+            0,
+            0,
+            6
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            6
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            8,
+            8,
+            8
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            8,
+            8,
+            8
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 2
+        },
+        {
+          "row": 0,
+          "col": 6
+        },
+        {
+          "row": 1,
+          "col": 0
+        },
+        {
+          "row": 1,
+          "col": 4
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 2,
+          "col": 7
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 5
+        },
+        {
+          "row": 4,
+          "col": 3
+        },
+        {
+          "row": 4,
+          "col": 7
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 8
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 8
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 37,
+        "bigTicketCount": 2,
+        "highestTier": "Advanced",
+        "logicalSteps": 70
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-hard-020-305",
+        "title": "Hard 20",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            8,
+            8
+          ],
+          [
+            6,
+            3,
+            2,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8
+          ],
+          [
+            6,
+            3,
+            3,
+            2,
+            2,
+            4,
+            4,
+            4,
+            8
+          ],
+          [
+            6,
+            3,
+            5,
+            2,
+            2,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            6,
+            3,
+            5,
+            2,
+            2,
+            8,
+            8,
+            1,
+            1
+          ],
+          [
+            3,
+            3,
+            5,
+            5,
+            5,
+            8,
+            1,
+            1,
+            1
+          ],
+          [
+            3,
+            0,
+            0,
+            0,
+            5,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            0,
+            0,
+            0,
+            7,
+            7,
+            7,
+            7,
+            8,
+            8
+          ],
+          [
+            0,
+            0,
+            0,
+            7,
+            7,
+            7,
+            8,
+            8,
+            8
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 7
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 8
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 6,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 1
+        },
+        {
+          "row": 8,
+          "col": 3
+        }
+      ],
+      "difficulty": {
+        "label": "Hard",
+        "score": 24,
+        "bigTicketCount": 2,
+        "highestTier": "Advanced",
+        "logicalSteps": 57
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-009-348",
+        "title": "Very Hard 09",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            6,
+            6,
+            7,
+            7,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          [
+            6,
+            6,
+            7,
+            7,
+            7,
+            4,
+            4,
+            4,
+            4
+          ],
+          [
+            3,
+            6,
+            7,
+            7,
+            7,
+            7,
+            4,
+            4,
+            4
+          ],
+          [
+            3,
+            6,
+            6,
+            2,
+            2,
+            2,
+            8,
+            8,
+            4
+          ],
+          [
+            3,
+            6,
+            6,
+            2,
+            2,
+            2,
+            8,
+            8,
+            1
+          ],
+          [
+            3,
+            3,
+            6,
+            5,
+            5,
+            8,
+            8,
+            1,
+            1
+          ],
+          [
+            3,
+            3,
+            8,
+            5,
+            5,
+            8,
+            0,
+            1,
+            1
+          ],
+          [
+            3,
+            3,
+            8,
+            5,
+            5,
+            8,
+            0,
+            0,
+            1
+          ],
+          [
+            3,
+            3,
+            8,
+            8,
+            8,
+            8,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 0
+        },
+        {
+          "row": 0,
+          "col": 4
+        },
+        {
+          "row": 1,
+          "col": 2
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 3
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 1
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 3
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 38,
+        "bigTicketCount": 4,
+        "highestTier": "Advanced",
+        "logicalSteps": 67
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-010-349",
+        "title": "Very Hard 10",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            4,
+            4,
+            4,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            4,
+            4,
+            7,
+            7,
+            1,
+            5,
+            7,
+            7,
+            7
+          ],
+          [
+            6,
+            7,
+            7,
+            7,
+            1,
+            5,
+            5,
+            0,
+            0
+          ],
+          [
+            6,
+            8,
+            8,
+            7,
+            1,
+            5,
+            0,
+            0,
+            0
+          ],
+          [
+            6,
+            8,
+            8,
+            7,
+            1,
+            5,
+            0,
+            0,
+            0
+          ],
+          [
+            6,
+            8,
+            7,
+            7,
+            7,
+            5,
+            5,
+            5,
+            5
+          ],
+          [
+            6,
+            6,
+            7,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            7,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            7,
+            7,
+            2,
+            2,
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 2
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 0
+        },
+        {
+          "row": 1,
+          "col": 4
+        },
+        {
+          "row": 2,
+          "col": 6
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 7
+        },
+        {
+          "row": 8,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 5
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 41,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 68
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-011-368",
+        "title": "Very Hard 11",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            3,
+            3,
+            7,
+            7,
+            7,
+            7,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            7,
+            7,
+            4,
+            4,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            7,
+            4,
+            4,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            3,
+            3,
+            4,
+            4,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            2,
+            3,
+            8,
+            4,
+            4,
+            4,
+            5
+          ],
+          [
+            5,
+            5,
+            3,
+            3,
+            8,
+            8,
+            4,
+            5,
+            5
+          ],
+          [
+            5,
+            5,
+            5,
+            3,
+            8,
+            8,
+            8,
+            5,
+            5
+          ],
+          [
+            1,
+            1,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            6
+          ],
+          [
+            1,
+            1,
+            1,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 7
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 34,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 65
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-012-410",
+        "title": "Very Hard 12",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            5,
+            5,
+            0,
+            0,
+            0,
+            0,
+            6,
+            6,
+            7
+          ],
+          [
+            5,
+            5,
+            0,
+            0,
+            6,
+            6,
+            6,
+            6,
+            7
+          ],
+          [
+            5,
+            5,
+            6,
+            6,
+            6,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            6,
+            6,
+            6,
+            3,
+            3,
+            3,
+            3,
+            7,
+            7
+          ],
+          [
+            6,
+            1,
+            1,
+            1,
+            1,
+            1,
+            3,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            6,
+            4,
+            4,
+            4,
+            4,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            6,
+            2,
+            2,
+            2,
+            4,
+            4,
+            2,
+            2,
+            8
+          ],
+          [
+            6,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 0
+        },
+        {
+          "row": 0,
+          "col": 4
+        },
+        {
+          "row": 1,
+          "col": 2
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 3
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 1
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 3
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 34,
+        "bigTicketCount": 4,
+        "highestTier": "Advanced",
+        "logicalSteps": 60
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-013-483",
+        "title": "Very Hard 13",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            7,
+            7,
+            7,
+            7,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            7,
+            3,
+            3,
+            3,
+            3,
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            7,
+            7,
+            7,
+            7,
+            7,
+            1,
+            1,
+            8,
+            8
+          ],
+          [
+            4,
+            2,
+            2,
+            7,
+            7,
+            1,
+            1,
+            1,
+            8
+          ],
+          [
+            4,
+            4,
+            2,
+            7,
+            7,
+            1,
+            6,
+            8,
+            8
+          ],
+          [
+            4,
+            4,
+            2,
+            6,
+            6,
+            6,
+            6,
+            6,
+            8
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            2,
+            5,
+            6,
+            6,
+            6
+          ],
+          [
+            0,
+            0,
+            0,
+            2,
+            2,
+            5,
+            5,
+            6,
+            6
+          ],
+          [
+            0,
+            0,
+            2,
+            2,
+            2,
+            5,
+            5,
+            5,
+            6
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 8
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 2,
+          "col": 4
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 4,
+          "col": 7
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 35,
+        "bigTicketCount": 4,
+        "highestTier": "Advanced",
+        "logicalSteps": 63
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-014-684",
+        "title": "Very Hard 14",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            4,
+            4,
+            4,
+            2,
+            2,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            4,
+            4,
+            2,
+            2,
+            2,
+            2,
+            2,
+            7,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            0,
+            0,
+            8,
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            0,
+            0,
+            0,
+            8,
+            8,
+            8,
+            2
+          ],
+          [
+            2,
+            2,
+            5,
+            0,
+            5,
+            5,
+            1,
+            8,
+            2
+          ],
+          [
+            2,
+            2,
+            5,
+            0,
+            0,
+            5,
+            1,
+            2,
+            2
+          ],
+          [
+            3,
+            3,
+            5,
+            5,
+            0,
+            5,
+            1,
+            1,
+            2
+          ],
+          [
+            3,
+            3,
+            5,
+            5,
+            5,
+            5,
+            1,
+            1,
+            6
+          ],
+          [
+            3,
+            3,
+            3,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 2
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 0
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 1
+        },
+        {
+          "row": 8,
+          "col": 3
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 23,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 53
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-015-688",
+        "title": "Very Hard 15",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            2,
+            2,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            3
+          ],
+          [
+            2,
+            2,
+            2,
+            4,
+            6,
+            3,
+            3,
+            3,
+            3
+          ],
+          [
+            6,
+            2,
+            2,
+            4,
+            6,
+            3,
+            0,
+            0,
+            3
+          ],
+          [
+            6,
+            6,
+            4,
+            4,
+            6,
+            8,
+            8,
+            0,
+            3
+          ],
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            8,
+            8,
+            0,
+            3
+          ],
+          [
+            6,
+            5,
+            5,
+            6,
+            6,
+            8,
+            8,
+            0,
+            0
+          ],
+          [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            5,
+            5,
+            7,
+            7,
+            7,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            5,
+            7,
+            7,
+            7,
+            0,
+            0
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 1
+        },
+        {
+          "row": 2,
+          "col": 7
+        },
+        {
+          "row": 3,
+          "col": 3
+        },
+        {
+          "row": 3,
+          "col": 5
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 8
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 6,
+          "col": 8
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 27,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 55
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-016-813",
+        "title": "Very Hard 16",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            2,
+            2,
+            7,
+            7,
+            7,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            7,
+            7,
+            8,
+            8,
+            8
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            7,
+            7,
+            1,
+            1,
+            1
+          ],
+          [
+            4,
+            4,
+            4,
+            2,
+            2,
+            7,
+            1,
+            1,
+            1
+          ],
+          [
+            4,
+            4,
+            4,
+            6,
+            6,
+            7,
+            5,
+            1,
+            1
+          ],
+          [
+            4,
+            4,
+            0,
+            6,
+            7,
+            7,
+            5,
+            5,
+            1
+          ],
+          [
+            4,
+            0,
+            0,
+            6,
+            7,
+            5,
+            5,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            0,
+            6,
+            7,
+            7,
+            7,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            6,
+            6,
+            7,
+            7,
+            3,
+            3,
+            3
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 5
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 8
+        },
+        {
+          "row": 2,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 6
+        },
+        {
+          "row": 3,
+          "col": 1
+        },
+        {
+          "row": 3,
+          "col": 8
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 7
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 25,
+        "bigTicketCount": 4,
+        "highestTier": "Advanced",
+        "logicalSteps": 56
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-017-726",
+        "title": "Very Hard 17",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            6,
+            6,
+            4,
+            4,
+            4,
+            5,
+            5,
+            2,
+            2
+          ],
+          [
+            6,
+            6,
+            4,
+            4,
+            5,
+            5,
+            5,
+            2,
+            2
+          ],
+          [
+            8,
+            6,
+            4,
+            4,
+            5,
+            5,
+            5,
+            2,
+            2
+          ],
+          [
+            8,
+            6,
+            6,
+            6,
+            5,
+            5,
+            5,
+            2,
+            2
+          ],
+          [
+            8,
+            6,
+            6,
+            0,
+            0,
+            0,
+            5,
+            3,
+            3
+          ],
+          [
+            8,
+            6,
+            6,
+            0,
+            6,
+            0,
+            5,
+            3,
+            3
+          ],
+          [
+            8,
+            7,
+            6,
+            6,
+            6,
+            0,
+            3,
+            3,
+            3
+          ],
+          [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            3,
+            3,
+            7
+          ],
+          [
+            7,
+            1,
+            1,
+            1,
+            1,
+            7,
+            7,
+            7,
+            7
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 4
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 1,
+          "col": 8
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 3
+        },
+        {
+          "row": 5,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 7
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 7,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 2
+        },
+        {
+          "row": 8,
+          "col": 4
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 30,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 59
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-018-776",
+        "title": "Very Hard 18",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            2,
+            7,
+            7,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            6,
+            6,
+            6,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            4,
+            3,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            4,
+            4,
+            4,
+            4,
+            4,
+            3,
+            3
+          ],
+          [
+            6,
+            6,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            8
+          ],
+          [
+            6,
+            6,
+            5,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            5,
+            5,
+            5,
+            1,
+            1,
+            1,
+            8,
+            8,
+            8
+          ],
+          [
+            5,
+            5,
+            5,
+            1,
+            1,
+            1,
+            8,
+            8,
+            8
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 1
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 4
+        },
+        {
+          "row": 3,
+          "col": 6
+        },
+        {
+          "row": 4,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 8
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 6,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 7,
+          "col": 0
+        },
+        {
+          "row": 7,
+          "col": 7
+        },
+        {
+          "row": 8,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 5
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 31,
+        "bigTicketCount": 4,
+        "highestTier": "Advanced",
+        "logicalSteps": 57
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-019-811",
+        "title": "Very Hard 19",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            8,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            8,
+            8,
+            8,
+            3,
+            3
+          ],
+          [
+            0,
+            0,
+            1,
+            1,
+            8,
+            8,
+            8,
+            3,
+            5
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            7,
+            8,
+            8,
+            3,
+            5
+          ],
+          [
+            0,
+            1,
+            1,
+            1,
+            7,
+            7,
+            7,
+            3,
+            5
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            4,
+            7,
+            7,
+            3,
+            5
+          ],
+          [
+            2,
+            2,
+            6,
+            6,
+            4,
+            3,
+            3,
+            3,
+            4
+          ],
+          [
+            2,
+            2,
+            6,
+            4,
+            4,
+            3,
+            4,
+            4,
+            4
+          ],
+          [
+            2,
+            2,
+            6,
+            6,
+            4,
+            4,
+            4,
+            4,
+            4
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 0
+        },
+        {
+          "row": 1,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 4
+        },
+        {
+          "row": 3,
+          "col": 6
+        },
+        {
+          "row": 4,
+          "col": 1
+        },
+        {
+          "row": 4,
+          "col": 8
+        },
+        {
+          "row": 5,
+          "col": 4
+        },
+        {
+          "row": 5,
+          "col": 6
+        },
+        {
+          "row": 6,
+          "col": 0
+        },
+        {
+          "row": 6,
+          "col": 2
+        },
+        {
+          "row": 7,
+          "col": 5
+        },
+        {
+          "row": 7,
+          "col": 7
+        },
+        {
+          "row": 8,
+          "col": 1
+        },
+        {
+          "row": 8,
+          "col": 3
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 37,
+        "bigTicketCount": 4,
+        "highestTier": "Advanced",
+        "logicalSteps": 68
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-very-hard-020-830",
+        "title": "Very Hard 20",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            2,
+            6,
+            6,
+            7,
+            7,
+            7,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            6,
+            7,
+            7,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            2,
+            6,
+            6,
+            7,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            2,
+            2,
+            6,
+            7,
+            7,
+            8,
+            8,
+            8
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            5,
+            7,
+            8,
+            8,
+            8
+          ],
+          [
+            3,
+            3,
+            5,
+            5,
+            5,
+            5,
+            5,
+            8,
+            8
+          ],
+          [
+            5,
+            5,
+            5,
+            4,
+            4,
+            4,
+            5,
+            4,
+            4
+          ],
+          [
+            5,
+            5,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          [
+            5,
+            5,
+            4,
+            4,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 2
+        },
+        {
+          "row": 0,
+          "col": 4
+        },
+        {
+          "row": 1,
+          "col": 0
+        },
+        {
+          "row": 1,
+          "col": 7
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 3
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 4
+        },
+        {
+          "row": 8,
+          "col": 6
+        }
+      ],
+      "difficulty": {
+        "label": "Very Hard",
+        "score": 25,
+        "bigTicketCount": 3,
+        "highestTier": "Advanced",
+        "logicalSteps": 57
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-easy-015-995",
+        "title": "Easy 15",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            3,
+            3,
+            3,
+            7,
+            6,
+            6,
+            6,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            7,
+            6,
+            6,
+            6,
+            0,
+            0
+          ],
+          [
+            3,
+            3,
+            3,
+            7,
+            6,
+            6,
+            7,
+            0,
+            0
+          ],
+          [
+            4,
+            3,
+            5,
+            7,
+            7,
+            7,
+            7,
+            7,
+            0
+          ],
+          [
+            4,
+            4,
+            5,
+            7,
+            8,
+            8,
+            2,
+            7,
+            0
+          ],
+          [
+            4,
+            4,
+            5,
+            5,
+            8,
+            8,
+            2,
+            7,
+            7
+          ],
+          [
+            1,
+            1,
+            5,
+            5,
+            5,
+            8,
+            2,
+            2,
+            7
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            5,
+            5,
+            7,
+            7,
+            7
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            5,
+            7,
+            7,
+            7
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 1
+        },
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 1,
+          "col": 8
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 2,
+          "col": 4
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 8
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 6,
+          "col": 7
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 5
+        },
+        {
+          "row": 8,
+          "col": 7
+        }
+      ],
+      "difficulty": {
+        "label": "Easy",
+        "score": 0,
+        "bigTicketCount": 0,
+        "highestTier": "Basic",
+        "logicalSteps": 39
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-easy-016-996",
+        "title": "Easy 16",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            0,
+            0,
+            0,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            0,
+            0,
+            0,
+            8,
+            7,
+            7,
+            3,
+            3,
+            3
+          ],
+          [
+            0,
+            5,
+            0,
+            8,
+            7,
+            7,
+            7,
+            7,
+            3
+          ],
+          [
+            0,
+            5,
+            0,
+            8,
+            6,
+            6,
+            6,
+            7,
+            7
+          ],
+          [
+            0,
+            5,
+            5,
+            8,
+            6,
+            4,
+            4,
+            7,
+            7
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            4,
+            4,
+            1,
+            7,
+            7
+          ],
+          [
+            8,
+            2,
+            2,
+            2,
+            1,
+            4,
+            1,
+            1,
+            1
+          ],
+          [
+            8,
+            8,
+            2,
+            1,
+            1,
+            4,
+            1,
+            1,
+            1
+          ],
+          [
+            8,
+            8,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 2
+        },
+        {
+          "row": 0,
+          "col": 8
+        },
+        {
+          "row": 1,
+          "col": 4
+        },
+        {
+          "row": 1,
+          "col": 6
+        },
+        {
+          "row": 2,
+          "col": 1
+        },
+        {
+          "row": 2,
+          "col": 8
+        },
+        {
+          "row": 3,
+          "col": 4
+        },
+        {
+          "row": 3,
+          "col": 6
+        },
+        {
+          "row": 4,
+          "col": 0
+        },
+        {
+          "row": 4,
+          "col": 2
+        },
+        {
+          "row": 5,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 7
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 7,
+          "col": 5
+        },
+        {
+          "row": 7,
+          "col": 7
+        },
+        {
+          "row": 8,
+          "col": 0
+        },
+        {
+          "row": 8,
+          "col": 3
+        }
+      ],
+      "difficulty": {
+        "label": "Easy",
+        "score": 0,
+        "bigTicketCount": 0,
+        "highestTier": "Basic",
+        "logicalSteps": 38
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-easy-017-1163",
+        "title": "Easy 17",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            7,
+            7,
+            7,
+            4,
+            4,
+            4,
+            1,
+            1,
+            1
+          ],
+          [
+            7,
+            7,
+            7,
+            4,
+            4,
+            4,
+            4,
+            1,
+            1
+          ],
+          [
+            7,
+            7,
+            7,
+            7,
+            2,
+            2,
+            4,
+            8,
+            8
+          ],
+          [
+            6,
+            0,
+            0,
+            7,
+            2,
+            2,
+            4,
+            8,
+            8
+          ],
+          [
+            6,
+            0,
+            7,
+            7,
+            2,
+            4,
+            4,
+            8,
+            4
+          ],
+          [
+            6,
+            0,
+            7,
+            7,
+            3,
+            4,
+            4,
+            4,
+            4
+          ],
+          [
+            6,
+            0,
+            7,
+            7,
+            3,
+            3,
+            5,
+            4,
+            4
+          ],
+          [
+            0,
+            0,
+            3,
+            3,
+            3,
+            3,
+            5,
+            4,
+            4
+          ],
+          [
+            0,
+            0,
+            3,
+            3,
+            3,
+            5,
+            5,
+            4,
+            4
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 6
+        },
+        {
+          "row": 0,
+          "col": 8
+        },
+        {
+          "row": 1,
+          "col": 1
+        },
+        {
+          "row": 1,
+          "col": 3
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 7
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 7
+        },
+        {
+          "row": 5,
+          "col": 0
+        },
+        {
+          "row": 5,
+          "col": 2
+        },
+        {
+          "row": 6,
+          "col": 4
+        },
+        {
+          "row": 6,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 5
+        }
+      ],
+      "difficulty": {
+        "label": "Easy",
+        "score": 0,
+        "bigTicketCount": 0,
+        "highestTier": "Basic",
+        "logicalSteps": 39
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-easy-018-1321",
+        "title": "Easy 18",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            2,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            6,
+            6
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            6
+          ],
+          [
+            2,
+            1,
+            1,
+            5,
+            5,
+            3,
+            3,
+            8,
+            6
+          ],
+          [
+            4,
+            1,
+            1,
+            5,
+            5,
+            3,
+            8,
+            8,
+            6
+          ],
+          [
+            4,
+            4,
+            1,
+            5,
+            3,
+            3,
+            8,
+            6,
+            6
+          ],
+          [
+            4,
+            4,
+            5,
+            5,
+            3,
+            3,
+            6,
+            6,
+            7
+          ],
+          [
+            4,
+            5,
+            5,
+            5,
+            3,
+            3,
+            6,
+            6,
+            7
+          ],
+          [
+            4,
+            4,
+            4,
+            4,
+            4,
+            7,
+            7,
+            7,
+            7
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            7,
+            7,
+            7
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 3
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 0
+        },
+        {
+          "row": 1,
+          "col": 5
+        },
+        {
+          "row": 2,
+          "col": 2
+        },
+        {
+          "row": 2,
+          "col": 7
+        },
+        {
+          "row": 3,
+          "col": 0
+        },
+        {
+          "row": 3,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 2
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 4
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 6
+        },
+        {
+          "row": 7,
+          "col": 3
+        },
+        {
+          "row": 7,
+          "col": 8
+        },
+        {
+          "row": 8,
+          "col": 1
+        },
+        {
+          "row": 8,
+          "col": 5
+        }
+      ],
+      "difficulty": {
+        "label": "Easy",
+        "score": 0,
+        "bigTicketCount": 0,
+        "highestTier": "Basic",
+        "logicalSteps": 39
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-easy-019-1368",
+        "title": "Easy 19",
+        "size": 9,
+        "starsPerUnit": 2,
+        "houses": [
+          [
+            4,
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4,
+            4,
+            0,
+            0,
+            6,
+            6,
+            6,
+            6,
+            6
+          ],
+          [
+            4,
+            0,
+            0,
+            0,
+            6,
+            6,
+            5,
+            6,
+            6
+          ],
+          [
+            7,
+            3,
+            3,
+            5,
+            5,
+            5,
+            5,
+            6,
+            6
+          ],
+          [
+            7,
+            3,
+            3,
+            5,
+            5,
+            5,
+            1,
+            1,
+            6
+          ],
+          [
+            7,
+            7,
+            3,
+            3,
+            3,
+            3,
+            3,
+            1,
+            1
+          ],
+          [
+            8,
+            7,
+            7,
+            7,
+            8,
+            8,
+            3,
+            3,
+            3
+          ],
+          [
+            8,
+            8,
+            8,
+            8,
+            8,
+            2,
+            2,
+            3,
+            3
+          ],
+          [
+            8,
+            8,
+            8,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3
+          ]
+        ]
+      },
+      "solution": [
+        {
+          "row": 0,
+          "col": 0
+        },
+        {
+          "row": 0,
+          "col": 7
+        },
+        {
+          "row": 1,
+          "col": 2
+        },
+        {
+          "row": 1,
+          "col": 4
+        },
+        {
+          "row": 2,
+          "col": 0
+        },
+        {
+          "row": 2,
+          "col": 6
+        },
+        {
+          "row": 3,
+          "col": 2
+        },
+        {
+          "row": 3,
+          "col": 8
+        },
+        {
+          "row": 4,
+          "col": 4
+        },
+        {
+          "row": 4,
+          "col": 6
+        },
+        {
+          "row": 5,
+          "col": 1
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 3
+        },
+        {
+          "row": 6,
+          "col": 5
+        },
+        {
+          "row": 7,
+          "col": 1
+        },
+        {
+          "row": 7,
+          "col": 7
+        },
+        {
+          "row": 8,
+          "col": 3
+        },
+        {
+          "row": 8,
+          "col": 5
+        }
+      ],
+      "difficulty": {
+        "label": "Easy",
+        "score": 0,
+        "bigTicketCount": 0,
+        "highestTier": "Basic",
+        "logicalSteps": 38
+      }
+    },
+    {
+      "puzzle": {
+        "id": "library-easy-020-1499",
         "title": "Easy 20",
         "size": 9,
         "starsPerUnit": 2,
@@ -18725,166 +24524,166 @@
             5,
             5,
             5,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          [
+            6,
+            5,
+            2,
             5,
             5,
             5,
+            5,
+            5,
+            8
+          ],
+          [
+            6,
+            5,
+            2,
+            2,
+            2,
+            2,
+            8,
+            8,
+            8
+          ],
+          [
+            6,
+            1,
+            1,
+            1,
+            2,
+            8,
+            8,
             3,
             3
           ],
           [
-            5,
+            6,
             1,
             1,
-            1,
-            1,
-            1,
-            1,
+            4,
+            8,
+            8,
+            3,
             3,
             3
           ],
           [
-            5,
-            8,
-            8,
-            8,
+            6,
+            6,
             4,
             4,
             4,
-            7,
+            3,
+            3,
+            3,
+            0
+          ],
+          [
+            6,
+            4,
+            4,
+            4,
+            3,
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            6,
+            6,
+            6,
+            6,
+            6,
+            3,
+            3,
+            3,
             3
           ],
           [
-            5,
-            8,
-            4,
-            4,
-            4,
-            2,
-            4,
-            7,
-            7
-          ],
-          [
-            5,
-            5,
-            4,
-            4,
-            2,
-            2,
-            4,
-            7,
-            7
-          ],
-          [
-            5,
-            0,
-            0,
-            2,
-            2,
-            6,
-            4,
-            7,
-            7
-          ],
-          [
-            0,
-            0,
-            0,
-            2,
-            2,
-            6,
-            4,
-            7,
-            7
-          ],
-          [
-            0,
-            0,
-            0,
-            2,
             6,
             6,
-            4,
             7,
-            7
-          ],
-          [
-            0,
-            2,
-            2,
-            2,
-            2,
-            4,
-            4,
             7,
-            7
+            7,
+            7,
+            7,
+            3,
+            3
           ]
         ]
       },
       "solution": [
         {
           "row": 0,
-          "col": 4
+          "col": 0
         },
         {
           "row": 0,
-          "col": 8
+          "col": 4
         },
         {
           "row": 1,
-          "col": 1
-        },
-        {
-          "row": 1,
-          "col": 6
-        },
-        {
-          "row": 2,
-          "col": 3
-        },
-        {
-          "row": 2,
-          "col": 8
-        },
-        {
-          "row": 3,
-          "col": 1
-        },
-        {
-          "row": 3,
-          "col": 5
-        },
-        {
-          "row": 4,
-          "col": 3
-        },
-        {
-          "row": 4,
-          "col": 7
-        },
-        {
-          "row": 5,
-          "col": 0
-        },
-        {
-          "row": 5,
-          "col": 5
-        },
-        {
-          "row": 6,
           "col": 2
         },
         {
-          "row": 6,
+          "row": 1,
           "col": 7
         },
         {
-          "row": 7,
+          "row": 2,
           "col": 0
+        },
+        {
+          "row": 2,
+          "col": 5
+        },
+        {
+          "row": 3,
+          "col": 3
+        },
+        {
+          "row": 3,
+          "col": 7
+        },
+        {
+          "row": 4,
+          "col": 1
+        },
+        {
+          "row": 4,
+          "col": 5
+        },
+        {
+          "row": 5,
+          "col": 3
+        },
+        {
+          "row": 5,
+          "col": 8
+        },
+        {
+          "row": 6,
+          "col": 1
+        },
+        {
+          "row": 6,
+          "col": 6
         },
         {
           "row": 7,
           "col": 4
+        },
+        {
+          "row": 7,
+          "col": 8
         },
         {
           "row": 8,
@@ -18899,7 +24698,8 @@
         "label": "Easy",
         "score": 0,
         "bigTicketCount": 0,
-        "logicalSteps": 38
+        "highestTier": "Basic",
+        "logicalSteps": 37
       }
     }
   ]

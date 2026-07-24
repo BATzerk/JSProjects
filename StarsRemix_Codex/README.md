@@ -38,6 +38,30 @@ The import revalidates the board, saves its permanent source under
 `boards/handmade/`, and rebuilds both gameplay catalog files. Reload `index.html`,
 open **Boards**, and select the board under its calculated difficulty.
 
+### Community publishing with Google
+
+The workshop can also publish directly to a Neon-backed community library.
+Players build anonymously, then choose **Sign in to publish** only after their
+board has been completed. Neon Auth handles Google sign-in; StarsRemix never
+receives or stores a Google password. Published boards are solved and rated
+again on the server before they are accepted.
+
+To connect a deployment:
+
+1. Create or link a Neon project and enable Neon Auth.
+2. Under **Auth → Configuration → OAuth providers**, enable Google. Neon's
+   shared Google credentials are the simplest starting option.
+3. Allow `http://localhost:5173` and the production site origin as trusted Auth
+   domains.
+4. Run `neon env pull --file .env.local` (or copy `.env.example`) so the app
+   has `DATABASE_URL`, `NEON_AUTH_BASE_URL`, and `NEON_AUTH_JWKS_URL`.
+5. Run `npm run db:migrate` once for each Neon database branch.
+6. Start the app with `npm run dev`.
+
+Without these environment variables, the workshop remains fully usable and
+offers JSON download while clearly marking community publishing as unconnected.
+The database connection string and Auth key set URL remain server-only.
+
 On this Mac, the **Board Workshop** app on the Desktop starts the local webpage
 and opens it in the default browser automatically, so no Terminal command is
 required.

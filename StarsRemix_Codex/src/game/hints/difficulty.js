@@ -52,6 +52,7 @@ async function analyzeDifficulty(puzzle, options = {}) {
   const solved = boardIsSolved(puzzle, analysisBoard);
   const bigTicketCount = steps.filter(({ bigTicket }) => bigTicket).length;
   const score = steps.reduce((total, { weight }) => total + weight, 0);
+  const highestTier = getHighestTechniqueTier(steps);
   const techniqueCounts = techniqueDefinitions
     .map((technique) => ({
       kind: technique.kind,
@@ -65,9 +66,10 @@ async function analyzeDifficulty(puzzle, options = {}) {
 
   return {
     solved,
-    label: solved ? getDifficultyLabel(bigTicketCount, score) : "Incalculable",
+    label: solved ? getDifficultyLabel(bigTicketCount, score, highestTier) : "Incalculable",
     bigTicketCount,
     score,
+    highestTier,
     steps,
     techniqueCounts,
     starsPlaced: countBoardState(analysisBoard, "star"),
@@ -116,12 +118,33 @@ function boardIsSolved(puzzle, board) {
   );
 }
 
-function getDifficultyLabel(bigTicketCount, score) {
-  if (bigTicketCount === 0 && score <= 2) return "Easy";
-  if (bigTicketCount === 0) return "Moderate";
-  if (bigTicketCount <= 2) return "Hard";
-  if (bigTicketCount <= 4) return "Very Hard";
-  return "Expert";
+function getHighestTechniqueTier(steps) {
+  const tierOrder = ["Basic", "Intermediate", "Advanced", "Expert"];
+  return steps.reduce((highestTier, step) =>
+    tierOrder.indexOf(step.tier) > tierOrder.indexOf(highestTier)
+      ? step.tier
+      : highestTier, "Basic");
+}
+
+function getDifficultyLabel(bigTicketCount, score, highestTier = "Basic") {
+  const labelOrder = ["Easy", "Moderate", "Hard", "Very Hard", "Expert"];
+  const tierFloor = {
+    Basic: "Easy",
+    Intermediate: "Moderate",
+    Advanced: "Hard",
+    Expert: "Expert",
+  };
+  let aggregateLabel;
+  if (bigTicketCount === 0 && score <= 2) aggregateLabel = "Easy";
+  else if (bigTicketCount === 0) aggregateLabel = "Moderate";
+  else if (bigTicketCount <= 2) aggregateLabel = "Hard";
+  else if (bigTicketCount <= 4) aggregateLabel = "Very Hard";
+  else aggregateLabel = "Expert";
+
+  const floorLabel = tierFloor[highestTier] ?? "Easy";
+  return labelOrder[
+    Math.max(labelOrder.indexOf(aggregateLabel), labelOrder.indexOf(floorLabel))
+  ];
 }
 
 function cellKey({ row, col }) {
@@ -130,4 +153,4 @@ function cellKey({ row, col }) {
 
 // Publish to the shared global scope so the other hints/*.js files (and the
 // Node test harness, which loads each file as a module) can resolve these by name.
-Object.assign(globalThis, { analyzeDifficulty,findHintForAnalysis,makeDifficultyProgress,countBoardState,boardIsSolved,getDifficultyLabel,cellKey });
+Object.assign(globalThis, { analyzeDifficulty,findHintForAnalysis,makeDifficultyProgress,countBoardState,boardIsSolved,getHighestTechniqueTier,getDifficultyLabel,cellKey });

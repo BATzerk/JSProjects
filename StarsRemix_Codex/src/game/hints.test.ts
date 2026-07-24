@@ -7,6 +7,7 @@ import "./hints/difficulty.js";
 import "./hints/registry.js";
 
 const { findHint, findSoftHint, findSoftHintByKind, isSoftHintTechniqueSatisfied, checkBoardForErrors, applyHint, analyzeDifficulty, techniques } = globalThis.StarsRemixHints;
+const { getDifficultyLabel, getHighestTechniqueTier } = globalThis;
 
 const puzzle = {
   size: 4,
@@ -292,12 +293,34 @@ describe("findHint", () => {
     const hint = findHint(crosscheckPuzzle, board);
 
     assert.equal(hint.kind, "placement-propagation");
-    assert.match(hint.message, /surviving pattern for Column 3/);
+    assert.match(hint.message, /1 complete pattern for Column 3/);
     assert.deepEqual(hint.cells, [
-      { row: 2, col: 2, color: "gray" },
       { row: 0, col: 2, color: "blue" },
     ]);
     assert.deepEqual(hint.moves, [{ row: 0, col: 2, state: "star" }]);
+
+    const softHint = findSoftHint(crosscheckPuzzle, board);
+    assert.equal(softHint.title, "Pattern Elimination");
+    assert.ok(softHint.stages.length > 4, "the technique gets a complete teaching sequence");
+    assert.match(softHint.stages[0].message, /complete star patterns/);
+    assert.match(softHint.stages[1].message, /Column 3 needs 2 more stars/);
+    assert.ok(
+      softHint.stages.some((stage) =>
+        stage.message.startsWith("Reject Column 3 pattern")
+        && stage.cells.every((cell) => cell.color === "red" && cell.previewState === "star")),
+      "a rejected complete placement is demonstrated separately",
+    );
+    assert.ok(
+      softHint.stages.some((stage) =>
+        stage.message.startsWith("Surviving Column 3 pattern")
+        && stage.cells.some((cell) => cell.color === "pattern")),
+      "a surviving complete placement is demonstrated separately",
+    );
+    assert.deepEqual(softHint.stages.at(-1).cells, [
+      { row: 0, col: 2, color: "blue" },
+    ]);
+    assert.match(softHint.stages.at(-1).message, /^The only surviving Column 3 pattern/);
+    assert.match(softHint.stages.at(-1).message, /must be a star/);
   });
 
   it("marks a space excluded from every surviving placement pattern", () => {
@@ -323,8 +346,23 @@ describe("findHint", () => {
     const hint = findHint(crosscheckPuzzle, board);
 
     assert.equal(hint.kind, "placement-propagation");
-    assert.match(hint.message, /surviving pattern for House 2/);
+    assert.match(hint.message, /3 complete patterns for House 2/);
+    assert.deepEqual(hint.cells, [{ row: 4, col: 0, color: "blue" }]);
     assert.deepEqual(hint.moves, [{ row: 4, col: 0, state: "mark" }]);
+
+    const softHint = findSoftHint(crosscheckPuzzle, board);
+    assert.equal(softHint.title, "Pattern Elimination");
+    const survivorStages = softHint.stages.filter((stage) =>
+      stage.message.startsWith("Surviving House 2 pattern"));
+    assert.equal(survivorStages.length, 3);
+    survivorStages.forEach((stage) => {
+      assert.deepEqual(
+        stage.cells.filter((cell) => cell.color === "blue"),
+        [{ row: 4, col: 0, color: "blue" }],
+      );
+      assert.ok(stage.cells.some((cell) => cell.color === "pattern"));
+    });
+    assert.match(softHint.stages.at(-1).message, /must be an X/);
   });
 
   it("rejects an assumption only after its forced consequences create a contradiction", () => {
@@ -582,6 +620,26 @@ describe("analyzeDifficulty", () => {
     );
   });
 
+  it("uses the hardest required technique as the board's difficulty floor", () => {
+    assert.equal(getDifficultyLabel(0, 0, "Basic"), "Easy");
+    assert.equal(getDifficultyLabel(0, 1, "Intermediate"), "Moderate");
+    assert.equal(getDifficultyLabel(1, 2, "Advanced"), "Hard");
+    assert.equal(getDifficultyLabel(1, 5, "Expert"), "Expert");
+    assert.equal(
+      getHighestTechniqueTier([
+        { tier: "Basic" },
+        { tier: "Expert" },
+        { tier: "Advanced" },
+      ]),
+      "Expert",
+    );
+  });
+
+  it("still lets repeated difficult deductions raise a board above its tier floor", () => {
+    assert.equal(getDifficultyLabel(3, 6, "Advanced"), "Very Hard");
+    assert.equal(getDifficultyLabel(5, 10, "Advanced"), "Expert");
+  });
+
   it("records every logical move and rates an obvious board Easy", async () => {
     const progress = [];
     const report = await analyzeDifficulty(
@@ -592,6 +650,7 @@ describe("analyzeDifficulty", () => {
     assert.equal(report.solved, true);
     assert.equal(report.label, "Easy");
     assert.equal(report.bigTicketCount, 0);
+    assert.equal(report.highestTier, "Basic");
     assert.deepEqual(report.steps, [{
       number: 1,
       kind: "forced-star",

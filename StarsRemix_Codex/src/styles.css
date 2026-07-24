@@ -318,6 +318,12 @@ button:disabled {
   text-align: center;
 }
 
+.library-load-error {
+  margin-top: 5px !important;
+  color: #9d244d !important;
+  font-weight: 750;
+}
+
 .catalog-rating-note { margin-bottom: 0 !important; }
 
 .file-notice {
@@ -827,6 +833,18 @@ h2 {
   animation: hint-pulse-ghost-star 900ms ease-in-out infinite alternate;
 }
 
+.cell.hint-pattern {
+  z-index: 1;
+  box-shadow:
+    inset 0 0 0 4px rgba(227, 160, 8, 0.82),
+    inset 0 0 18px rgba(255, 214, 64, 0.3);
+}
+
+.cell.hint-pattern .hint-preview-star {
+  opacity: 0.78;
+  transform: scale(0.92);
+}
+
 @keyframes hint-pulse-red {
   from { box-shadow: inset 0 0 0 4px rgba(220, 53, 69, 0.72); }
   to { box-shadow: inset 0 0 0 6px #dc3545; }
@@ -1325,6 +1343,7 @@ h2 {
   .cell.hint-red,
   .cell.hint-blue,
   .cell.hint-gray,
+  .cell.hint-pattern,
   .cell.hint-gray .hint-ghost-star,
   .cell.token-entering > .star-token,
   .cell.token-entering > .mark-token,

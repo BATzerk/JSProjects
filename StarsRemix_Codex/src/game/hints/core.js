@@ -147,6 +147,21 @@ function isSoftHintTechniqueSatisfied(puzzle, previousBoard, nextBoard, solution
 
 function createSoftHint(hint) {
   const technique = getTechniqueDefinition(hint.kind);
+  const customStages = typeof hint.createSoftHintStages === "function"
+    ? hint.createSoftHintStages()
+    : hint.softHintStages;
+  if (Array.isArray(customStages)) {
+    return {
+      kind: hint.kind,
+      title: technique.title,
+      stages: customStages.map((stage) => ({
+        message: stage.message,
+        cells: stage.cells ?? [],
+        assumption: stage.assumption,
+      })),
+    };
+  }
+
   const focusCells = (hint.cells ?? [])
     .filter((cell) => cell.color !== "blue" || hint.kind === "rule-conflict")
     .map(({ previewState, ...cell }) => cell);

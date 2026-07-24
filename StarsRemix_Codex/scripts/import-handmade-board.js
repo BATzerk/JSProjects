@@ -46,6 +46,7 @@ const result = await publishHandmadeBoard({
     label: report.label,
     score: report.score,
     bigTicketCount: report.bigTicketCount,
+    highestTier: report.highestTier,
     logicalSteps: report.steps.length,
   },
 });

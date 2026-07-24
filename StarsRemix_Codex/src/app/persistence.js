@@ -63,6 +63,38 @@ function getLibraryBoard(puzzleId) {
   return boardLibrary.boards.find(({ puzzle }) => puzzle.id === puzzleId) ?? null;
 }
 
+async function loadCommunityBoards() {
+  if (!globalThis.StarsRemixCommunity) {
+    communityBoardsLoading = false;
+    return;
+  }
+  communityBoardsLoading = true;
+  communityBoardsError = "";
+  if (boardLibraryOpen) render();
+  try {
+    const response = await globalThis.StarsRemixCommunity.listPublicBoards();
+    const knownIds = new Set(boardLibrary.boards.map(({ puzzle }) => puzzle.id));
+    for (const board of response.boards ?? []) {
+      if (!board?.entry?.puzzle?.id || knownIds.has(board.entry.puzzle.id)) continue;
+      validatePuzzleShape(board.entry.puzzle);
+      boardLibrary.boards.push(board.entry);
+      knownIds.add(board.entry.puzzle.id);
+    }
+  } catch (error) {
+    communityBoardsError = error instanceof Error ? error.message : "Community boards could not be loaded.";
+  } finally {
+    communityBoardsLoading = false;
+    const currentEntry = getLibraryBoard(gameState.puzzle.id);
+    if (currentEntry && !gameState.analysis.difficultyReport) {
+      gameState = globalThis.StarsRemixState.setDifficultyReport(
+        gameState,
+        makeLibraryDifficultyReport(currentEntry),
+      );
+    }
+    render();
+  }
+}
+
 function readLibraryProgress() {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(libraryProgressStorageKey) ?? "null");
@@ -102,6 +134,7 @@ function makeLibraryDifficultyReport(entry) {
     label: entry.difficulty.label,
     bigTicketCount: entry.difficulty.bigTicketCount,
     score: entry.difficulty.score,
+    highestTier: entry.difficulty.highestTier,
     steps: [],
     techniqueCounts: [],
     starsPlaced: entry.puzzle.size * entry.puzzle.starsPerUnit,

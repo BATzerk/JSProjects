@@ -4,6 +4,13 @@ import { describe, it } from "node:test";
 import "./engine.js";
 
 const difficulties = ["Easy", "Moderate", "Hard", "Very Hard", "Expert"];
+const tiers = ["Basic", "Intermediate", "Advanced", "Expert"];
+const tierFloors = {
+  Basic: "Easy",
+  Intermediate: "Moderate",
+  Advanced: "Hard",
+  Expert: "Expert",
+};
 const library = JSON.parse(
   await readFile(new URL("./board-library-data.json", import.meta.url), "utf8"),
 );
@@ -30,6 +37,15 @@ describe("generated board library", () => {
       assert.equal(ids.has(entry.puzzle.id), false, `Duplicate board ID ${entry.puzzle.id}.`);
       ids.add(entry.puzzle.id);
       assert.ok(difficulties.includes(entry.difficulty.label));
+      assert.ok(tiers.includes(entry.difficulty.highestTier));
+      assert.ok(
+        difficulties.indexOf(entry.difficulty.label)
+          >= difficulties.indexOf(tierFloors[entry.difficulty.highestTier]),
+        `${entry.puzzle.id} is rated below its ${entry.difficulty.highestTier} technique floor.`,
+      );
+      if (!entry.puzzle.id.startsWith("handmade-")) {
+        assert.match(entry.puzzle.title, new RegExp(`^${entry.difficulty.label} \\d+$`));
+      }
       assert.doesNotThrow(() => globalThis.StarsRemixEngine.validatePuzzleShape(entry.puzzle));
 
       const solutionBoard = globalThis.StarsRemixEngine.createEmptyBoard(entry.puzzle.size);

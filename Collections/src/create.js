@@ -123,7 +123,7 @@ function init() {
     setButtonDisabled(
       els.publish,
       true,
-      'Add Supabase credentials in src/config.js to enable publishing.'
+      'Add the Neon Data API and Auth URLs in src/config.js to enable publishing.'
     );
   }
 

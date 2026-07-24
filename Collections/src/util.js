@@ -72,7 +72,7 @@ function setButtonDisabled(button, disabled, reason = '') {
   }
 }
 
-// Validate a puzzle object (from Supabase or a preview link).
+// Validate a puzzle object (from the database or a preview link).
 // Returns a normalized copy or throws with a readable message.
 function normalizePuzzle(data) {
   if (!data || typeof data !== 'object') throw new Error('Puzzle data is missing.');

@@ -10,7 +10,7 @@ building and sharing Brett's custom boards.
   `#preview=<data>` links from the creator.
 - **`create.html`** — the puzzle creator. Enter four groups of four, drag the
   cards to set the exact starting board layout, preview it, then publish to
-  Supabase to get a shareable link.
+  Neon to get a shareable link.
 
 ## Running locally
 
@@ -25,26 +25,40 @@ npx serve Collections
 
 Or use the `Collections` entry in `.claude/launch.json`.
 
-## Supabase setup (~2 minutes)
+## Neon setup
 
-Publishing and playing shared puzzles needs a free Supabase project:
+Publishing and playing shared puzzles needs a free Neon project:
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. Open the **SQL Editor** and run the contents of [`supabase/schema.sql`](supabase/schema.sql).
-3. In **Project Settings → API**, copy the **Project URL** and **publishable key**
-   into [`src/config.js`](src/config.js).
+1. Create a project at [neon.com](https://neon.com).
+2. Enable **Managed Better Auth** and provision the branch's **Data API** with
+   Neon Auth. The app uses short-lived anonymous tokens; players do not log in.
+3. Open the **SQL Editor** and run [`neon/schema.sql`](neon/schema.sql).
+4. Copy the branch's **Data API URL** and **Auth URL** into
+   [`src/config.js`](src/config.js).
 
 Until then everything else still works: the sample puzzle, building puzzles,
 drag-arranging the board, and preview links (which encode the whole puzzle in
 the URL — no database involved).
 
-Supabase publishing works from either a hosted copy of these files or a local
-copy on your computer, including pages opened directly as `file://...`. The
-browser sends the same REST requests using the public anon key in `src/config.js`;
-hosting is not required for inserts or reads.
+Neon publishing works from either a hosted copy of these files or a local copy
+on your computer, including pages opened directly as `file://...`. The browser
+sends PostgREST-compatible HTTPS requests to Neon's Data API using short-lived
+anonymous tokens from Neon Auth; hosting is not required for inserts or reads.
 
-The publishable key only allows reading and inserting puzzles; row-level security in
-the schema blocks updates and deletes.
+The public Data API is intentionally limited by Postgres grants and row-level
+security to reading and inserting puzzles. It cannot update or delete them.
+
+### Import the existing puzzles
+
+The Supabase export is retained at
+[`supabase/puzzles-export.json`](supabase/puzzles-export.json). After applying
+the Neon schema, import it with:
+
+```sh
+node neon/import-puzzles.mjs 'https://your-data-api-url' 'https://your-auth-url'
+```
+
+The import is repeatable: existing puzzle IDs are left unchanged.
 
 ## Current game rules
 
@@ -65,11 +79,13 @@ the schema blocks updates and deletes.
 index.html / create.html    pages
 styles/                     base + per-page CSS
 src/
-  config.js                 Supabase credentials (the only file you edit)
-  db.js                     Supabase REST calls (fetch, no SDK dependency)
+  config.js                 Neon Data API and Auth URLs (the only file you edit)
+  db.js                     Neon Data API calls (fetch, no SDK dependency)
   game.js / create.js       page controllers
   builtin.js                the built-in sample puzzle
   flip.js                   FLIP animation helper
   toast.js / util.js        shared helpers
-supabase/schema.sql         database schema + row-level security
+neon/schema.sql             database schema + row-level security
+neon/import-puzzles.mjs     one-time data importer
+supabase/puzzles-export.json historical source-data backup
 ```

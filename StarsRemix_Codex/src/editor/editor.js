@@ -5,10 +5,24 @@
     "#c4dc8c", "#e9ba80", "#aebee8", "#91d6c7", "#e5a88e",
   ];
   const storageKey = "stars-remix:board-editor-draft:v1";
+  const pendingPublishKey = "stars-remix:pending-community-publish:v1";
   let state = loadDraft();
   let result = null;
   let difficulty = null;
   let exported = null;
+  let published = null;
+  let publishing = false;
+  let communityState = {
+    status: "loading",
+    enabled: false,
+    user: null,
+    message: "Checking publishing setup…",
+  };
+  let myBoardsOpen = false;
+  let myBoardsLoading = false;
+  let myBoards = [];
+  let myBoardsError = "";
+  let pendingPublishResumed = false;
   let worker = null;
   let busyMessage = "";
   let progress = null;
@@ -57,6 +71,8 @@
       ? state.houses.flat().filter((house) => house === -1).length
       : 0;
     const canExport = result && difficulty?.solved && difficulty.label !== "Incalculable" && state.title.trim() && !exported;
+    const canPublish = result && difficulty?.solved && difficulty.label !== "Incalculable" &&
+      state.title.trim() && communityState.enabled && !publishing && !published;
 
     root.innerHTML = `
       <main class="workshop-shell">
@@ -72,6 +88,7 @@
             <label><span>Title</span><input id="board-title" maxlength="80" placeholder="Untitled board" value="${escapeHtml(state.title)}"></label>
             <label><span>Size</span><select id="board-size" aria-label="Board size">${[9, 10, 11].map((size) => `<option value="${size}" ${state.size === size ? "selected" : ""}>${size} × ${size}</option>`).join("")}</select></label>
           </div>
+          ${accountControls()}
         </header>
 
         <section class="workspace">
@@ -111,19 +128,75 @@
               ${busyMessage ? `<div class="progress-card"><span class="spinner"></span><div><strong>${escapeHtml(busyMessage)}</strong><small>${escapeHtml(progress ?? "Working…")}</small></div></div>` : ""}
               ${notice ? noticePanel() : ""}
               ${result && difficulty ? resultPanel() : ""}
-              ${exported ? `<p class="published-note">Downloaded <strong>${escapeHtml(exported.filename)}</strong>. Import it into the project to add it to gameplay.</p>` : ""}
+              ${published ? `<p class="published-note"><strong>Published to the community library.</strong> Players can find “${escapeHtml(published.entry.puzzle.title)}” under ${escapeHtml(published.entry.difficulty.label)}.</p>` : ""}
+              ${exported ? `<p class="published-note">Downloaded <strong>${escapeHtml(exported.filename)}</strong>.</p>` : ""}
             </div>
 
             <div class="action-bar">
               <button class="button primary" id="complete-board" ${worker ? "disabled" : ""}>${result ? "Try another" : "Complete board"}</button>
               ${worker ? '<button class="button secondary" id="cancel-work">Cancel</button>' : ""}
-              <button class="button publish" id="export-board" ${canExport ? "" : "disabled"}>${exported ? "Downloaded ✓" : "Export board"}</button>
+              <button class="button publish" id="publish-board" ${canPublish ? "" : "disabled"}>${publishButtonLabel()}</button>
+              <button class="button secondary download" id="export-board" ${canExport ? "" : "disabled"}>${exported ? "Downloaded ✓" : "Download JSON"}</button>
               <button class="icon-button" id="new-board" title="New blank board" aria-label="New blank board">↻</button>
             </div>
           </aside>
         </section>
-      </main>`;
+      </main>
+      ${myBoardsOpen ? renderMyBoards() : ""}`;
     bindEvents();
+  }
+
+  function accountControls() {
+    if (communityState.status === "loading") {
+      return `<div class="account-controls is-loading"><span class="account-dot"></span><span>Checking sign-in…</span></div>`;
+    }
+    if (!communityState.enabled) {
+      return `<div class="account-controls is-unavailable"><span class="account-dot"></span><span>Publishing not connected</span></div>`;
+    }
+    if (!communityState.user) {
+      return `<button class="google-sign-in" id="google-sign-in" type="button"><span aria-hidden="true">G</span> Continue with Google</button>`;
+    }
+    const displayName = communityState.user.name || communityState.user.email || "Signed-in player";
+    return `<div class="account-controls">
+      <span class="account-avatar" aria-hidden="true">${escapeHtml(displayName.slice(0, 1).toUpperCase())}</span>
+      <span class="account-name">${escapeHtml(displayName)}</span>
+      <button class="text-button" id="my-boards" type="button">My boards</button>
+      <button class="text-button subdued" id="sign-out" type="button">Sign out</button>
+    </div>`;
+  }
+
+  function publishButtonLabel() {
+    if (publishing) return "Publishing…";
+    if (published) return "Published ✓";
+    if (communityState.status === "loading") return "Checking sign-in…";
+    if (!communityState.enabled) return "Publishing unavailable";
+    return communityState.user ? "Publish board" : "Sign in to publish";
+  }
+
+  function renderMyBoards() {
+    return `<div class="boards-overlay" role="dialog" aria-modal="true" aria-labelledby="my-boards-title">
+      <section class="boards-dialog">
+        <header>
+          <div>
+            <p class="eyebrow">Community library</p>
+            <h2 id="my-boards-title">My published boards</h2>
+          </div>
+          <button class="boards-close" id="close-my-boards" type="button" aria-label="Close my boards">×</button>
+        </header>
+        <div class="my-board-list">
+          ${myBoardsLoading ? `<div class="boards-empty"><span class="spinner"></span><p>Loading your boards…</p></div>` : ""}
+          ${myBoardsError ? `<div class="notice error"><strong>${escapeHtml(myBoardsError)}</strong></div>` : ""}
+          ${!myBoardsLoading && !myBoardsError && !myBoards.length ? `<div class="boards-empty"><p>You have not published a board yet.</p><small>Complete one here, then choose Publish board.</small></div>` : ""}
+          ${myBoards.map(({ id, entry }) => `<article class="my-board-row">
+            <div>
+              <strong>${escapeHtml(entry.puzzle.title)}</strong>
+              <small>${entry.puzzle.size}×${entry.puzzle.size} · ${escapeHtml(entry.difficulty.label)} · ${formatPublishedDate(entry.publishedAt)}</small>
+            </div>
+            <button class="text-button destructive" type="button" data-delete-board="${escapeHtml(id)}">Remove</button>
+          </article>`).join("")}
+        </div>
+      </section>
+    </div>`;
   }
 
   function legalityPanel(inspection) {
@@ -163,10 +236,16 @@
     document.querySelector("#board-title").addEventListener("input", (event) => {
       state.title = event.target.value;
       exported = null;
+      published = null;
       saveDraft();
       const exportButton = document.querySelector("#export-board");
       if (exportButton) {
         exportButton.disabled = !(result && difficulty?.solved && difficulty.label !== "Incalculable" && state.title.trim());
+      }
+      const publishButton = document.querySelector("#publish-board");
+      if (publishButton) {
+        publishButton.disabled = !(result && difficulty?.solved && difficulty.label !== "Incalculable" &&
+          state.title.trim() && communityState.enabled && !publishing);
       }
     });
     document.querySelector("#board-size").addEventListener("change", (event) => {
@@ -232,6 +311,17 @@
       render();
     });
     document.querySelector("#export-board").addEventListener("click", exportBoard);
+    document.querySelector("#publish-board")?.addEventListener("click", publishBoard);
+    document.querySelector("#google-sign-in")?.addEventListener("click", beginGoogleSignIn);
+    document.querySelector("#sign-out")?.addEventListener("click", signOut);
+    document.querySelector("#my-boards")?.addEventListener("click", openMyBoards);
+    document.querySelector("#close-my-boards")?.addEventListener("click", () => {
+      myBoardsOpen = false;
+      render();
+    });
+    document.querySelectorAll("[data-delete-board]").forEach((button) => {
+      button.addEventListener("click", () => removePublishedBoard(button.dataset.deleteBoard));
+    });
   }
 
   function paintCell(row, col) {
@@ -440,6 +530,141 @@
     render();
   }
 
+  async function publishBoard() {
+    if (!result || !difficulty || publishing || published) return;
+    const entry = makeShareableEntry();
+    if (!entry) return;
+
+    if (!communityState.user) {
+      try {
+        sessionStorage.setItem(pendingPublishKey, JSON.stringify(entry));
+        notice = { kind: "info", message: "Taking you to Google. Your completed board will be waiting when you return." };
+        render();
+        await beginGoogleSignIn("./editor.html?publish=1");
+      } catch (error) {
+        notice = { kind: "error", message: error instanceof Error ? error.message : "Unable to start Google sign-in." };
+        render();
+      }
+      return;
+    }
+    await submitPublishedBoard(entry);
+  }
+
+  function makeShareableEntry() {
+    const title = state.title.trim();
+    if (!title) {
+      notice = { kind: "error", message: "Give the board a title before publishing." };
+      render();
+      return null;
+    }
+    return {
+      puzzle: { ...result.puzzle, title },
+      solution: result.solution,
+      difficulty: {
+        label: difficulty.label,
+        score: difficulty.score,
+        bigTicketCount: difficulty.bigTicketCount,
+        logicalSteps: difficulty.logicalSteps,
+      },
+    };
+  }
+
+  async function submitPublishedBoard(entry) {
+    publishing = true;
+    notice = { kind: "info", message: "Verifying your board once more before publishing…" };
+    render();
+    try {
+      const response = await globalThis.StarsRemixCommunity.publishBoard(entry);
+      applyPublishedBoard(response.board);
+      try { sessionStorage.removeItem(pendingPublishKey); } catch {}
+    } catch (error) {
+      notice = { kind: "error", message: error instanceof Error ? error.message : "Unable to publish this board." };
+    } finally {
+      publishing = false;
+      render();
+    }
+  }
+
+  function applyPublishedBoard(board) {
+    published = board;
+    result = {
+      puzzle: board.entry.puzzle,
+      solution: board.entry.solution,
+      diagnostics: result?.diagnostics ?? { attempts: "—" },
+    };
+    difficulty = { ...board.entry.difficulty, solved: true };
+    state.title = board.entry.puzzle.title;
+    notice = { kind: "success", message: "Published! Your board is now in the community library." };
+    saveDraft();
+  }
+
+  async function beginGoogleSignIn(callback = "./editor.html") {
+    try {
+      await globalThis.StarsRemixCommunity.signInWithGoogle(callback);
+    } catch (error) {
+      notice = { kind: "error", message: error instanceof Error ? error.message : "Unable to start Google sign-in." };
+      render();
+    }
+  }
+
+  async function signOut() {
+    try {
+      await globalThis.StarsRemixCommunity.signOut();
+      myBoardsOpen = false;
+      notice = { kind: "info", message: "Signed out. Your editor draft is still saved on this device." };
+    } catch (error) {
+      notice = { kind: "error", message: error instanceof Error ? error.message : "Unable to sign out." };
+    }
+    render();
+  }
+
+  async function openMyBoards() {
+    myBoardsOpen = true;
+    myBoardsLoading = true;
+    myBoardsError = "";
+    render();
+    try {
+      const response = await globalThis.StarsRemixCommunity.listMyBoards();
+      myBoards = response.boards ?? [];
+    } catch (error) {
+      myBoardsError = error instanceof Error ? error.message : "Unable to load your boards.";
+    } finally {
+      myBoardsLoading = false;
+      render();
+    }
+  }
+
+  async function removePublishedBoard(id) {
+    const board = myBoards.find((candidate) => candidate.id === id);
+    if (!board || !confirm(`Remove “${board.entry.puzzle.title}” from the community library?`)) return;
+    try {
+      await globalThis.StarsRemixCommunity.deleteBoard(id);
+      myBoards = myBoards.filter((candidate) => candidate.id !== id);
+      if (published?.id === id) published = null;
+      notice = { kind: "info", message: "Board removed from the community library." };
+    } catch (error) {
+      myBoardsError = error instanceof Error ? error.message : "Unable to remove that board.";
+    }
+    render();
+  }
+
+  async function resumePendingPublish() {
+    if (pendingPublishResumed || !communityState.user) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("publish") !== "1") return;
+    pendingPublishResumed = true;
+    url.searchParams.delete("publish");
+    history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    try {
+      const entry = JSON.parse(sessionStorage.getItem(pendingPublishKey) ?? "null");
+      if (!entry?.puzzle) return;
+      await submitPublishedBoard(entry);
+    } catch {
+      notice = { kind: "error", message: "Your sign-in succeeded, but the completed board could not be restored. Complete it once more to publish." };
+      render();
+    }
+  }
+
   function downloadJson(filename, value) {
     const blob = new Blob([`${JSON.stringify(value, null, 2)}\n`], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -487,6 +712,7 @@
     result = null;
     difficulty = null;
     exported = null;
+    published = null;
     showSolution = false;
     notice = null;
   }
@@ -495,6 +721,15 @@
     return String(value ?? "").replace(/[&<>'"]/g, (character) => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
     })[character]);
+  }
+
+  function formatPublishedDate(value) {
+    try {
+      return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" })
+        .format(new Date(value));
+    } catch {
+      return "Published";
+    }
   }
 
   window.addEventListener("pointerup", () => { painting = false; activePaintHouse = null; });
@@ -509,5 +744,18 @@
     notice = null;
     render();
   });
+  if (globalThis.StarsRemixCommunity) {
+    communityState = globalThis.StarsRemixCommunity.getState();
+    window.addEventListener("starsremix:community-auth", (event) => {
+      communityState = event.detail;
+      render();
+      resumePendingPublish();
+    });
+    globalThis.StarsRemixCommunity.ready.then(() => {
+      communityState = globalThis.StarsRemixCommunity.getState();
+      render();
+      resumePendingPublish();
+    });
+  }
   render();
 })();

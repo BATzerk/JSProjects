@@ -241,3 +241,4 @@ if (restoredLibraryBoard) {
 } else {
   calculateDifficulty();
 }
+loadCommunityBoards();

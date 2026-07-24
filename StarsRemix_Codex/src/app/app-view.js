@@ -324,7 +324,8 @@ function renderBoardLibrary() {
           <div>
             <p class="hint-kicker">Board library</p>
             <h2 id="library-title">Choose your next constellation</h2>
-            <p>${completedTotal} completed · ${inProgressTotal} in progress · ${boardLibrary.boards.length} total</p>
+            <p>${completedTotal} completed · ${inProgressTotal} in progress · ${boardLibrary.boards.length} total${communityBoardsLoading ? " · Loading community boards…" : ""}</p>
+            ${communityBoardsError ? `<p class="library-load-error">${escapeHtml(communityBoardsError)}</p>` : ""}
           </div>
           <button class="library-close" type="button" data-action="close-library" aria-label="Close board library">×</button>
         </header>
@@ -346,10 +347,10 @@ function renderBoardLibrary() {
             const isCurrent = entry.puzzle.id === gameState.puzzle.id;
             return `
               <button type="button" class="library-board-card${isCurrent ? " is-current" : ""}" data-library-board="${entry.puzzle.id}">
-                <span class="library-board-number">${entry.puzzle.title.replace(`${entry.difficulty.label} `, "")}</span>
+                <span class="library-board-number">${entry.source === "community" ? "✦" : entry.puzzle.title.replace(`${entry.difficulty.label} `, "")}</span>
                 <span class="library-board-copy">
                   <strong>${escapeHtml(entry.puzzle.title)}</strong>
-                  <small>${entry.puzzle.size}×${entry.puzzle.size} · ${entry.difficulty.logicalSteps} logical steps${isCurrent ? " · Current board" : ""}</small>
+                  <small>${entry.puzzle.size}×${entry.puzzle.size} · ${entry.difficulty.logicalSteps} logical steps${entry.source === "community" ? ` · by ${escapeHtml(entry.author?.name ?? "a player")}` : ""}${isCurrent ? " · Current board" : ""}</small>
                 </span>
                 <span class="board-status is-${status.kind}">${status.label}</span>
                 ${status.kind === "progress" ? `<span class="board-progress-note">${status.filled} cells filled</span>` : ""}

@@ -1,0 +1,11 @@
+{
+  "name": "collections",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "for file in src/*.js neon/*.mjs; do node --check \"$file\" || exit 1; done"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  }
+}
