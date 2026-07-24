@@ -9,12 +9,20 @@ describe("community publishing contract", () => {
     const database = await readFile(new URL("../server/community-boards.ts", import.meta.url), "utf8");
 
     assert.doesNotMatch(client, /DATABASE_URL/);
-    assert.match(client, /getJWTToken/);
+    assert.match(client, /createInternalNeonAuth/);
+    assert.match(client, /neonAuth\.getJWTToken/);
+    assert.match(client, /await getJWTToken\?\.\(\)/);
     assert.match(client, /provider:\s*["']google["']/);
     assert.match(client, /Community publishing has not been set up for this site/);
     assert.doesNotMatch(client, /Connect Neon/);
     assert.match(server, /solvePuzzle\(puzzle,\s*\{\s*limit:\s*2\s*\}\)/);
     assert.match(server, /analyzeDifficulty\(puzzle\)/);
+    assert.match(server, /DATABASE_NOT_MIGRATED/);
+    assert.match(server, /NEON_ENDPOINT_NOT_FOUND/);
+    assert.match(server, /RESOURCE_NOT_FOUND/);
+    assert.match(server, /requestId/);
+    assert.match(client, /fallbackResponseMessage/);
+    assert.match(client, /Sign out, sign in again, and retry/);
     assert.match(database, /jwtVerify/);
     assert.match(database, /eq\(communityBoards\.ownerId,\s*ownerId\)/);
   });

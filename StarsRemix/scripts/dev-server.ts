@@ -35,6 +35,7 @@ const mimeTypes = new Map([
 ]);
 
 const server = createServer(async (request, response) => {
+  const requestId = randomUUID().slice(0, 8);
   try {
     const url = new URL(request.url ?? "/", `http://${host}:${port}`);
     if (url.pathname === "/api/handmade-boards") {
@@ -76,9 +77,20 @@ const server = createServer(async (request, response) => {
     });
     response.end(body);
   } catch (error) {
-    const status = Number(error?.status) || 404;
-    response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
-    response.end(JSON.stringify({ error: error instanceof Error ? error.message : "Not found" }));
+    const failure = describeRequestFailure(error);
+    if (failure.status >= 500) {
+      console.error(`[${requestId}] Request failed:`, request.method, request.url, error);
+    }
+    response.writeHead(failure.status, {
+      "content-type": "application/json; charset=utf-8",
+      "x-request-id": requestId,
+    });
+    response.end(JSON.stringify({
+      error: failure.message,
+      code: failure.code,
+      action: failure.action,
+      ...(failure.status >= 500 ? { requestId } : {}),
+    }));
   }
 });
 
@@ -264,9 +276,79 @@ function sendJson(response, status, value) {
   response.end(JSON.stringify(value));
 }
 
-function httpError(status, message) {
+function describeRequestFailure(error) {
+  const requestedStatus = Number(error?.status);
+  if (requestedStatus >= 400 && requestedStatus < 600) {
+    const actions = {
+      400: "Return to the workshop, correct the board, choose Complete board, and retry.",
+      401: "Sign out, sign in with Google again, and retry.",
+      403: "Sign in with an account that is allowed to publish.",
+      404: "Refresh the community board list and retry.",
+      409: "Choose a different board or remove your existing copy first.",
+      413: "Reduce the board data and retry.",
+      429: "Wait a little while before publishing another board.",
+    };
+    return {
+      status: requestedStatus,
+      code: error?.code || `HTTP_${requestedStatus}`,
+      message: error instanceof Error ? error.message : "The request could not be completed.",
+      action: error?.action || actions[requestedStatus] || "Retry the request.",
+    };
+  }
+
+  if (error?.code === "42P01") {
+    return {
+      status: 503,
+      code: "DATABASE_NOT_MIGRATED",
+      message: "The community board table has not been created.",
+      action: "Run npm run db:migrate in StarsRemix, then retry.",
+    };
+  }
+  if (error?.code === "28P01" || error?.code === "3D000") {
+    return {
+      status: 503,
+      code: "DATABASE_CONFIGURATION_INVALID",
+      message: "The community database configuration is no longer valid.",
+      action: "Refresh the Neon environment settings, restart Board Workshop, and retry.",
+    };
+  }
+  if (error?.code === "ENOENT") {
+    return {
+      status: 404,
+      code: "RESOURCE_NOT_FOUND",
+      message: "The requested page or file was not found.",
+      action: "Check the address and reload the page.",
+    };
+  }
+  if (/HTTP 404/i.test(String(error?.message ?? ""))) {
+    return {
+      status: 503,
+      code: "NEON_ENDPOINT_NOT_FOUND",
+      message: "The configured Neon backend endpoint could not be found.",
+      action: "Refresh the Neon environment settings, restart Board Workshop, and retry.",
+    };
+  }
+  if (/fetch failed|ECONNREFUSED|ENOTFOUND|ETIMEDOUT/i.test(String(error?.message ?? ""))) {
+    return {
+      status: 503,
+      code: "BACKEND_UNREACHABLE",
+      message: "The publishing server could not reach Neon.",
+      action: "Check the network connection and Neon project status, then retry.",
+    };
+  }
+  return {
+    status: 500,
+    code: "PUBLISHING_SERVER_ERROR",
+    message: "The server could not finish publishing this board.",
+    action: "Retry once. If it fails again, use the reference below to find the matching server log entry.",
+  };
+}
+
+function httpError(status, message, { code, action } = {}) {
   const error = new Error(message);
   error.status = status;
+  error.code = code;
+  error.action = action;
   return error;
 }
 
