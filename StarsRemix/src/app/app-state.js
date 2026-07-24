@@ -129,6 +129,7 @@ let difficultyProgress = null;
 let difficultyAnalysisId = 0;
 let fileMenuOpen = false;
 let boardLibraryOpen = false;
+let selectedLibrarySource = "built-in";
 let selectedLibraryDifficulty = "Easy";
 let communityBoardsLoading = Boolean(globalThis.StarsRemixCommunity);
 let communityBoardsError = "";

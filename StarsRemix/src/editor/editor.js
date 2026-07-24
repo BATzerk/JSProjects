@@ -151,7 +151,10 @@
       return `<div class="account-controls is-loading"><span class="account-dot"></span><span>Checking sign-in…</span></div>`;
     }
     if (!communityState.enabled) {
-      return `<div class="account-controls is-unavailable"><span class="account-dot"></span><span>Publishing not connected</span></div>`;
+      return `<div class="account-controls is-unavailable" role="status">
+        <span class="account-dot" aria-hidden="true"></span>
+        <span><strong>Publishing unavailable</strong><small>${escapeHtml(communityState.message || "Community publishing is not configured.")} You can still download the board as JSON.</small></span>
+      </div>`;
     }
     if (!communityState.user) {
       return `<button class="google-sign-in" id="google-sign-in" type="button"><span aria-hidden="true">G</span> Continue with Google</button>`;
@@ -212,10 +215,43 @@
   }
 
   function resultPanel() {
+    const techniqueSummary = (difficulty.techniqueCounts ?? []).map((technique) => `
+      <li>
+        <span>${escapeHtml(technique.title)}</span>
+        <span class="technique-tier">${escapeHtml(technique.tier)}</span>
+        <strong>×${technique.count}</strong>
+      </li>
+    `).join("");
+    const logicalSteps = (difficulty.steps ?? []).map((step) => `
+      <li class="difficulty-step${step.bigTicket ? " is-big-ticket" : ""}">
+        <div><strong>${step.number}. ${escapeHtml(step.title)}</strong><span>${escapeHtml(step.tier)}</span></div>
+        <p>${step.moves.map(formatDifficultyMove).join(", ")}</p>
+      </li>
+    `).join("");
+    const bigTicketCount = difficulty.bigTicketCount ?? 0;
+    const logicalStepCount = difficulty.logicalSteps ?? difficulty.steps?.length ?? 0;
+
     return `<div class="result-card">
-      <div class="result-summary"><div class="difficulty-badge ${difficulty.label.toLowerCase().replaceAll(" ", "-")}">${escapeHtml(difficulty.label)}</div><span>Score <strong>${difficulty.score}</strong></span><span>Steps <strong>${difficulty.logicalSteps}</strong></span><span>Advanced <strong>${difficulty.bigTicketCount}</strong></span><span>Attempts <strong>${result.diagnostics.attempts}</strong></span></div>
+      <p class="result-kicker">Board difficulty</p>
+      <div class="result-summary">
+        <div class="difficulty-badge ${difficulty.label.toLowerCase().replaceAll(" ", "-")}">${escapeHtml(difficulty.label)}</div>
+        <span>${bigTicketCount} big-ticket deduction${bigTicketCount === 1 ? "" : "s"} · weighted score ${difficulty.score}</span>
+      </div>
+      ${techniqueSummary
+        ? `<p class="technique-heading">Techniques required · ${logicalStepCount} logical steps</p>
+          <ul class="technique-summary">${techniqueSummary}</ul>
+          <details class="difficulty-details">
+            <summary>Every logical move (${logicalStepCount})</summary>
+            <ol>${logicalSteps}</ol>
+          </details>`
+        : `<p class="technique-unavailable">Technique details are unavailable for this previously published board.</p>`}
       <label class="solution-toggle"><input id="show-solution" type="checkbox" ${showSolution ? "checked" : ""}> Show solution stars</label>
     </div>`;
+  }
+
+  function formatDifficultyMove(move) {
+    const token = move.state === "star" ? "★" : "×";
+    return `${token} R${move.row + 1}C${move.col + 1}`;
   }
 
   function cellStyle(houses, row, col) {
@@ -479,13 +515,7 @@
           data: {
             type: "completed",
             generated,
-            difficulty: {
-              solved: report.solved,
-              label: report.label,
-              score: report.score,
-              bigTicketCount: report.bigTicketCount,
-              logicalSteps: report.steps.length,
-            },
+            difficulty: { ...report, logicalSteps: report.steps.length },
           },
         });
       } catch (error) {
@@ -592,7 +622,7 @@
       solution: board.entry.solution,
       diagnostics: result?.diagnostics ?? { attempts: "—" },
     };
-    difficulty = { ...board.entry.difficulty, solved: true };
+    difficulty = { ...difficulty, ...board.entry.difficulty, solved: true };
     state.title = board.entry.puzzle.title;
     notice = { kind: "success", message: "Published! Your board is now in the community library." };
     saveDraft();

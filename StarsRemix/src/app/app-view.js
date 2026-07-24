@@ -61,7 +61,7 @@ function render() {
             <button class="action-button file-menu-button" type="button" data-action="file-menu" aria-expanded="${fileMenuOpen}">Boards</button>
             ${fileMenuOpen ? `
               <div class="file-menu-popover" role="menu" aria-label="Saved boards">
-                <button type="button" role="menuitem" data-action="browse-library">Choose from board library…</button>
+                <button type="button" role="menuitem" data-action="browse-library">Browse boards…</button>
                 <button type="button" role="menuitem" data-action="board-editor">Open board workshop…</button>
                 <button type="button" role="menuitem" data-action="save-board">Save current board…</button>
                 <button type="button" role="menuitem" data-action="load-board">Load board file…</button>
@@ -208,6 +208,7 @@ function render() {
 
   root.querySelector("[data-action='browse-library']")?.addEventListener("click", () => {
     const currentEntry = getLibraryBoard(gameState.puzzle.id);
+    selectedLibrarySource = currentEntry?.source === "community" ? "community" : "built-in";
     selectedLibraryDifficulty = currentEntry?.difficulty.label ?? selectedLibraryDifficulty;
     fileMenuOpen = false;
     boardLibraryOpen = true;
@@ -225,6 +226,13 @@ function render() {
   root.querySelectorAll("[data-library-difficulty]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedLibraryDifficulty = button.dataset.libraryDifficulty;
+      render();
+    });
+  });
+
+  root.querySelectorAll("[data-library-source]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedLibrarySource = button.dataset.librarySource;
       render();
     });
   });
@@ -307,59 +315,91 @@ function render() {
 
 function renderBoardLibrary() {
   const progress = readLibraryProgress();
-  const selectedBoards = boardLibrary.boards.filter(
+  const sourceBoards = boardLibrary.boards.filter(
+    (entry) => (entry.source === "community" ? "community" : "built-in") === selectedLibrarySource,
+  );
+  const selectedBoards = sourceBoards.filter(
     ({ difficulty }) => difficulty.label === selectedLibraryDifficulty,
   );
-  const completedTotal = boardLibrary.boards.filter(
-    (entry) => getLibraryBoardStatus(entry, progress).kind === "completed",
-  ).length;
-  const inProgressTotal = boardLibrary.boards.filter(
-    (entry) => getLibraryBoardStatus(entry, progress).kind === "progress",
-  ).length;
 
   return `
     <div class="library-overlay" role="dialog" aria-modal="true" aria-labelledby="library-title">
       <section class="library-dialog">
         <header class="library-header">
-          <div>
-            <p class="hint-kicker">Board library</p>
-            <h2 id="library-title">Choose your next constellation</h2>
-            <p>${completedTotal} completed · ${inProgressTotal} in progress · ${boardLibrary.boards.length} total${communityBoardsLoading ? " · Loading community boards…" : ""}</p>
-            ${communityBoardsError ? `<p class="library-load-error">${escapeHtml(communityBoardsError)}</p>` : ""}
-          </div>
+          <h2 id="library-title">Boards</h2>
           <button class="library-close" type="button" data-action="close-library" aria-label="Close board library">×</button>
         </header>
+        <nav class="library-source-tabs" aria-label="Board collection">
+          <button type="button" data-library-source="built-in" class="library-source-tab${selectedLibrarySource === "built-in" ? " is-active" : ""}" aria-pressed="${selectedLibrarySource === "built-in"}">Built-in</button>
+          <button type="button" data-library-source="community" class="library-source-tab${selectedLibrarySource === "community" ? " is-active" : ""}" aria-pressed="${selectedLibrarySource === "community"}">Community${communityBoardsLoading ? '<span class="loading-dot" aria-label="Loading"></span>' : ""}</button>
+        </nav>
         <nav class="difficulty-tabs" aria-label="Choose a difficulty">
           ${libraryDifficulties.map((difficulty) => {
-            const entries = boardLibrary.boards.filter((entry) => entry.difficulty.label === difficulty);
-            const completed = entries.filter((entry) => getLibraryBoardStatus(entry, progress).kind === "completed").length;
+            const count = sourceBoards.filter((entry) => entry.difficulty.label === difficulty).length;
             return `
-              <button type="button" data-library-difficulty="${difficulty}" class="difficulty-tab${selectedLibraryDifficulty === difficulty ? " is-active" : ""}" aria-pressed="${selectedLibraryDifficulty === difficulty}">
+              <button type="button" data-library-difficulty="${difficulty}" data-difficulty="${difficulty}" class="difficulty-tab${selectedLibraryDifficulty === difficulty ? " is-active" : ""}" aria-pressed="${selectedLibraryDifficulty === difficulty}">
                 <span>${difficulty}</span>
-                <small>${completed}/${entries.length} complete</small>
+                <small>${count}</small>
               </button>
             `;
           }).join("")}
         </nav>
         <div class="library-board-list" aria-label="${selectedLibraryDifficulty} boards">
-          ${selectedBoards.length ? selectedBoards.map((entry) => {
+          ${selectedBoards.length ? selectedBoards.map((entry, index) => {
             const status = getLibraryBoardStatus(entry, progress);
             const isCurrent = entry.puzzle.id === gameState.puzzle.id;
+            const displayTitle = entry.source === "community"
+              ? entry.puzzle.title
+              : `#${index + 1}`;
+            const statusLabel = isCurrent
+              ? "Playing"
+              : status.kind === "completed"
+                ? "✓ Completed"
+                : status.kind === "progress"
+                  ? "Continue"
+                  : "";
             return `
-              <button type="button" class="library-board-card${isCurrent ? " is-current" : ""}" data-library-board="${entry.puzzle.id}">
-                <span class="library-board-number">${entry.source === "community" ? "✦" : entry.puzzle.title.replace(`${entry.difficulty.label} `, "")}</span>
+              <button type="button" class="library-board-card${isCurrent ? " is-current" : ""}" data-library-board="${entry.puzzle.id}" data-difficulty="${entry.difficulty.label}">
+                ${renderLibraryThumbnail(entry.puzzle)}
                 <span class="library-board-copy">
-                  <strong>${escapeHtml(entry.puzzle.title)}</strong>
-                  <small>${entry.puzzle.size}×${entry.puzzle.size} · ${entry.difficulty.logicalSteps} logical steps${entry.source === "community" ? ` · by ${escapeHtml(entry.author?.name ?? "a player")}` : ""}${isCurrent ? " · Current board" : ""}</small>
+                  <strong>${escapeHtml(displayTitle)}</strong>
+                  ${entry.source === "community" ? `<small>by ${escapeHtml(entry.author?.name ?? "a player")}</small>` : ""}
+                  ${statusLabel ? `<small class="board-card-status is-${isCurrent ? "current" : status.kind}">${statusLabel}</small>` : ""}
                 </span>
-                <span class="board-status is-${status.kind}">${status.label}</span>
-                ${status.kind === "progress" ? `<span class="board-progress-note">${status.filled} cells filled</span>` : ""}
               </button>
             `;
-          }).join("") : `<div class="library-empty">No ${selectedLibraryDifficulty} boards have been generated yet.</div>`}
+          }).join("") : `
+            <div class="library-empty">
+              <p>${selectedLibrarySource === "community" ? `No ${selectedLibraryDifficulty.toLowerCase()} community boards yet.` : `No ${selectedLibraryDifficulty.toLowerCase()} boards yet.`}</p>
+              ${selectedLibrarySource === "community" ? '<button class="library-workshop-link" type="button" data-action="board-editor">Make one in the Board Workshop</button>' : ""}
+              ${selectedLibrarySource === "community" && communityBoardsError ? `<small class="library-load-error">${escapeHtml(communityBoardsError)}</small>` : ""}
+            </div>
+          `}
         </div>
       </section>
     </div>
+  `;
+}
+
+function renderLibraryThumbnail(puzzle) {
+  const size = puzzle.size;
+  const lines = [];
+  for (let row = 0; row < size; row += 1) {
+    for (let col = 0; col < size; col += 1) {
+      const house = puzzle.houses[row][col];
+      if (col < size - 1 && puzzle.houses[row][col + 1] !== house) {
+        lines.push(`M${col + 1} ${row}v1`);
+      }
+      if (row < size - 1 && puzzle.houses[row + 1][col] !== house) {
+        lines.push(`M${col} ${row + 1}h1`);
+      }
+    }
+  }
+  return `
+    <svg class="library-board-thumbnail" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      <rect x=".12" y=".12" width="${size - 0.24}" height="${size - 0.24}" rx=".35"></rect>
+      <path d="${lines.join("")}"></path>
+    </svg>
   `;
 }
 

@@ -60,13 +60,7 @@ self.addEventListener("message", async (event) => {
     self.postMessage({
       type: "completed",
       generated,
-      difficulty: {
-        solved: report.solved,
-        label: report.label,
-        score: report.score,
-        bigTicketCount: report.bigTicketCount,
-        logicalSteps: report.steps.length,
-      },
+      difficulty: { ...report, logicalSteps: report.steps.length },
     });
   } catch (error) {
     self.postMessage({

@@ -22,7 +22,7 @@ async function initialize() {
         status: "ready",
         enabled: false,
         user: null,
-        message: "Connect Neon to enable community publishing.",
+        message: "Community publishing has not been set up for this site.",
       });
       return state;
     }
@@ -35,7 +35,7 @@ async function initialize() {
       status: "ready",
       enabled: false,
       user: null,
-      message: "Community publishing is unavailable. JSON download still works.",
+      message: "Community publishing could not be reached.",
     });
     return state;
   }

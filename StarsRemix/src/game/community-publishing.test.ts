@@ -11,6 +11,8 @@ describe("community publishing contract", () => {
     assert.doesNotMatch(client, /DATABASE_URL/);
     assert.match(client, /getJWTToken/);
     assert.match(client, /provider:\s*["']google["']/);
+    assert.match(client, /Community publishing has not been set up for this site/);
+    assert.doesNotMatch(client, /Connect Neon/);
     assert.match(server, /solvePuzzle\(puzzle,\s*\{\s*limit:\s*2\s*\}\)/);
     assert.match(server, /analyzeDifficulty\(puzzle\)/);
     assert.match(database, /jwtVerify/);
@@ -26,5 +28,18 @@ describe("community publishing contract", () => {
     assert.match(migration, /"owner_id" text NOT NULL/);
     assert.match(migration, /community_boards_fingerprint_unique/);
     assert.match(migration, /community_boards_owner_created_idx/);
+  });
+
+  it("shows actionable publishing status and keeps the editor's full technique report", async () => {
+    const editor = await readFile(new URL("../editor/editor.js", import.meta.url), "utf8");
+    const worker = await readFile(new URL("../editor/editor-worker.js", import.meta.url), "utf8");
+
+    assert.match(editor, /Publishing unavailable/);
+    assert.match(editor, /communityState\.message/);
+    assert.match(editor, /You can still download the board as JSON/);
+    assert.match(editor, /difficulty\.techniqueCounts/);
+    assert.match(editor, /Every logical move/);
+    assert.doesNotMatch(editor, /Attempts <strong>/);
+    assert.match(worker, /difficulty:\s*\{\s*\.\.\.report/);
   });
 });
