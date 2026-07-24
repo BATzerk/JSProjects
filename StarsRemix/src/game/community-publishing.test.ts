@@ -50,4 +50,16 @@ describe("community publishing contract", () => {
     assert.doesNotMatch(editor, /Attempts <strong>/);
     assert.match(worker, /difficulty:\s*\{\s*\.\.\.report/);
   });
+
+  it("refreshes the public board snapshot whenever the library is opened", async () => {
+    const view = await readFile(new URL("../app/app-view.js", import.meta.url), "utf8");
+    const persistence = await readFile(new URL("../app/persistence.js", import.meta.url), "utf8");
+
+    assert.match(view, /boardLibraryOpen = true;\s*render\(\);\s*loadCommunityBoards\(\);/);
+    assert.match(
+      persistence,
+      /boardLibrary\.boards\.splice\(0,\s*boardLibrary\.boards\.length,\s*\.\.\.builtInBoards,\s*\.\.\.communityBoards\)/,
+    );
+    assert.match(persistence, /requestId !== communityBoardsRequestId/);
+  });
 });

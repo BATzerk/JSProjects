@@ -213,6 +213,7 @@ function render() {
     fileMenuOpen = false;
     boardLibraryOpen = true;
     render();
+    loadCommunityBoards();
   });
   root.querySelector("[data-action='board-editor']")?.addEventListener("click", () => {
     window.location.href = "./editor.html";
@@ -234,6 +235,7 @@ function render() {
     button.addEventListener("click", () => {
       selectedLibrarySource = button.dataset.librarySource;
       render();
+      if (selectedLibrarySource === "community") loadCommunityBoards();
     });
   });
 
@@ -386,13 +388,10 @@ function renderLibraryThumbnail(puzzle) {
   const lines = [];
   for (let row = 0; row < size; row += 1) {
     for (let col = 0; col < size; col += 1) {
-      const house = puzzle.houses[row][col];
-      if (col < size - 1 && puzzle.houses[row][col + 1] !== house) {
-        lines.push(`M${col + 1} ${row}v1`);
-      }
-      if (row < size - 1 && puzzle.houses[row + 1][col] !== house) {
-        lines.push(`M${col} ${row + 1}h1`);
-      }
+      const edges = getHouseEdges(puzzle.houses, row, col);
+      // Draw only the interior house boundaries; the outer <rect> frames the board.
+      if (col < size - 1 && edges.right) lines.push(`M${col + 1} ${row}v1`);
+      if (row < size - 1 && edges.bottom) lines.push(`M${col} ${row + 1}h1`);
     }
   }
   return `
@@ -403,16 +402,24 @@ function renderLibraryThumbnail(puzzle) {
   `;
 }
 
-function renderGenerationOverlay() {
-  const percent = generationProgress.maximum === 0
+function generationPercent() {
+  return generationProgress.maximum === 0
     ? 0
     : Math.min(99, Math.round((generationProgress.attempt / generationProgress.maximum) * 100));
+}
+
+function generationDetailText() {
+  return `Trying constellation ${generationProgress.attempt + 1} of ${generationProgress.maximum}`;
+}
+
+function renderGenerationOverlay() {
+  const percent = generationPercent();
   return `
     <div class="generation-overlay" role="dialog" aria-modal="true" aria-labelledby="generation-title">
       <div class="generation-card">
         <div class="generation-sparkle" aria-hidden="true">✦</div>
         <h2 id="generation-title">Generating Board</h2>
-        <p class="generation-detail">Trying constellation ${generationProgress.attempt + 1} of ${generationProgress.maximum}</p>
+        <p class="generation-detail">${generationDetailText()}</p>
         <div class="generation-track" role="progressbar" aria-label="Board generation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
           <div class="generation-fill" style="width: ${percent}%"></div>
         </div>
@@ -425,15 +432,23 @@ function renderGenerationOverlay() {
 function updateGenerationOverlay() {
   const overlay = root.querySelector(".generation-overlay");
   if (!overlay) return;
-  const percent = Math.min(
-    99,
-    Math.round((generationProgress.attempt / generationProgress.maximum) * 100),
-  );
-  overlay.querySelector(".generation-detail").textContent =
-    `Trying constellation ${generationProgress.attempt + 1} of ${generationProgress.maximum}`;
+  const percent = generationPercent();
+  overlay.querySelector(".generation-detail").textContent = generationDetailText();
   overlay.querySelector(".generation-fill").style.width = `${percent}%`;
   overlay.querySelector(".generation-track").setAttribute("aria-valuenow", String(percent));
   overlay.querySelector(".generation-percent").textContent = `${percent}% of attempt budget`;
+}
+
+function difficultyDetailText() {
+  return `Checking ${difficultyProgress.technique} · ${difficultyProgress.tier}`;
+}
+
+function difficultyCountText() {
+  return `${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps`;
+}
+
+function difficultyFillWidth() {
+  return `${Math.max(3, difficultyProgress.percent)}%`;
 }
 
 function renderDifficultyProgress() {
@@ -442,11 +457,11 @@ function renderDifficultyProgress() {
     <section class="difficulty-report difficulty-loading" aria-label="Board difficulty is being evaluated" aria-live="polite">
       <p class="hint-kicker">Board difficulty</p>
       <div class="difficulty-grade">Evaluating…</div>
-      <p class="difficulty-progress-detail">Checking ${escapeHtml(difficultyProgress.technique)} · ${escapeHtml(difficultyProgress.tier)}</p>
+      <p class="difficulty-progress-detail">${escapeHtml(difficultyDetailText())}</p>
       <div class="generation-track" role="progressbar" aria-label="Difficulty analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
-        <div class="generation-fill difficulty-fill" style="width: ${Math.max(3, percent)}%"></div>
+        <div class="generation-fill difficulty-fill" style="width: ${difficultyFillWidth()}"></div>
       </div>
-      <p class="difficulty-progress-count">${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps</p>
+      <p class="difficulty-progress-count">${difficultyCountText()}</p>
     </section>
   `;
 }
@@ -454,12 +469,10 @@ function renderDifficultyProgress() {
 function updateDifficultyPanel() {
   const panel = root.querySelector(".difficulty-loading");
   if (!panel) return;
-  panel.querySelector(".difficulty-progress-detail").textContent =
-    `Checking ${difficultyProgress.technique} · ${difficultyProgress.tier}`;
-  panel.querySelector(".generation-fill").style.width = `${Math.max(3, difficultyProgress.percent)}%`;
+  panel.querySelector(".difficulty-progress-detail").textContent = difficultyDetailText();
+  panel.querySelector(".generation-fill").style.width = difficultyFillWidth();
   panel.querySelector(".generation-track").setAttribute("aria-valuenow", String(difficultyProgress.percent));
-  panel.querySelector(".difficulty-progress-count").textContent =
-    `${difficultyProgress.starsPlaced} of ${difficultyProgress.totalStars} stars placed · ${difficultyProgress.stepsCompleted} logical steps`;
+  panel.querySelector(".difficulty-progress-count").textContent = difficultyCountText();
 }
 
 function renderDifficultyReport() {
@@ -510,19 +523,14 @@ function setSolutionReveal(visible) {
 }
 
 function getBorderStyle(houses, row, col) {
-  const house = houses[row][col];
-  const size = houses.length;
+  const edges = getHouseEdges(houses, row, col);
   const border = "var(--house-border-width) solid var(--board-line)";
   const thin = "var(--cell-border-width) solid var(--board-line-soft)";
 
   return [
-    `border-top: ${row === 0 || houses[row - 1][col] !== house ? border : thin}`,
-    `border-right: ${col === size - 1 || houses[row][col + 1] !== house ? border : thin}`,
-    `border-bottom: ${row === size - 1 || houses[row + 1][col] !== house ? border : thin}`,
-    `border-left: ${col === 0 || houses[row][col - 1] !== house ? border : thin}`,
+    `border-top: ${edges.top ? border : thin}`,
+    `border-right: ${edges.right ? border : thin}`,
+    `border-bottom: ${edges.bottom ? border : thin}`,
+    `border-left: ${edges.left ? border : thin}`,
   ].join("; ");
-}
-
-function escapeHtml(value) {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }

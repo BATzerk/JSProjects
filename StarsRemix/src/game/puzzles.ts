@@ -1,7 +1,7 @@
 import type { Puzzle } from "./types.ts";
 
 export const starterPuzzle: Puzzle = {
-  id: "codex-starter-8x8",
+  id: "starsremix-starter-8x8",
   title: "First Light",
   size: 8,
   starsPerUnit: 2,

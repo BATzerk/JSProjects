@@ -2,7 +2,7 @@ import { build } from "esbuild";
 
 await build({
   entryPoints: ["src/community/client-entry.js"],
-  outfile: "src/community/community-client.js",
+  outfile: "public/community-client.js",
   bundle: true,
   format: "iife",
   platform: "browser",

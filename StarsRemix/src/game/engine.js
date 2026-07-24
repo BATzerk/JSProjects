@@ -56,6 +56,19 @@
     return [...new Set(puzzle.houses.flat())].sort((a, b) => a - b);
   }
 
+  // Which of a cell's four sides border a different house (i.e. are house
+  // boundaries). Shared by every renderer that draws thick region borders.
+  function getHouseEdges(houses, row, col) {
+    const house = houses[row][col];
+    const size = houses.length;
+    return {
+      top: row === 0 || houses[row - 1][col] !== house,
+      right: col === size - 1 || houses[row][col + 1] !== house,
+      bottom: row === size - 1 || houses[row + 1][col] !== house,
+      left: col === 0 || houses[row][col - 1] !== house,
+    };
+  }
+
   function isHouseConnected(puzzle, house) {
     const cells = [];
     for (let row = 0; row < puzzle.size; row += 1) {
@@ -740,6 +753,22 @@
     return [...houseSizes.values()].some((size) => size === 3);
   }
 
+  // One generation attempt: build a random solution + house layout for the
+  // given size. Returns `{ rejected }` when no valid layout was found, or
+  // `{ puzzle, solution, unique }` where `unique` reports whether the layout
+  // has exactly one solution. The caller assigns the puzzle id/title. Shared by
+  // the engine's synchronous generator and the app's progressive (yielding)
+  // generator so the per-attempt logic lives in one place.
+  function buildPuzzleCandidate(size, starsPerUnit = 2, random = systemRandom, houseAttemptsPerSolution = 100) {
+    const solution = generateSolution(size, starsPerUnit, random);
+    if (!solution) return { rejected: "solution" };
+    const houses = generateHouses(size, solution, random, houseAttemptsPerSolution, starsPerUnit);
+    if (!houses || hasThreeCellHouse(houses)) return { rejected: "houses" };
+    const puzzle = { id: "candidate", title: "Random Constellation", size, starsPerUnit, houses };
+    validatePuzzleShape(puzzle);
+    return { puzzle, solution, unique: countSolutions(puzzle, 2) === 1 };
+  }
+
   function generatePuzzle(config = {}) {
     const size = config.size ?? 9;
     const starsPerUnit = config.starsPerUnit ?? 2;
@@ -774,41 +803,23 @@
       if (attempt === 1 || attempt % 25 === 0) {
         config.onProgress?.({ attempt, maximum: maxAttempts, diagnostics: { ...diagnostics } });
       }
-      const solution = generateSolution(size, starsPerUnit, random);
-      if (!solution) {
+      const candidate = buildPuzzleCandidate(size, starsPerUnit, random, config.houseAttemptsPerSolution ?? 100);
+      if (candidate.rejected === "solution") {
         diagnostics.rejectedSolutions += 1;
         continue;
       }
-
-      const houses = generateHouses(
-        size,
-        solution,
-        random,
-        config.houseAttemptsPerSolution ?? 100,
-        starsPerUnit,
-      );
-      if (!houses) {
+      if (candidate.rejected === "houses") {
         diagnostics.rejectedHouseLayouts += 1;
         continue;
       }
-      if (hasThreeCellHouse(houses)) {
-        diagnostics.rejectedHouseLayouts += 1;
-        continue;
-      }
-
-      const puzzle = {
-        id: `generated-${slug(seed)}-${attempt}`,
-        title: config.title ?? "Random Constellation",
-        size,
-        starsPerUnit,
-        houses,
-      };
-      validatePuzzleShape(puzzle);
-      if (countSolutions(puzzle, 2) !== 1) {
+      if (!candidate.unique) {
         diagnostics.rejectedNonUnique += 1;
         continue;
       }
-      return { puzzle, solution, diagnostics: { ...diagnostics } };
+
+      candidate.puzzle.id = `generated-${slug(seed, { maxLength: 32 })}-${attempt}`;
+      candidate.puzzle.title = config.title ?? "Random Constellation";
+      return { puzzle: candidate.puzzle, solution: candidate.solution, diagnostics: { ...diagnostics } };
     }
 
     throw new Error(
@@ -845,7 +856,7 @@
     const isComplete = !partialHouses.some((row) => row.includes(-1));
     if (isComplete) {
       const puzzle = {
-        id: config.id ?? `handmade-${slug(config.title ?? seed)}`,
+        id: config.id ?? `handmade-${slug(config.title ?? seed, { maxLength: 32 })}`,
         title: config.title ?? "Handmade Constellation",
         size,
         starsPerUnit,
@@ -884,7 +895,7 @@
         continue;
       }
       const puzzle = {
-        id: config.id ?? `handmade-${slug(config.title ?? seed)}`,
+        id: config.id ?? `handmade-${slug(config.title ?? seed, { maxLength: 32 })}`,
         title: config.title ?? "Handmade Constellation",
         size,
         starsPerUnit,
@@ -903,8 +914,19 @@
     );
   }
 
-  function slug(value) {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "seed";
+  // Shared slug/filename helper. `maxLength` clips the result; `fallback` is
+  // used when nothing printable remains.
+  function slug(value, { maxLength, fallback = "seed" } = {}) {
+    const base = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return (maxLength ? base.slice(0, maxLength) : base) || fallback;
+  }
+
+  // Shared browser text helper: escape a string for safe HTML interpolation,
+  // including quotes so it is also safe inside attribute values.
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>'"]/g, (character) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
+    })[character]);
   }
 
   global.StarsRemixEngine = {
@@ -917,6 +939,7 @@
     getStarKey,
     orthogonalNeighbors,
     getHouseIds,
+    getHouseEdges,
     isHouseConnected,
     validatePuzzleShape,
     // Rules
@@ -937,7 +960,11 @@
     validatePartialHouses,
     generateConstrainedHouses,
     hasThreeCellHouse,
+    buildPuzzleCandidate,
     generatePuzzle,
     completePuzzleFromHouses,
+    // Shared helpers
+    slug,
+    escapeHtml,
   };
 })(globalThis);

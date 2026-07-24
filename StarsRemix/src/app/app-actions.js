@@ -92,7 +92,7 @@ function saveBoardFile() {
   const blobUrl = URL.createObjectURL(new Blob([contents], { type: "text/plain" }));
   const link = document.createElement("a");
   link.href = blobUrl;
-  link.download = `${safeFilename(gameState.puzzle.title)}-${gameState.puzzle.size}x${gameState.puzzle.size}.stars`;
+  link.download = `${engine.slug(gameState.puzzle.title, { fallback: "board" })}-${gameState.puzzle.size}x${gameState.puzzle.size}.stars`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
   fileMenuOpen = false;
@@ -117,10 +117,10 @@ async function loadBoardFile(event) {
   if (boardWasLoaded) await calculateDifficulty();
 }
 
-function safeFilename(value) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "board";
-}
-
+// Progressive wrapper around the engine's per-attempt generator: yields to the
+// browser between batches so the progress overlay stays live during the search
+// (a synchronous run freezes the UI for seconds at 10×10/11×11). At 11×11 a
+// strictly unique board is rare, so fall back to the last solvable candidate.
 async function generatePuzzle(size, onProgress) {
   const starsPerUnit = 2;
   if (size < 9) {
@@ -136,19 +136,12 @@ async function generatePuzzle(size, onProgress) {
       onProgress(attempt, maximumAttempts);
       await nextPaint();
     }
-    const solution = engine.generateSolution(size, starsPerUnit);
-    const houses = solution && engine.generateHouses(size, solution);
-    if (!houses || engine.hasThreeCellHouse(houses)) continue;
-
-    const candidate = {
-      id: `generated-${Date.now()}-${attempt}`,
-      title: "Random Constellation",
-      size,
-      starsPerUnit,
-      houses,
-    };
-    validFallback ??= { puzzle: candidate, solution };
-    if (engine.countSolutions(candidate, 2) === 1) return { puzzle: candidate, solution };
+    const candidate = engine.buildPuzzleCandidate(size, starsPerUnit);
+    if (!candidate.puzzle) continue;
+    candidate.puzzle.id = `generated-${Date.now()}-${attempt}`;
+    const built = { puzzle: candidate.puzzle, solution: candidate.solution };
+    validFallback ??= built;
+    if (candidate.unique) return built;
   }
   if (size === 11 && validFallback) return validFallback;
   throw new Error("Unable to generate a unique puzzle. Please try again.");

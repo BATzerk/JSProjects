@@ -2,3 +2,6 @@ node_modules/
 .env
 .env.local
 .env.*.local
+
+# Generated community publishing bundle (rebuilt by npm run build:community)
+/public/community-client.js

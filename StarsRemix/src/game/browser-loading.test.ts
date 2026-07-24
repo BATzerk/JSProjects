@@ -38,7 +38,7 @@ describe("browser loading contract", () => {
     );
     const hintsFirstPosition = hintPositions[0];
     const hintsRegistryPosition = hintPositions[hintPositions.length - 1];
-    const communityPosition = index.indexOf('src="./src/community/community-client.js"');
+    const communityPosition = index.indexOf('src="./public/community-client.js"');
 
     assert.ok(enginePosition >= 0, "index.html must load the engine runtime");
     assert.ok(statePosition > enginePosition, "game state must load after the engine");
@@ -97,7 +97,7 @@ describe("browser loading contract", () => {
       editor.indexOf(`src="./src/game/hints/${name}.js"`),
     );
     const editorPosition = editor.indexOf('src="./src/editor/editor.js"');
-    const communityPosition = editor.indexOf('src="./src/community/community-client.js"');
+    const communityPosition = editor.indexOf('src="./public/community-client.js"');
 
     assert.ok(enginePosition >= 0, "editor.html must load the engine runtime");
     hintPositions.forEach((position, slot) => {

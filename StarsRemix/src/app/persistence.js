@@ -68,21 +68,28 @@ async function loadCommunityBoards() {
     communityBoardsLoading = false;
     return;
   }
+  const requestId = ++communityBoardsRequestId;
   communityBoardsLoading = true;
   communityBoardsError = "";
   if (boardLibraryOpen) render();
   try {
     const response = await globalThis.StarsRemixCommunity.listPublicBoards();
-    const knownIds = new Set(boardLibrary.boards.map(({ puzzle }) => puzzle.id));
+    if (requestId !== communityBoardsRequestId) return;
+    const builtInBoards = boardLibrary.boards.filter((entry) => entry.source !== "community");
+    const communityBoards = [];
+    const knownIds = new Set(builtInBoards.map(({ puzzle }) => puzzle.id));
     for (const board of response.boards ?? []) {
       if (!board?.entry?.puzzle?.id || knownIds.has(board.entry.puzzle.id)) continue;
       validatePuzzleShape(board.entry.puzzle);
-      boardLibrary.boards.push(board.entry);
+      communityBoards.push(board.entry);
       knownIds.add(board.entry.puzzle.id);
     }
+    boardLibrary.boards.splice(0, boardLibrary.boards.length, ...builtInBoards, ...communityBoards);
   } catch (error) {
+    if (requestId !== communityBoardsRequestId) return;
     communityBoardsError = error instanceof Error ? error.message : "Community boards could not be loaded.";
   } finally {
+    if (requestId !== communityBoardsRequestId) return;
     communityBoardsLoading = false;
     const currentEntry = getLibraryBoard(gameState.puzzle.id);
     if (currentEntry && !gameState.analysis.difficultyReport) {

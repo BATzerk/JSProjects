@@ -257,14 +257,15 @@
   function cellStyle(houses, row, col) {
     const house = houses[row][col];
     if (house === -1) return "";
+    const edges = globalThis.StarsRemixEngine.getHouseEdges(houses, row, col);
     const thick = "3px solid #25231f";
     const thin = "1px solid rgba(37,35,31,.22)";
     return [
       `--cell-color:${colors[house % colors.length]}`,
-      `border-top:${row === 0 || houses[row - 1][col] !== house ? thick : thin}`,
-      `border-right:${col === state.size - 1 || houses[row][col + 1] !== house ? thick : thin}`,
-      `border-bottom:${row === state.size - 1 || houses[row + 1][col] !== house ? thick : thin}`,
-      `border-left:${col === 0 || houses[row][col - 1] !== house ? thick : thin}`,
+      `border-top:${edges.top ? thick : thin}`,
+      `border-right:${edges.right ? thick : thin}`,
+      `border-bottom:${edges.bottom ? thick : thin}`,
+      `border-left:${edges.left ? thick : thin}`,
     ].join(";");
   }
 
@@ -708,11 +709,7 @@
   }
 
   function boardSlug(value) {
-    return String(value)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 48) || "untitled";
+    return globalThis.StarsRemixEngine.slug(value, { maxLength: 48, fallback: "untitled" });
   }
 
   function cancelWork() {
@@ -748,9 +745,7 @@
   }
 
   function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>'"]/g, (character) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
-    })[character]);
+    return globalThis.StarsRemixEngine.escapeHtml(value);
   }
 
   function formatPublishedDate(value) {

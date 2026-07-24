@@ -4,14 +4,18 @@
 // functions through the global (lexical) scope of classic scripts. Load
 // order is fixed in index.html; app-actions.js runs the boot call last.
 
-function applyBoard(nextBoard) {
+// A board mutation. `recordHistory` distinguishes a committed move (pushed onto
+// the undo stack) from an in-progress drag stroke (replaced without history).
+function commitBoard(nextBoard, { recordHistory }) {
   if (boardsMatch(gameState.progress.board, nextBoard)) return;
   const previousBoard = gameState.progress.board;
   enteringTokenKeys = getEnteringTokenKeys(previousBoard, nextBoard);
   const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
   if (!wasShowingSuccess) clearSoftHintSuccessTimers();
-  undoStack = [...undoStack, gameState.progress.board];
-  redoStack = [];
+  if (recordHistory) {
+    undoStack = [...undoStack, previousBoard];
+    redoStack = [];
+  }
   gameState = globalThis.StarsRemixState.updateBoard(gameState, nextBoard);
   currentHint = null;
   currentCheck = null;
@@ -19,6 +23,10 @@ function applyBoard(nextBoard) {
   saveBoardToDevice();
   render();
   if (currentSoftHint?.isSatisfied && !wasShowingSuccess) scheduleSoftHintSuccessExit();
+}
+
+function applyBoard(nextBoard) {
+  commitBoard(nextBoard, { recordHistory: true });
 }
 
 function updateSoftHintAfterMove(activeSoftHint, previousBoard, nextBoard) {
@@ -73,18 +81,7 @@ function scheduleSoftHintSuccessExit() {
 }
 
 function replaceBoard(nextBoard) {
-  if (boardsMatch(gameState.progress.board, nextBoard)) return;
-  const previousBoard = gameState.progress.board;
-  enteringTokenKeys = getEnteringTokenKeys(previousBoard, nextBoard);
-  const wasShowingSuccess = Boolean(currentSoftHint?.isSatisfied);
-  if (!wasShowingSuccess) clearSoftHintSuccessTimers();
-  gameState = globalThis.StarsRemixState.updateBoard(gameState, nextBoard);
-  currentHint = null;
-  currentSoftHint = updateSoftHintAfterMove(currentSoftHint, previousBoard, gameState.progress.board);
-  currentCheck = null;
-  saveBoardToDevice();
-  render();
-  if (currentSoftHint?.isSatisfied && !wasShowingSuccess) scheduleSoftHintSuccessExit();
+  commitBoard(nextBoard, { recordHistory: false });
 }
 
 function undo() {
