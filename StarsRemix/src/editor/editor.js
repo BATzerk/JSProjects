@@ -148,7 +148,6 @@
                 <button class="button text-action" id="new-board">Start over</button>
               ` : stage === "test" ? `
                 <button class="button publish" id="publish-board" ${canPublish ? "" : "disabled"}>${publishButtonLabel()}</button>
-                <button class="button secondary" id="keep-editing">Keep editing</button>
                 <button class="button text-action" id="complete-board" ${worker ? "disabled" : ""}>Try another completion</button>
                 ${!communityState.enabled ? `<p class="publish-help">${escapeHtml(communityState.message || "Community publishing is not configured for this site.")}</p>` : ""}
               ` : `
@@ -370,10 +369,6 @@
     });
     document.querySelectorAll("[data-delete-board]").forEach((button) => {
       button.addEventListener("click", () => removePublishedBoard(button.dataset.deleteBoard));
-    });
-    document.querySelector("#keep-editing")?.addEventListener("click", () => {
-      resetResult();
-      render();
     });
     document.querySelector("#new-after-publish")?.addEventListener("click", () => {
       state = blankState(state.size);

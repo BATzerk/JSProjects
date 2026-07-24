@@ -85,6 +85,15 @@ async function loadCommunityBoards() {
       knownIds.add(board.entry.puzzle.id);
     }
     boardLibrary.boards.splice(0, boardLibrary.boards.length, ...builtInBoards, ...communityBoards);
+    if (
+      selectedLibrarySource === "community" &&
+      communityBoards.length &&
+      !communityBoards.some(({ difficulty }) => difficulty.label === selectedLibraryDifficulty)
+    ) {
+      selectedLibraryDifficulty = libraryDifficulties.find((difficulty) =>
+        communityBoards.some((entry) => entry.difficulty.label === difficulty)
+      ) ?? selectedLibraryDifficulty;
+    }
     const requestedBoardId = new URL(window.location.href).searchParams.get("board");
     if (requestedBoardId && getLibraryBoard(requestedBoardId)) {
       loadLibraryBoard(requestedBoardId);

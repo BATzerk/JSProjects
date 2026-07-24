@@ -28,6 +28,8 @@ describe("community publishing contract", () => {
       new URL("../../drizzle/0000_flat_scalphunter.sql", import.meta.url), "utf8");
     const dataApiMigration = await readFile(
       new URL("../../drizzle/0001_static_data_api.sql", import.meta.url), "utf8");
+    const insertGrantMigration = await readFile(
+      new URL("../../drizzle/0002_fix_data_api_insert_grant.sql", import.meta.url), "utf8");
 
     assert.match(initialMigration, /"owner_id" text NOT NULL/);
     assert.match(initialMigration, /community_boards_fingerprint_unique/);
@@ -41,6 +43,8 @@ describe("community publishing contract", () => {
     assert.match(dataApiMigration, /Each player may publish up to 25 boards/);
     assert.match(dataApiMigration, /starsremix_valid_solution/);
     assert.match(dataApiMigration, /digest\(convert_to\(canonical_layout/);
+    assert.match(insertGrantMigration, /GRANT INSERT ON TABLE community_boards TO authenticated/);
+    assert.match(insertGrantMigration, /NEW\.created_at := now\(\)/);
   });
 
   it("shows actionable publishing status and keeps the editor's full technique report", async () => {
@@ -54,6 +58,7 @@ describe("community publishing contract", () => {
     assert.match(editor, /if \(!communityState\.user\) return ""/);
     assert.match(editor, /difficulty\.techniqueCounts/);
     assert.match(editor, /Every logical move/);
+    assert.doesNotMatch(editor, /keep-editing|Keep editing|Edit this completion/);
     assert.doesNotMatch(editor, /Attempts <strong>/);
     assert.match(worker, /difficulty:\s*\{\s*\.\.\.report/);
   });
@@ -68,5 +73,9 @@ describe("community publishing contract", () => {
       /boardLibrary\.boards\.splice\(0,\s*boardLibrary\.boards\.length,\s*\.\.\.builtInBoards,\s*\.\.\.communityBoards\)/,
     );
     assert.match(persistence, /requestId !== communityBoardsRequestId/);
+    assert.match(
+      persistence,
+      /selectedLibrarySource === "community"[\s\S]+selectedLibraryDifficulty = libraryDifficulties\.find/,
+    );
   });
 });
