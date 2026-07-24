@@ -82,7 +82,8 @@ describe("browser loading contract", () => {
     assert.doesNotMatch(appView, /StarsRemixHints\.findHint\([^)]*gameState\.solution/);
     assert.match(appView, /Choose a board/);
     assert.match(appView, /New random/);
-    assert.match(appView, /<summary>Debug<\/summary>/);
+    assert.match(appView, /Debug tools/);
+    assert.match(appView, /class="debug-panel"[\s\S]*data-action="generate"/);
     assert.match(appView, /querySelectorAll\("\[data-action='browse-library'\]"\)/);
     assert.doesNotMatch(appView, /Save current board/);
     assert.doesNotMatch(appView, /Load board file/);

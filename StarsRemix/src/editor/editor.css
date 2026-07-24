@@ -55,7 +55,7 @@ button:disabled { cursor: not-allowed; opacity: .42; box-shadow: none !important
 }
 .back-link:hover { border-color: var(--ink); background: white; transform: translateX(-2px); }
 .eyebrow { margin: 0 0 2px; color: var(--raspberry); font-size: .64rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
-h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.65rem, 2.5vw, 2.2rem); font-weight: 500; letter-spacing: -.035em; line-height: 1; }
+h1 { margin: 0; font-family: inherit; font-size: clamp(1.65rem, 2.5vw, 2.2rem); font-weight: 800; letter-spacing: -.035em; line-height: 1; }
 
 .draft-fields { display: flex; gap: 10px; align-items: end; margin-left: auto; }
 .draft-fields label { display: grid; gap: 4px; color: var(--muted); font-size: .62rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
@@ -179,7 +179,7 @@ h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp
   box-shadow: 0 10px 32px rgba(55,45,35,.08);
 }
 .panel-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px 20px 14px; }
-.panel-heading h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.25rem; font-weight: 500; letter-spacing: -.02em; }
+.panel-heading h2 { margin: 0; font-family: inherit; font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
 .text-button { padding: 4px 0; border: 0; background: transparent; color: var(--raspberry); cursor: pointer; font-size: .66rem; font-weight: 850; }
 .text-button:not(:disabled):hover { text-decoration: underline; }
 .palette-area { padding: 0 20px 15px; border-bottom: 1px solid var(--line); }
@@ -309,7 +309,7 @@ h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp
   padding: 20px;
   border-bottom: 1px solid var(--line);
 }
-.boards-dialog h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.45rem; font-weight: 500; }
+.boards-dialog h2 { margin: 0; font-family: inherit; font-size: 1.45rem; font-weight: 800; }
 .boards-close {
   display: grid;
   width: 36px;

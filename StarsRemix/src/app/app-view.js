@@ -113,39 +113,38 @@ function render() {
             ${difficultyProgress ? renderDifficultyProgress() : gameState.analysis.difficultyReport ? renderDifficultyReport() : ""}
             ${fileNotice ? `<div class="file-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</div>` : ""}
           </aside>
-          <section class="next-board-card" aria-label="Start another puzzle">
-            <div class="next-board-heading">
-              <div>
-                <p class="control-kicker">Next puzzle</p>
-                <h2>Keep the constellation going</h2>
-              </div>
-              <span class="next-board-spark" aria-hidden="true">✦</span>
+          <details class="debug-panel">
+            <summary>
+              <span>Debug tools</span>
+              <span class="debug-chevron" aria-hidden="true">+</span>
+            </summary>
+            <div class="debug-panel-body">
+              <section class="debug-group" aria-label="Random board generator">
+                <div>
+                  <p class="control-kicker">Board generator</p>
+                  <h2>Load a random test board</h2>
+                </div>
+                <div class="size-controls compact-size-controls" aria-label="Random board size">
+                  ${[9, 10, 11].map((size) => `
+                    <button class="size-button${selectedBoardSize === size ? " is-active" : ""}" type="button" data-size="${size}" aria-pressed="${selectedBoardSize === size}" ${generationProgress ? "disabled" : ""}>${size}×${size}</button>
+                  `).join("")}
+                </div>
+                <button class="debug-primary-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>
+                  New random ${selectedBoardSize}×${selectedBoardSize}
+                </button>
+              </section>
+              <section class="debug-group debug-file-tools" aria-label="Game file tools">
+                <button type="button" data-action="reveal" aria-pressed="${solutionRevealVisible}">${solutionRevealVisible ? "Hide" : "Reveal"} solution</button>
+                <button type="button" data-action="save-board">Export game file</button>
+                <button type="button" data-action="load-board">Import game file</button>
+                <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
+              </section>
+              ${fileNotice ? `<span class="debug-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</span>` : ""}
             </div>
-            <button class="action-button random-board-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>
-              New random <strong>${selectedBoardSize}×${selectedBoardSize}</strong>
-            </button>
-            <div class="size-controls compact-size-controls" aria-label="Random board size">
-              ${[9, 10, 11].map((size) => `
-                <button class="size-button${selectedBoardSize === size ? " is-active" : ""}" type="button" data-size="${size}" aria-pressed="${selectedBoardSize === size}" ${generationProgress ? "disabled" : ""}>${size}×${size}</button>
-              `).join("")}
-            </div>
-            <button class="quiet-board-link" type="button" data-action="browse-library">or choose from the library →</button>
-          </section>
+          </details>
+          <p class="site-credit">Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.</p>
         </div>
       </section>
-      <footer class="site-footer">
-        <details class="debug-panel">
-          <summary>Debug</summary>
-          <div class="debug-panel-body">
-            <button type="button" data-action="reveal" aria-pressed="${solutionRevealVisible}">${solutionRevealVisible ? "Hide" : "Reveal"} solution</button>
-            <button type="button" data-action="save-board">Export game file</button>
-            <button type="button" data-action="load-board">Import game file</button>
-            <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
-            ${fileNotice ? `<span class="debug-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</span>` : ""}
-          </div>
-        </details>
-        <p>Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.</p>
-      </footer>
       ${boardLibraryOpen ? renderBoardLibrary() : ""}
       ${generationProgress ? renderGenerationOverlay() : ""}
     </main>
@@ -524,7 +523,6 @@ function renderDifficultyReport() {
           <p class="hint-kicker">Board difficulty</p>
           <div class="difficulty-grade">${escapeHtml(report.label)}</div>
         </div>
-        <span class="difficulty-spark" aria-hidden="true">✦</span>
       </div>
       <p>${report.solved
         ? `${report.logicalSteps ?? report.steps.length} logical steps · weighted score ${report.score}`
