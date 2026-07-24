@@ -95,7 +95,6 @@ function saveBoardFile() {
   link.download = `${engine.slug(gameState.puzzle.title, { fallback: "board" })}-${gameState.puzzle.size}x${gameState.puzzle.size}.stars`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
-  fileMenuOpen = false;
   fileNotice = { kind: "success", message: "Board file saved." };
   render();
 }
@@ -112,7 +111,6 @@ async function loadBoardFile(event) {
   } catch (error) {
     fileNotice = { kind: "error", message: error instanceof Error ? error.message : "Unable to load that board." };
   }
-  fileMenuOpen = false;
   render();
   if (boardWasLoaded) await calculateDifficulty();
 }
@@ -155,13 +153,6 @@ window.addEventListener("pointerup", () => {
   isDraggingMarks = false;
 });
 
-window.addEventListener("click", (event) => {
-  if (fileMenuOpen && event.target instanceof Element && !event.target.closest(".file-menu")) {
-    fileMenuOpen = false;
-    render();
-  }
-});
-
 window.addEventListener("blur", () => {
   isDraggingMarks = false;
 });
@@ -169,8 +160,6 @@ window.addEventListener("blur", () => {
 function dismissActiveUi() {
   if (boardLibraryOpen) {
     boardLibraryOpen = false;
-  } else if (fileMenuOpen) {
-    fileMenuOpen = false;
   } else if (currentHint) {
     currentHint = null;
   } else if (currentSoftHint) {
@@ -231,6 +220,7 @@ if (restoredLibraryBoard) {
     makeLibraryDifficultyReport(restoredLibraryBoard),
   );
   render();
+  calculateDifficulty();
 } else {
   calculateDifficulty();
 }

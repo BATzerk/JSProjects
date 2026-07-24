@@ -44,7 +44,9 @@ describe("community publishing contract", () => {
 
     assert.match(editor, /Publishing unavailable/);
     assert.match(editor, /communityState\.message/);
-    assert.match(editor, /You can still download the board as JSON/);
+    assert.match(editor, /Debug tools/);
+    assert.match(editor, /Download board JSON/);
+    assert.match(editor, /if \(!communityState\.user\) return ""/);
     assert.match(editor, /difficulty\.techniqueCounts/);
     assert.match(editor, /Every logical move/);
     assert.doesNotMatch(editor, /Attempts <strong>/);

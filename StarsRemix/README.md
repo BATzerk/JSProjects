@@ -20,13 +20,13 @@ build step.
 Open `editor.html` directly to use the Board Workshop; its export flow does not
 require the local development server. Paint any finished house shapes with left-click and drag;
 number keys 1–9 (and 0 for house 10) choose a house color. Right-click or
-Command/Ctrl-click and drag erases tiles. **Complete board** preserves every painted
-house exactly, generates the remaining houses, verifies a unique solution, and
-calculates difficulty.
+Command/Ctrl-click and drag erases tiles. **Finish & test board** preserves every
+painted house exactly, generates the remaining houses, verifies a unique
+solution, and calculates difficulty. A successful board can then be published
+directly to the Community library.
 
-**Export board** downloads the uniquely solvable, difficulty-rated board as a
-JSON file. Import that download into the project and rebuild the in-game catalog
-in one step:
+Developer-only JSON export remains available under **Debug tools**. To import
+one of those files into the built-in catalog:
 
 ```sh
 npm run import:board -- ~/Downloads/handmade-your-board-....json

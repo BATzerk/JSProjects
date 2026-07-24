@@ -76,7 +76,6 @@ let currentCheck = null;
 let generationProgress = null;
 let difficultyProgress = null;
 let difficultyAnalysisId = 0;
-let fileMenuOpen = false;
 let boardLibraryOpen = false;
 let selectedLibrarySource = "built-in";
 let selectedLibraryDifficulty = "Easy";

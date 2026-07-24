@@ -80,12 +80,26 @@ describe("browser loading contract", () => {
     }
     assert.match(appView, /StarsRemixHints\.findHint\(gameState\.puzzle, gameState\.progress\.board\)/);
     assert.doesNotMatch(appView, /StarsRemixHints\.findHint\([^)]*gameState\.solution/);
+    assert.match(appView, /Choose a board/);
+    assert.match(appView, /New random/);
+    assert.match(appView, /<summary>Debug<\/summary>/);
+    assert.match(appView, /querySelectorAll\("\[data-action='browse-library'\]"\)/);
+    assert.doesNotMatch(appView, /Save current board/);
+    assert.doesNotMatch(appView, /Load board file/);
     assert.match(persistence, /localStorage\.setItem\(savedBoardStorageKey/);
     assert.match(persistence, /localStorage\.getItem\(savedBoardStorageKey/);
     assert.match(persistence, /serializeSnapshot\(createCurrentSnapshot\(\)\)/);
     assert.match(persistence, /deserializeSnapshot\(contents\)/);
+    assert.match(
+      persistence,
+      /function loadLibraryBoard[\s\S]*render\(\);\s*calculateDifficulty\(\);\s*return true/,
+    );
     assert.match(appBoard, /saveBoardToDevice\(\)/);
     assert.match(appActions, /restoreBoardFromDevice\(\);[\s\S]*validatePuzzleShape\(gameState\.puzzle\)/);
+    assert.match(
+      appActions,
+      /if \(restoredLibraryBoard\)[\s\S]*render\(\);\s*calculateDifficulty\(\);/,
+    );
   });
 
   it("loads the local editor after its classic engine dependency", async () => {
@@ -115,6 +129,9 @@ describe("browser loading contract", () => {
     assert.doesNotMatch(editorRuntime, /api\/handmade-boards/);
     assert.match(editorRuntime, /StarsRemixCommunity\.signInWithGoogle/);
     assert.match(editorRuntime, /StarsRemixCommunity\.publishBoard/);
+    assert.match(editorRuntime, /Design → Test → Publish|Board creation progress/);
+    assert.match(editorRuntime, /Finish & test board/);
+    assert.match(editorRuntime, /Play this board/);
   });
 });
 

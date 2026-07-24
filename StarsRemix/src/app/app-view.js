@@ -52,23 +52,15 @@ function render() {
           </div>
         </div>
         <div class="top-actions">
+          <button class="action-button choose-board-button" type="button" data-action="browse-library">
+            <span aria-hidden="true">✦</span> Choose a board
+          </button>
+          <button class="action-button create-board-button" type="button" data-action="board-editor">Create</button>
           <button class="icon-button theme-toggle" type="button" data-action="toggle-theme" aria-label="Switch to ${nightMode ? "day" : "night"} mode" title="Switch to ${nightMode ? "day" : "night"} mode" aria-pressed="${nightMode}">
             ${nightMode
               ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>'
               : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z" /></svg>'}
           </button>
-          <div class="file-menu">
-            <button class="action-button file-menu-button" type="button" data-action="file-menu" aria-expanded="${fileMenuOpen}">Boards</button>
-            ${fileMenuOpen ? `
-              <div class="file-menu-popover" role="menu" aria-label="Saved boards">
-                <button type="button" role="menuitem" data-action="browse-library">Browse boards…</button>
-                <button type="button" role="menuitem" data-action="board-editor">Open board workshop…</button>
-                <button type="button" role="menuitem" data-action="save-board">Save current board…</button>
-                <button type="button" role="menuitem" data-action="load-board">Load board file…</button>
-              </div>
-            ` : ""}
-            <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
-          </div>
         </div>
       </section>
 
@@ -121,19 +113,38 @@ function render() {
             ${difficultyProgress ? renderDifficultyProgress() : gameState.analysis.difficultyReport ? renderDifficultyReport() : ""}
             ${fileNotice ? `<div class="file-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</div>` : ""}
           </aside>
-          <div class="new-board-controls" aria-label="New board controls">
-            <div class="size-controls" aria-label="Board size">
+          <section class="next-board-card" aria-label="Start another puzzle">
+            <div class="next-board-heading">
+              <div>
+                <p class="control-kicker">Next puzzle</p>
+                <h2>Keep the constellation going</h2>
+              </div>
+              <span class="next-board-spark" aria-hidden="true">✦</span>
+            </div>
+            <button class="action-button random-board-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>
+              New random <strong>${selectedBoardSize}×${selectedBoardSize}</strong>
+            </button>
+            <div class="size-controls compact-size-controls" aria-label="Random board size">
               ${[9, 10, 11].map((size) => `
                 <button class="size-button${selectedBoardSize === size ? " is-active" : ""}" type="button" data-size="${size}" aria-pressed="${selectedBoardSize === size}" ${generationProgress ? "disabled" : ""}>${size}×${size}</button>
               `).join("")}
             </div>
-            <button class="action-button" type="button" data-action="generate" ${generationProgress ? "disabled" : ""}>new board</button>
-            <button class="action-button debug-reveal-button" type="button" data-action="reveal" aria-pressed="${solutionRevealVisible}">DEBUG ${solutionRevealVisible ? "hide" : "reveal"} solution</button>
-          </div>
+            <button class="quiet-board-link" type="button" data-action="browse-library">or choose from the library →</button>
+          </section>
         </div>
       </section>
       <footer class="site-footer">
-        Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.
+        <details class="debug-panel">
+          <summary>Debug</summary>
+          <div class="debug-panel-body">
+            <button type="button" data-action="reveal" aria-pressed="${solutionRevealVisible}">${solutionRevealVisible ? "Hide" : "Reveal"} solution</button>
+            <button type="button" data-action="save-board">Export game file</button>
+            <button type="button" data-action="load-board">Import game file</button>
+            <input class="board-file-input" type="file" accept=".stars,.stars.json,.json,text/plain,application/json" data-board-file hidden>
+            ${fileNotice ? `<span class="debug-notice ${fileNotice.kind}" role="status">${escapeHtml(fileNotice.message)}</span>` : ""}
+          </div>
+        </details>
+        <p>Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.</p>
       </footer>
       ${boardLibraryOpen ? renderBoardLibrary() : ""}
       ${generationProgress ? renderGenerationOverlay() : ""}
@@ -197,26 +208,24 @@ function render() {
     loadGeneratedPuzzle(selectedBoardSize);
   });
 
-  root.querySelector("[data-action='file-menu']")?.addEventListener("click", () => {
-    fileMenuOpen = !fileMenuOpen;
-    render();
-  });
-
   root.querySelector("[data-action='toggle-theme']")?.addEventListener("click", () => {
     setNightMode(!nightMode);
   });
 
-  root.querySelector("[data-action='browse-library']")?.addEventListener("click", () => {
-    const currentEntry = getLibraryBoard(gameState.puzzle.id);
-    selectedLibrarySource = currentEntry?.source === "community" ? "community" : "built-in";
-    selectedLibraryDifficulty = currentEntry?.difficulty.label ?? selectedLibraryDifficulty;
-    fileMenuOpen = false;
-    boardLibraryOpen = true;
-    render();
-    loadCommunityBoards();
+  root.querySelectorAll("[data-action='browse-library']").forEach((button) => {
+    button.addEventListener("click", () => {
+      const currentEntry = getLibraryBoard(gameState.puzzle.id);
+      selectedLibrarySource = currentEntry?.source === "community" ? "community" : "built-in";
+      selectedLibraryDifficulty = currentEntry?.difficulty.label ?? selectedLibraryDifficulty;
+      boardLibraryOpen = true;
+      render();
+      loadCommunityBoards();
+    });
   });
-  root.querySelector("[data-action='board-editor']")?.addEventListener("click", () => {
-    window.location.href = "./editor.html";
+  root.querySelectorAll("[data-action='board-editor']").forEach((button) => {
+    button.addEventListener("click", () => {
+      window.location.href = "./editor.html";
+    });
   });
 
   root.querySelector("[data-action='close-library']")?.addEventListener("click", () => {
@@ -241,6 +250,15 @@ function render() {
 
   root.querySelectorAll("[data-library-board]").forEach((button) => {
     button.addEventListener("click", () => loadLibraryBoard(button.dataset.libraryBoard));
+  });
+
+  root.querySelector("[data-action='surprise-board']")?.addEventListener("click", () => {
+    const choices = boardLibrary.boards.filter(
+      (entry) => entry.puzzle.id !== gameState.puzzle.id &&
+        (entry.source === "community" ? "community" : "built-in") === selectedLibrarySource,
+    );
+    const choice = choices[Math.floor(Math.random() * choices.length)];
+    if (choice) loadLibraryBoard(choice.puzzle.id);
   });
 
   root.querySelector("[data-action='save-board']")?.addEventListener("click", saveBoardFile);
@@ -328,7 +346,11 @@ function renderBoardLibrary() {
     <div class="library-overlay" role="dialog" aria-modal="true" aria-labelledby="library-title">
       <section class="library-dialog">
         <header class="library-header">
-          <h2 id="library-title">Boards</h2>
+          <div>
+            <p class="library-kicker">Find your next constellation</p>
+            <h2 id="library-title">Choose a board</h2>
+          </div>
+          <button class="library-surprise" type="button" data-action="surprise-board">Surprise me</button>
           <button class="library-close" type="button" data-action="close-library" aria-label="Close board library">×</button>
         </header>
         <nav class="library-source-tabs" aria-label="Board collection">
@@ -378,6 +400,10 @@ function renderBoardLibrary() {
             </div>
           `}
         </div>
+        <footer class="library-footer">
+          <span>Have a constellation in mind?</span>
+          <button type="button" data-action="board-editor">Create a board <span aria-hidden="true">→</span></button>
+        </footer>
       </section>
     </div>
   `;
@@ -492,18 +518,26 @@ function renderDifficultyReport() {
   `).join("");
 
   return `
-    <section class="difficulty-report" aria-label="Board difficulty report">
-      <p class="hint-kicker">Board difficulty</p>
-      <div class="difficulty-grade">${escapeHtml(report.label)}</div>
+    <section class="difficulty-report compact-difficulty-report" aria-label="Board difficulty report">
+      <div class="difficulty-at-a-glance">
+        <div>
+          <p class="hint-kicker">Board difficulty</p>
+          <div class="difficulty-grade">${escapeHtml(report.label)}</div>
+        </div>
+        <span class="difficulty-spark" aria-hidden="true">✦</span>
+      </div>
       <p>${report.solved
-        ? `${report.bigTicketCount} big-ticket deduction${report.bigTicketCount === 1 ? "" : "s"} · weighted score ${report.score}`
-        : `The current technique set placed ${report.starsPlaced} of ${report.totalStars} stars, so this board cannot be rated completely yet.`}</p>
+        ? `${report.logicalSteps ?? report.steps.length} logical steps · weighted score ${report.score}`
+        : `${report.starsPlaced} of ${report.totalStars} stars placed by the current analyzer.`}</p>
       ${report.catalogRating
-        ? `<p class="catalog-rating-note">Pre-rated for the board library · ${report.logicalSteps} logical steps</p>`
-        : `<ul class="technique-summary">${summary}</ul>
-          <details class="difficulty-details">
-            <summary>Every logical move (${report.steps.length})</summary>
-            <ol>${steps}</ol>
+        ? `<p class="catalog-rating-note">Rated for the board library</p>`
+        : `<details class="analysis-disclosure">
+            <summary>View full analysis · ${report.steps.length} logical steps</summary>
+            <ul class="technique-summary">${summary}</ul>
+            <div class="difficulty-details expanded-difficulty-details">
+              <p>Every logical move</p>
+              <ol>${steps}</ol>
+            </div>
           </details>`}
     </section>
   `;
@@ -519,7 +553,7 @@ function setSolutionReveal(visible) {
   root.querySelector(".board")?.classList.toggle("is-debug-revealed", visible);
   const revealButton = root.querySelector("[data-action='reveal']");
   revealButton?.setAttribute("aria-pressed", String(visible));
-  if (revealButton) revealButton.textContent = `DEBUG ${visible ? "hide" : "reveal"} solution`;
+  if (revealButton) revealButton.textContent = `${visible ? "Hide" : "Reveal"} solution`;
 }
 
 function getBorderStyle(houses, row, col) {

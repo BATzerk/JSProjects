@@ -85,6 +85,13 @@ async function loadCommunityBoards() {
       knownIds.add(board.entry.puzzle.id);
     }
     boardLibrary.boards.splice(0, boardLibrary.boards.length, ...builtInBoards, ...communityBoards);
+    const requestedBoardId = new URL(window.location.href).searchParams.get("board");
+    if (requestedBoardId && getLibraryBoard(requestedBoardId)) {
+      loadLibraryBoard(requestedBoardId);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("board");
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   } catch (error) {
     if (requestId !== communityBoardsRequestId) return;
     communityBoardsError = error instanceof Error ? error.message : "Community boards could not be loaded.";
@@ -170,10 +177,10 @@ function loadLibraryBoard(puzzleId) {
   );
   selectedBoardSize = entry.puzzle.size;
   boardLibraryOpen = false;
-  fileMenuOpen = false;
   resetGameSessionState();
   saveBoardToDevice();
   render();
+  calculateDifficulty();
   return true;
 }
 
