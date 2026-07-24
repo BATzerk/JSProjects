@@ -271,5 +271,5 @@ function httpError(status, message) {
 }
 
 server.listen(port, host, () => {
-  console.log(`StarsRemix Codex running at http://${host}:${port}`);
+  console.log(`StarsRemix running at http://${host}:${port}`);
 });

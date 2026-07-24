@@ -1,5 +1,5 @@
 on run
-  set projectPath to "/Users/bretttaylor/Documents/GitHub/JSProjects/StarsRemix_Codex"
+  set projectPath to "/Users/bretttaylor/Documents/GitHub/JSProjects/StarsRemix"
   set workshopURL to "http://127.0.0.1:5173/editor.html"
   set healthCommand to "/usr/bin/curl -fsS " & quoted form of workshopURL & " | /usr/bin/grep -q " & quoted form of "Board Workshop"
 

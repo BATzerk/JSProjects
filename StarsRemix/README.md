@@ -1,4 +1,4 @@
-# StarsRemix_Codex
+# StarsRemix
 
 Stars Remix experiment developed with **Codex** (OpenAI).
 
