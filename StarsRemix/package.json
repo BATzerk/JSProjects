@@ -16,9 +16,10 @@
     "test": "node --test src/game/*.test.ts",
     "check": "npm test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@neondatabase/neon-js": "^0.6.2-beta"
+  },
   "devDependencies": {
-    "@neondatabase/auth": "0.4.2-beta",
     "@neondatabase/serverless": "^1.1.0",
     "esbuild": "^0.28.1"
   },

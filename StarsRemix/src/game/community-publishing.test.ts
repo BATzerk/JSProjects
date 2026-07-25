@@ -3,23 +3,30 @@ import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 
 describe("community publishing contract", () => {
-  it("uses signed Neon Auth tokens directly with the Data API", async () => {
+  it("uses separate public and authenticated Neon clients", async () => {
     const client = await readFile(new URL("../community/client-entry.js", import.meta.url), "utf8");
     const server = await readFile(new URL("../../scripts/dev-server.ts", import.meta.url), "utf8");
 
     assert.doesNotMatch(client, /DATABASE_URL/);
-    assert.match(client, /createInternalNeonAuth/);
+    assert.match(client, /createClient/);
+    assert.match(client, /publicClient = createClient/);
+    assert.match(client, /userClient = createClient/);
     assert.match(client, /allowAnonymous:\s*true/);
-    assert.match(client, /neonAuth\.getJWTToken/);
-    assert.match(client, /await getJWTToken\(\)/);
+    assert.match(client, /allowAnonymous:\s*false/);
+    assert.match(client, /claims\?\.role !== ["']authenticated["']/);
+    assert.doesNotMatch(client, /createInternalNeonAuth|authorization.*Bearer|getJWTToken/);
     assert.match(client, /provider:\s*["']google["']/);
+    assert.match(client, /disableRedirect:\s*true/);
     assert.match(client, /Community publishing has not been set up for this site/);
     assert.doesNotMatch(client, /Connect Neon/);
     assert.match(client, /solvePuzzle\(candidate,\s*\{\s*limit:\s*2\s*\}\)/);
     assert.match(client, /analyzeDifficulty\(candidate\)/);
-    assert.match(client, /\/community_boards/);
+    assert.match(client, /\.from\(["']community_boards["']\)/);
+    assert.match(client, /\.rpc\(["']starsremix_publish_community_board["']/);
+    assert.match(client, /\.rpc\(["']starsremix_delete_community_board["']/);
     assert.match(client, /crypto\.subtle\.digest\(["']SHA-256/);
-    assert.match(client, /Sign out, sign in again, and retry/);
+    assert.match(client, /Neon did not issue authenticated database access/);
+    assert.match(client, /result\.error\.message/);
     assert.doesNotMatch(server, /\/api\/community/);
   });
 
@@ -30,6 +37,8 @@ describe("community publishing contract", () => {
       new URL("../../drizzle/0001_static_data_api.sql", import.meta.url), "utf8");
     const insertGrantMigration = await readFile(
       new URL("../../drizzle/0002_fix_data_api_insert_grant.sql", import.meta.url), "utf8");
+    const writeRpcMigration = await readFile(
+      new URL("../../drizzle/0003_community_write_rpc.sql", import.meta.url), "utf8");
 
     assert.match(initialMigration, /"owner_id" text NOT NULL/);
     assert.match(initialMigration, /community_boards_fingerprint_unique/);
@@ -45,6 +54,11 @@ describe("community publishing contract", () => {
     assert.match(dataApiMigration, /digest\(convert_to\(canonical_layout/);
     assert.match(insertGrantMigration, /GRANT INSERT ON TABLE community_boards TO authenticated/);
     assert.match(insertGrantMigration, /NEW\.created_at := now\(\)/);
+    assert.match(writeRpcMigration, /SECURITY DEFINER/);
+    assert.match(writeRpcMigration, /starsremix_publish_community_board/);
+    assert.match(writeRpcMigration, /starsremix_delete_community_board/);
+    assert.match(writeRpcMigration, /GRANT EXECUTE[\s\S]+TO authenticated/);
+    assert.match(writeRpcMigration, /REVOKE INSERT, DELETE ON TABLE community_boards FROM authenticated/);
   });
 
   it("shows actionable publishing status and keeps the editor's full technique report", async () => {

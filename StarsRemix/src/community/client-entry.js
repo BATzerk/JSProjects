@@ -1,11 +1,12 @@
-import { createInternalNeonAuth } from "@neondatabase/auth";
+import { createClient } from "@neondatabase/neon-js";
 
 const eventName = "starsremix:community-auth";
 const dataApiUrl = __NEON_DATA_API_URL__.replace(/\/+$/, "");
 const authUrl = __NEON_AUTH_BASE_URL__.replace(/\/+$/, "");
 const configured = /^https:\/\//.test(dataApiUrl) && /^https:\/\//.test(authUrl);
+let publicClient = null;
+let userClient = null;
 let auth = null;
-let getJWTToken = null;
 let state = {
   status: "loading",
   enabled: false,
@@ -27,9 +28,15 @@ async function initialize() {
   }
 
   try {
-    const neonAuth = createInternalNeonAuth(authUrl, { allowAnonymous: true });
-    auth = neonAuth.adapter;
-    getJWTToken = neonAuth.getJWTToken;
+    publicClient = createClient({
+      auth: { url: authUrl, allowAnonymous: true },
+      dataApi: { url: dataApiUrl },
+    });
+    userClient = createClient({
+      auth: { url: authUrl, allowAnonymous: false },
+      dataApi: { url: dataApiUrl },
+    });
+    auth = userClient.auth;
     await refreshSession();
     return state;
   } catch {
@@ -46,11 +53,12 @@ async function initialize() {
 async function refreshSession() {
   if (!auth) return state;
   const result = await auth.getSession();
+  const user = result?.data?.user ?? null;
   setState({
     status: "ready",
     enabled: true,
-    user: result?.data?.user ?? null,
-    message: result?.data?.user ? "Signed in" : "Sign in when you are ready to publish.",
+    user,
+    message: user ? "Signed in" : "Sign in when you are ready to publish.",
   });
   return state;
 }
@@ -58,10 +66,17 @@ async function refreshSession() {
 async function signInWithGoogle(callbackURL = window.location.href) {
   await ready;
   if (!auth) throw new Error("Google sign-in is not configured yet.");
-  return auth.signIn.social({
+  const result = await auth.signIn.social({
     provider: "google",
     callbackURL: new URL(callbackURL, window.location.href).href,
+    disableRedirect: true,
   });
+  if (result?.error) {
+    throw new Error(result.error.message || "Google sign-in could not be started.");
+  }
+  const redirect = result?.data?.url;
+  if (!redirect) throw new Error("Google sign-in did not return a redirect.");
+  window.location.assign(redirect);
 }
 
 async function signOut() {
@@ -74,6 +89,7 @@ async function signOut() {
 async function publishBoard(entry) {
   await ready;
   if (!state.user) throw new Error("Sign in with Google to publish a board.");
+  await requireAuthenticatedSession();
 
   const title = String(entry?.puzzle?.title ?? "").trim();
   if (!title || title.length > 80) {
@@ -110,22 +126,16 @@ async function publishBoard(entry) {
   const authorName = String(state.user.name ?? "StarsRemix maker").trim().slice(0, 80)
     || "StarsRemix maker";
 
-  const rows = await dataRequest("/community_boards", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      prefer: "return=representation",
-    },
-    body: JSON.stringify({
-      id,
-      author_name: authorName,
-      title,
-      puzzle,
-      solution,
-      difficulty,
-      fingerprint,
-    }),
-  }, { requireUser: true });
+  const result = await userClient.rpc("starsremix_publish_community_board", {
+    candidate_id: id,
+    candidate_author_name: authorName,
+    candidate_title: title,
+    candidate_puzzle: puzzle,
+    candidate_solution: solution,
+    candidate_difficulty: difficulty,
+    candidate_fingerprint: fingerprint,
+  });
+  const rows = readDataResult(result, "publish");
   const board = toClientBoard(rows?.[0]);
   if (!board) throw new Error("Neon accepted the board but returned an invalid record.");
   return { board };
@@ -134,22 +144,25 @@ async function publishBoard(entry) {
 async function listPublicBoards() {
   await ready;
   if (!configured) return { boards: [] };
-  const query =
-    "?select=id,author_name,puzzle,solution,difficulty,created_at" +
-    "&order=created_at.desc&limit=100";
-  const rows = await dataRequest(`/community_boards${query}`);
+  const result = await publicClient
+    .from("community_boards")
+    .select("id,author_name,puzzle,solution,difficulty,created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  const rows = readDataResult(result, "load");
   return { boards: rows.map(toClientBoard).filter(Boolean) };
 }
 
 async function listMyBoards() {
   await ready;
-  if (!state.user?.id) throw new Error("Sign in with Google to view your boards.");
-  const owner = encodeURIComponent(state.user.id);
-  const query =
-    `?owner_id=eq.${owner}` +
-    "&select=id,author_name,puzzle,solution,difficulty,created_at" +
-    "&order=created_at.desc&limit=25";
-  const rows = await dataRequest(`/community_boards${query}`, {}, { requireUser: true });
+  const user = await requireAuthenticatedSession();
+  const result = await userClient
+    .from("community_boards")
+    .select("id,author_name,puzzle,solution,difficulty,created_at")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(25);
+  const rows = readDataResult(result, "load");
   return { boards: rows.map(toClientBoard).filter(Boolean) };
 }
 
@@ -157,62 +170,70 @@ async function deleteBoard(id) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
     throw new Error("Invalid board ID.");
   }
-  const boardId = encodeURIComponent(id);
-  await dataRequest(`/community_boards?id=eq.${boardId}`, {
-    method: "DELETE",
-    headers: { prefer: "return=minimal" },
-  }, { requireUser: true });
+  await requireAuthenticatedSession();
+  const result = await userClient.rpc("starsremix_delete_community_board", {
+    candidate_id: id,
+  });
+  readDataResult(result, "delete");
   return { deleted: true };
 }
 
-async function dataRequest(path, options = {}, { requireUser = false } = {}) {
-  await ready;
-  if (!configured || !getJWTToken) {
-    throw new Error("Community publishing has not been set up for this site.");
-  }
-  if (requireUser && !state.user) {
-    throw new Error("Sign in with Google to continue.");
-  }
-
-  let token;
+async function requireAuthenticatedSession() {
+  if (!auth) throw new Error("Google sign-in is not configured yet.");
+  let result;
   try {
-    token = await getJWTToken();
+    result = await auth.getSession();
   } catch {
-    throw new Error("Your Neon session could not be verified. Sign out, sign in again, and retry.");
+    throw new Error("Your Google session could not be verified. Sign out, sign in again, and retry.");
   }
-  if (!token) {
-    await refreshSession();
-    throw new Error("Neon could not authorize this request. Sign out, sign in again, and retry.");
+  const user = result?.data?.user ?? null;
+  const token = result?.data?.session?.token;
+  const claims = readJwtClaims(token);
+  if (!user || claims?.role !== "authenticated" || !claims?.sub || claims.sub === "anonymous") {
+    throw new Error(
+      "Google signed you in, but Neon did not issue authenticated database access. Sign out and retry.",
+    );
   }
-
-  const headers = new Headers(options.headers);
-  headers.set("accept", "application/json");
-  headers.set("authorization", `Bearer ${token}`);
-  let response;
-  try {
-    response = await fetch(`${dataApiUrl}${path}`, { ...options, headers });
-  } catch {
-    throw new Error("The community board database could not be reached. Check your connection and retry.");
-  }
-  if (response.status === 401) await refreshSession();
-  return readResponse(response);
+  return user;
 }
 
-async function readResponse(response) {
-  const body = await response.json().catch(() => null);
-  if (response.ok) return body ?? [];
+function readJwtClaims(token) {
+  try {
+    if (typeof token !== "string") return null;
+    const encoded = token.split(".")[1];
+    if (!encoded) return null;
+    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/")
+      .padEnd(Math.ceil(encoded.length / 4) * 4, "=");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
 
-  const code = String(body?.code ?? "");
-  let message = body?.message || body?.details || body?.hint || `Publishing failed (HTTP ${response.status}).`;
-  if (code === "23505") message = "That exact board has already been published.";
-  else if (code === "42501" || response.status === 401 || response.status === 403) {
-    message = "Your account is not allowed to make that change.";
-  } else if (/25 boards/i.test(message)) {
+function readDataResult(result, action) {
+  if (!result?.error) return result?.data ?? [];
+  const code = String(result.error.code ?? "");
+  const status = Number(result.status ?? 0);
+  const serverMessage = result.error.message || result.error.details || result.error.hint || "";
+  let message = serverMessage || `Community board request failed${status ? ` (HTTP ${status})` : ""}.`;
+  if (code === "23505") {
+    message = "That exact board has already been published.";
+  } else if (/25 boards/i.test(serverMessage)) {
     message = "Each player may publish up to 25 boards.";
+  } else if (code === "42501" || status === 401 || status === 403) {
+    const verb = action === "delete"
+      ? "delete boards"
+      : action === "load"
+        ? "load community boards"
+        : "publish boards";
+    message =
+      `Neon rejected your signed-in session's permission to ${verb} ` +
+      `(HTTP ${status || 403}${code ? `, ${code}` : ""}).`;
   }
   const error = new Error(message);
   error.code = code || null;
-  error.status = response.status;
+  error.status = status || null;
+  error.serverMessage = serverMessage || null;
   throw error;
 }
 
