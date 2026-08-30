@@ -16,13 +16,13 @@ const library = JSON.parse(
 );
 
 describe("generated board library", () => {
-  it("contains at least 20 saved, calculable boards per difficulty", () => {
+  it("contains at least 50 saved, calculable boards per difficulty", () => {
     assert.equal(library.version, 1);
     assert.ok(Array.isArray(library.boards));
     for (const difficulty of difficulties) {
       assert.ok(
-        library.boards.filter((entry) => entry.difficulty.label === difficulty).length >= 20,
-        `Expected at least 20 ${difficulty} boards.`,
+        library.boards.filter((entry) => entry.difficulty.label === difficulty).length >= 50,
+        `Expected at least 50 ${difficulty} boards.`,
       );
     }
     assert.equal(

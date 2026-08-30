@@ -78,8 +78,10 @@ describe("browser loading contract", () => {
       assert.doesNotMatch(source, /^\s*import\s/m, `app/${name}.js must not use ES imports`);
       assert.doesNotMatch(source, /^\s*export\s/m, `app/${name}.js must not use ES exports`);
     }
-    assert.match(appView, /StarsRemixHints\.findHint\(gameState\.puzzle, gameState\.progress\.board\)/);
-    assert.doesNotMatch(appView, /StarsRemixHints\.findHint\([^)]*gameState\.solution/);
+    assert.match(appView, /StarsRemixHints\.findSoftHint\(gameState\.puzzle, gameState\.progress\.board, gameState\.solution\)/);
+    assert.match(appView, /data-action="soft-hint"[^>]*>Hint/);
+    assert.doesNotMatch(appView, /data-action="hint"/);
+    assert.match(appView, /data-action="dismiss-soft-hint"/);
     assert.match(appView, /Choose a board/);
     assert.match(appView, /New random/);
     assert.match(appView, /Debug tools/);

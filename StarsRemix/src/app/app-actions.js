@@ -196,7 +196,7 @@ window.addEventListener("keydown", (event) => {
 
   if (key === "h") {
     event.preventDefault();
-    root.querySelector("[data-action='hint']")?.click();
+    root.querySelector("[data-action='soft-hint']")?.click();
   }
 
   if (key === "g") {

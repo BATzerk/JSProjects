@@ -34,33 +34,11 @@ function render() {
           <p class="brand">StarsRemix</p>
           <p class="board-title">${escapeHtml(gameState.puzzle.title)} · ${gameState.puzzle.size}×${gameState.puzzle.size} · ${difficultyProgress ? "Evaluating…" : gameState.analysis.difficultyReport ? escapeHtml(gameState.analysis.difficultyReport.label) : "Unrated"}</p>
         </div>
-        <div class="history-controls" aria-label="Move history and puzzle help">
-          <div class="history-control-group">
-            <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M5 12h8a6 6 0 0 1 6 6" /></svg>
-              <span class="shortcut-key" aria-hidden="true">Z</span>
-            </button>
-            <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
-              <span class="shortcut-key" aria-hidden="true">R</span>
-            </button>
-          </div>
-          <div class="history-control-group">
-            <button class="action-button soft-hint-button" type="button" data-action="soft-hint" title="Soft Hint (G)">Soft Hint<span class="shortcut-key" aria-hidden="true">G</span></button>
-            <button class="action-button hint-button" type="button" data-action="hint" title="Hint (H)">Hint<span class="shortcut-key" aria-hidden="true">H</span></button>
-            <button class="action-button check-button" type="button" data-action="check" title="Check (C)">Check<span class="shortcut-key" aria-hidden="true">C</span></button>
-          </div>
-        </div>
         <div class="top-actions">
           <button class="action-button choose-board-button" type="button" data-action="browse-library">
             <span aria-hidden="true">✦</span> Choose a board
           </button>
           <button class="action-button create-board-button" type="button" data-action="board-editor">Create</button>
-          <button class="icon-button theme-toggle" type="button" data-action="toggle-theme" aria-label="Switch to ${nightMode ? "day" : "night"} mode" title="Switch to ${nightMode ? "day" : "night"} mode" aria-pressed="${nightMode}">
-            ${nightMode
-              ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>'
-              : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z" /></svg>'}
-          </button>
         </div>
       </section>
 
@@ -73,6 +51,25 @@ function render() {
             style="--board-border-width: ${5 / gameState.puzzle.size}cqw; --house-border-width: ${4 / gameState.puzzle.size}cqw; --cell-border-width: ${1.67 / gameState.puzzle.size}cqw"
           >
             ${renderCells(conflictKeys, hintColors, hintUnits, hintPreviewStates, hintAssumption)}
+          </div>
+          <div class="history-controls board-controls" aria-label="Move history and puzzle help">
+            <div class="history-control-group">
+              <button class="icon-button" type="button" aria-label="Undo" title="Undo" data-action="undo" ${undoStack.length === 0 ? "disabled" : ""}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M5 12h8a6 6 0 0 1 6 6" /></svg>
+                <span class="shortcut-key" aria-hidden="true">Z</span>
+              </button>
+              <button class="icon-button" type="button" aria-label="Redo" title="Redo" data-action="redo" ${redoStack.length === 0 ? "disabled" : ""}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 5 5-5 5m4-5h-8a6 6 0 0 0-6 6" /></svg>
+                <span class="shortcut-key" aria-hidden="true">R</span>
+              </button>
+            </div>
+            <div class="history-control-group">
+              <div class="hint-control${currentSoftHint ? " is-active" : ""}">
+                <button class="action-button soft-hint-button" type="button" data-action="soft-hint" title="Hint (H)">Hint<span class="shortcut-key" aria-hidden="true">H</span></button>
+                ${currentSoftHint ? '<button class="hint-dismiss-button" type="button" data-action="dismiss-soft-hint" aria-label="Dismiss hint" title="Dismiss hint">×</button>' : ""}
+              </div>
+              <button class="action-button check-button" type="button" data-action="check" title="Check (C)">Check<span class="shortcut-key" aria-hidden="true">C</span></button>
+            </div>
           </div>
         </div>
 
@@ -91,15 +88,15 @@ function render() {
                 ${currentSoftHint.isSatisfied ? `
                   <div class="soft-hint-success-icon" aria-hidden="true">✓</div>
                   <div>
-                    <p class="hint-kicker">Soft Hint Complete</p>
+                    <p class="hint-kicker">Hint Complete</p>
                     <h2>${escapeHtml(currentSoftHint.hint.title)}</h2>
                     <p class="soft-hint-success-message">That’s exactly the technique.</p>
                   </div>
                 ` : `
-                  <p class="hint-kicker">Soft Hint · ${currentSoftHint.stage + 1} of ${currentSoftHint.hint.stages.length}</p>
+                  <p class="hint-kicker">Hint · ${currentSoftHint.stage + 1} of ${currentSoftHint.hint.stages.length}</p>
                   <h2>${escapeHtml(currentSoftHint.hint.title)}</h2>
                   <p>${formatHintMessage(softHintStage.message)}</p>
-                  <p class="hint-apply-prompt">${currentSoftHint.stage < currentSoftHint.hint.stages.length - 1 ? "Press G again for a little more." : "That's the full hint — the move is still yours."}</p>
+                  <p class="hint-apply-prompt">${currentSoftHint.stage < currentSoftHint.hint.stages.length - 1 ? "Press Hint again for a little more." : "That's the full hint — the move is still yours."}</p>
                 `}
               </div>
             ` : ""}
@@ -143,6 +140,13 @@ function render() {
             </div>
           </details>
           <p class="site-credit">Based on Inkwell's fabulous game, <a href="https://inkwellgames.com/games/stars">Stars</a>. This is a fan-made recreation only made public so Brett's friend Chris Hallberg can play.</p>
+          <div class="bottom-actions">
+            <button class="icon-button theme-toggle" type="button" data-action="toggle-theme" aria-label="Switch to ${nightMode ? "day" : "night"} mode" title="Switch to ${nightMode ? "day" : "night"} mode" aria-pressed="${nightMode}">
+              ${nightMode
+                ? '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>'
+                : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.5 8.5 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z" /></svg>'}
+            </button>
+          </div>
         </div>
       </section>
       ${boardLibraryOpen ? renderBoardLibrary() : ""}
@@ -186,7 +190,7 @@ function render() {
     });
 
     cell.addEventListener("pointerenter", () => {
-      if (!isDraggingMarks) return;
+      if (!isDraggingMarks || window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
       const row = Number(cell.dataset.row);
       const col = Number(cell.dataset.col);
       if (gameState.progress.board[row][col] === "empty") {
@@ -266,25 +270,6 @@ function render() {
   });
   root.querySelector("[data-board-file]")?.addEventListener("change", loadBoardFile);
 
-  root.querySelector("[data-action='hint']")?.addEventListener("click", () => {
-    if (currentHint?.moves?.length) {
-      applyBoard(globalThis.StarsRemixHints.applyHint(gameState.progress.board, currentHint));
-      return;
-    }
-    currentSoftHint = null;
-    currentCheck = null;
-    const mistake = globalThis.StarsRemixHints.findBoardMistake(gameState.puzzle, gameState.progress.board, gameState.solution);
-    if (mistake) {
-      const locationStage = mistake.stages.at(-1);
-      currentHint = { ...mistake, ...locationStage };
-    } else {
-      currentHint = validation.solved
-        ? { kind: "solved", message: "The puzzle is solved — no hint needed!", cells: [] }
-        : globalThis.StarsRemixHints.findHint(gameState.puzzle, gameState.progress.board);
-    }
-    render();
-  });
-
   root.querySelector("[data-action='soft-hint']")?.addEventListener("click", () => {
     currentHint = null;
     currentCheck = null;
@@ -297,6 +282,12 @@ function render() {
         currentSoftHint.hint.stages.length - 1,
       );
     }
+    render();
+  });
+
+  root.querySelector("[data-action='dismiss-soft-hint']")?.addEventListener("click", () => {
+    clearSoftHintSuccessTimers();
+    currentSoftHint = null;
     render();
   });
 
@@ -337,9 +328,14 @@ function renderBoardLibrary() {
   const sourceBoards = boardLibrary.boards.filter(
     (entry) => (entry.source === "community" ? "community" : "built-in") === selectedLibrarySource,
   );
-  const selectedBoards = sourceBoards.filter(
-    ({ difficulty }) => difficulty.label === selectedLibraryDifficulty,
-  );
+  const selectedBoards = sourceBoards
+    .filter(({ difficulty }) => difficulty.label === selectedLibraryDifficulty)
+    .map((entry, index) => ({
+      entry,
+      displayNumber: index + 1,
+      played: getLibraryBoardStatus(entry, progress).kind !== "new",
+    }))
+    .sort((left, right) => Number(left.played) - Number(right.played));
 
   return `
     <div class="library-overlay" role="dialog" aria-modal="true" aria-labelledby="library-title">
@@ -368,12 +364,12 @@ function renderBoardLibrary() {
           }).join("")}
         </nav>
         <div class="library-board-list" aria-label="${selectedLibraryDifficulty} boards">
-          ${selectedBoards.length ? selectedBoards.map((entry, index) => {
+          ${selectedBoards.length ? selectedBoards.map(({ entry, displayNumber }) => {
             const status = getLibraryBoardStatus(entry, progress);
             const isCurrent = entry.puzzle.id === gameState.puzzle.id;
             const displayTitle = entry.source === "community"
               ? entry.puzzle.title
-              : `#${index + 1}`;
+              : `#${displayNumber}`;
             const statusLabel = isCurrent
               ? "Playing"
               : status.kind === "completed"
